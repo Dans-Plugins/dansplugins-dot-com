@@ -1,4 +1,4 @@
-import {Box, Container, Grid, Typography} from '@mui/material'
+import {Box, Container, Grid, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import type {NextPage} from 'next'
 import TopBar from '../components/TopBar'
 import Blurb from '../components/Blurb'
@@ -57,29 +57,65 @@ const PluginSection: React.FC<{ plugins: Plugin[] }> = ({ plugins }) => (
     </Grid>
 )
 
-const MostPopularPlugins: React.FC = () => {
-    const popularPlugins = pluginData.mostPopular
-        .map((id: string) => pluginData.plugins.find(p => p.id === id))
-        .filter((plugin): plugin is NonNullable<typeof plugin> => plugin !== undefined);
+type SortOption = 'popularity' | 'alphabetical';
+
+const PluginsSection: React.FC = () => {
+    const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
+
+    const handleSortChange = (
+        event: React.MouseEvent<HTMLElement>,
+        newSortBy: SortOption | null,
+    ) => {
+        if (newSortBy !== null) {
+            setSortBy(newSortBy);
+        }
+    };
+
+    const getSortedPlugins = (): Plugin[] => {
+        if (sortBy === 'popularity') {
+            // First show most popular plugins in order, then remaining plugins alphabetically
+            const popularPlugins = pluginData.mostPopular
+                .map((id: string) => pluginData.plugins.find(p => p.id === id))
+                .filter((plugin): plugin is NonNullable<typeof plugin> => plugin !== undefined);
+            
+            const remainingPlugins = pluginData.plugins
+                .filter(plugin => !pluginData.mostPopular.includes(plugin.id))
+                .sort((a, b) => a.title.localeCompare(b.title));
+            
+            return [...popularPlugins, ...remainingPlugins];
+        } else {
+            // Sort all plugins alphabetically
+            return [...pluginData.plugins].sort((a, b) => a.title.localeCompare(b.title));
+        }
+    };
 
     return (
         <Box sx={pluginsBoxStyle}>
             <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
-                Most Popular Plugins
+                Plugins
             </Typography>
-            <PluginSection plugins={popularPlugins} />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: 3 }}>
+                <ToggleButtonGroup
+                    value={sortBy}
+                    exclusive
+                    onChange={handleSortChange}
+                    aria-label="sorting option"
+                    size="small"
+                >
+                    <ToggleButton value="popularity" aria-label="sort by popularity">
+                        By Popularity
+                    </ToggleButton>
+                    <ToggleButton value="alphabetical" aria-label="sort alphabetically">
+                        Alphabetical
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+            
+            <PluginSection plugins={getSortedPlugins()} />
         </Box>
-    )
-}
-
-const AllPlugins: React.FC = () => (
-    <Box sx={pluginsBoxStyle}>
-        <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
-            All Plugins
-        </Typography>
-        <PluginSection plugins={pluginData.plugins} />
-    </Box>
-)
+    );
+};
 
 interface HomeProps {
     visits: number;
@@ -105,9 +141,7 @@ const Home: NextPage<HomeProps> = ({ visits, startDate }) => {
             <Container maxWidth="xl" sx={{py: 4}}>
                 <Blurb/>
                 <SectionDivider/>
-                <MostPopularPlugins/>
-                <SectionDivider/>
-                <AllPlugins/>
+                <PluginsSection/>
             </Container>
             <BottomBar
                 version={version}
