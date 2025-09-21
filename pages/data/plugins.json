@@ -75,7 +75,7 @@
     {
       "id": "medieval-factions",
       "title": "Medieval Factions",
-      "description": "Allows players to organize themselves into feudal, diplomatic, lawful groups akin to nations.",
+      "description": "Allows players to organize themselves into feudal, diplomatic, lawful groups akin to nations. Updated via admin panel!",
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Factions",
       "spigotmcLink": "https://www.spigotmc.org/resources/medieval-factions.79941/",
       "bStatsId": "8929"
