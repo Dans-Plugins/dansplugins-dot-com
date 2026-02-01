@@ -67,7 +67,7 @@ const Admin: NextPage = () => {
     const [isNewPlugin, setIsNewPlugin] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [pluginToDelete, setPluginToDelete] = useState<string | null>(null);
-    const version = process.env.NEXT_PUBLIC_VERSION || '0.9.0';
+    const version = process.env.NEXT_PUBLIC_VERSION || 'dev';
 
     useEffect(() => {
         fetchPluginData();
