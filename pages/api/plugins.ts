@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 
 const PLUGINS_FILE = path.join(process.cwd(), 'pages', 'data', 'plugins.json');
@@ -18,11 +18,11 @@ interface PluginData {
     plugins: Plugin[];
 }
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
         // Read and return plugins data
         try {
-            const fileContents = fs.readFileSync(PLUGINS_FILE, 'utf8');
+            const fileContents = await fs.readFile(PLUGINS_FILE, 'utf8');
             const data: PluginData = JSON.parse(fileContents);
             res.status(200).json(data);
         } catch (error) {
@@ -51,7 +51,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             }
             
             // Write to file
-            fs.writeFileSync(PLUGINS_FILE, JSON.stringify(newData, null, 2));
+            await fs.writeFile(PLUGINS_FILE, JSON.stringify(newData, null, 2));
             res.status(200).json({ message: 'Plugins data updated successfully' });
         } catch (error) {
             console.error('Error updating plugins file:', error);

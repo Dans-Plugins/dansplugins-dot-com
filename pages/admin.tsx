@@ -57,8 +57,6 @@ const emptyPlugin: Plugin = {
     bStatsId: ''
 };
 
-const version = require('../package.json').version;
-
 const Admin: NextPage = () => {
     const [pluginData, setPluginData] = useState<PluginData>({ plugins: [], mostPopular: [] });
     const [loading, setLoading] = useState(true);
@@ -67,6 +65,9 @@ const Admin: NextPage = () => {
     const [editingPlugin, setEditingPlugin] = useState<Plugin | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isNewPlugin, setIsNewPlugin] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [pluginToDelete, setPluginToDelete] = useState<string | null>(null);
+    const version = process.env.NEXT_PUBLIC_VERSION || '0.9.0';
 
     useEffect(() => {
         fetchPluginData();
@@ -125,12 +126,27 @@ const Admin: NextPage = () => {
     };
 
     const handleDeletePlugin = (pluginId: string) => {
-        const updatedPlugins = pluginData.plugins.filter(p => p.id !== pluginId);
-        const updatedMostPopular = pluginData.mostPopular.filter(id => id !== pluginId);
+        setPluginToDelete(pluginId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (!pluginToDelete) return;
+        
+        const updatedPlugins = pluginData.plugins.filter(p => p.id !== pluginToDelete);
+        const updatedMostPopular = pluginData.mostPopular.filter(id => id !== pluginToDelete);
         setPluginData({
             plugins: updatedPlugins,
             mostPopular: updatedMostPopular
         });
+        
+        setDeleteConfirmOpen(false);
+        setPluginToDelete(null);
+    };
+
+    const cancelDelete = () => {
+        setDeleteConfirmOpen(false);
+        setPluginToDelete(null);
     };
 
     const handleSavePlugin = () => {
@@ -443,6 +459,24 @@ const Admin: NextPage = () => {
                         </Button>
                         <Button onClick={handleSavePlugin} variant="contained" startIcon={<SaveIcon />}>
                             Save
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Delete Confirmation Dialog */}
+                <Dialog open={deleteConfirmOpen} onClose={cancelDelete}>
+                    <DialogTitle>Confirm Delete</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Are you sure you want to delete this plugin? This action cannot be undone.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={cancelDelete}>
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmDelete} color="error" variant="contained">
+                            Delete
                         </Button>
                     </DialogActions>
                 </Dialog>
