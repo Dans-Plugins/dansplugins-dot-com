@@ -70,8 +70,8 @@ const Blurb: React.FC = () => (
             <InfoCard
                 icon={<GamesIcon sx={infoCardIconSizeStyle}/>}
                 title="Try it Out"
-                content="Join our playtest server at dansplugins.com to experience our plugins in action!"
-                href="https://www.planetminecraft.com/server/dan-s-plugins-community-playtest-server/"
+                content="Clone our playtest server repository and spin it up locally to experience our plugins in action!"
+                href="https://github.com/Dans-Plugins/dpc-mc-server"
             />
         </Grid>
     </Box>
