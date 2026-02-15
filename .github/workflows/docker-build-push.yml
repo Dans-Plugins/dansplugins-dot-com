@@ -42,6 +42,12 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Tag strategy:
+          # - Branch pushes: branch name (e.g., main)
+          # - Pull requests: pr-<number> (build only, not pushed)
+          # - Releases: semver tags (e.g., 0.9.0, 0.9, 0)
+          # - All events: sha-<commit> for traceability
+          # - Main branch: 'latest' tag
           tags: |
             type=ref,event=branch
             type=ref,event=pr

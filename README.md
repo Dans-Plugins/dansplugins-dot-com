@@ -96,7 +96,7 @@ The following tags are available on Docker Hub:
 - `latest` - Latest build from the main branch
 - `main` - Latest build from the main branch
 - `sha-<sha>` - Specific commit SHA (e.g., `sha-abc1234`)
-- `v*.*.*` - Semantic versioned releases (e.g., `v0.9.0`)
+- `0.9.0`, `0.9`, `0` - Semantic versioned releases (without 'v' prefix)
 
 Note: Pull requests trigger builds for validation but images are not pushed to Docker Hub.
 
