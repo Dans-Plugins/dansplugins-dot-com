@@ -19,53 +19,14 @@ interface PluginCardProps {
     serverCount?: number;
 }
 
-async function getServerCount(bStatsId: string) {
-    const functionName = 'getServerCount()';
-    const response = await fetch(
-        'https://bstats.org/api/v1/plugins/' + bStatsId + '/charts/servers/data?maxElements=1'
-    );
-    const data = await response.json();
-    if (!Array.isArray(data)) {
-        console.log(functionName + ' returned data that is not an array');
-        return;
-    }
-    if (data.length < 1) {
-        console.log(functionName + ' returned data that has less than one element');
-        return;
-    }
-    const firstElement = data[0];
-    if (!Array.isArray(firstElement)) {
-        console.log(functionName + ' returned data that has a first element that is not an array');
-        return;
-    }
-    if (firstElement.length < 2) {
-        console.log(functionName + ' returned data that has a first element that has less than 2 elements');
-        return;
-    }
-    const secondElementOfFirstElement = firstElement[1];
-    if (typeof secondElementOfFirstElement !== 'number') {
-        console.log(functionName + ' returned data that has a first element that has a second element that is not a number');
-        return;
-    }
-    return secondElementOfFirstElement;
-}
-
-const PluginCard: React.FC<PluginCardProps> = ({ title, description, githubLink, spigotmcLink, bStatsId, serverCount: initialServerCount }) => {
-    const [serverCount, setServerCount] = React.useState<number | undefined>(initialServerCount);
-
-    React.useEffect(() => {
-        // Only fetch if we don't have a serverCount prop and we have a bStatsId
-        if (initialServerCount === undefined && bStatsId) {
-            const fetchServerCount = async () => {
-                const count = await getServerCount(bStatsId);
-                setServerCount(count);
-            };
-            fetchServerCount();
-        } else {
-            setServerCount(initialServerCount);
-        }
-    }, [bStatsId, initialServerCount]);
-
+const PluginCard: React.FC<PluginCardProps> = ({ 
+    title, 
+    description, 
+    githubLink, 
+    spigotmcLink, 
+    bStatsId, 
+    serverCount 
+}) => {
     return (
         <Card sx={pluginCardStyle}>
             <CardContent sx={pluginCardContentStyle}>

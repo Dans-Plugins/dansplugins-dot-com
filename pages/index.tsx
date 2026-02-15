@@ -6,6 +6,7 @@ import PluginCard from '../components/PluginCard'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
+import { getServerCountsWithRateLimit } from '../utils/bstats';
 
 interface PluginData {
     mostPopular: string[];
@@ -45,30 +46,6 @@ interface PluginWithServerCount extends Plugin {
     serverCount?: number;
 }
 
-async function getServerCount(bStatsId: string): Promise<number | undefined> {
-    try {
-        const response = await fetch(
-            'https://bstats.org/api/v1/plugins/' + bStatsId + '/charts/servers/data?maxElements=1'
-        );
-        const data = await response.json();
-        if (!Array.isArray(data) || data.length < 1) {
-            return undefined;
-        }
-        const firstElement = data[0];
-        if (!Array.isArray(firstElement) || firstElement.length < 2) {
-            return undefined;
-        }
-        const serverCount = firstElement[1];
-        if (typeof serverCount !== 'number') {
-            return undefined;
-        }
-        return serverCount;
-    } catch (error) {
-        console.error('Error fetching server count for bStatsId ' + bStatsId, error);
-        return undefined;
-    }
-}
-
 const PluginSection: React.FC<{ plugins: PluginWithServerCount[] }> = ({ plugins }) => (
     <Grid container {...gridContainerStyle}>
         {plugins.map((plugin) => (
@@ -88,29 +65,12 @@ const PluginSection: React.FC<{ plugins: PluginWithServerCount[] }> = ({ plugins
 
 type SortOption = 'popularity' | 'alphabetical';
 
-const PluginsSection: React.FC = () => {
+interface PluginsSectionProps {
+    initialPlugins: PluginWithServerCount[];
+}
+
+const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
-    const [pluginsWithCounts, setPluginsWithCounts] = React.useState<PluginWithServerCount[]>([]);
-    const [isLoading, setIsLoading] = React.useState(true);
-
-    React.useEffect(() => {
-        const fetchServerCounts = async () => {
-            setIsLoading(true);
-            const pluginsWithServerCounts = await Promise.all(
-                pluginData.plugins.map(async (plugin) => {
-                    if (plugin.bStatsId) {
-                        const serverCount = await getServerCount(plugin.bStatsId);
-                        return { ...plugin, serverCount };
-                    }
-                    return { ...plugin, serverCount: undefined };
-                })
-            );
-            setPluginsWithCounts(pluginsWithServerCounts);
-            setIsLoading(false);
-        };
-
-        fetchServerCounts();
-    }, []);
 
     const handleSortChange = (
         event: React.MouseEvent<HTMLElement>,
@@ -124,23 +84,23 @@ const PluginsSection: React.FC = () => {
     const getSortedPlugins = (): PluginWithServerCount[] => {
         if (sortBy === 'popularity') {
             // Sort by server count (descending), with plugins without counts at the end
-            return [...pluginsWithCounts].sort((a, b) => {
-                const countA = a.serverCount ?? -1;
-                const countB = b.serverCount ?? -1;
+            return [...initialPlugins].sort((a, b) => {
+                const hasCountA = a.serverCount !== undefined;
+                const hasCountB = b.serverCount !== undefined;
                 
                 // If both have counts, sort by count descending
-                if (countA >= 0 && countB >= 0) {
-                    return countB - countA;
+                if (hasCountA && hasCountB) {
+                    return (b.serverCount as number) - (a.serverCount as number);
                 }
                 // If only one has a count, prioritize it
-                if (countA >= 0) return -1;
-                if (countB >= 0) return 1;
+                if (hasCountA) return -1;
+                if (hasCountB) return 1;
                 // If neither has a count, sort alphabetically
                 return a.title.localeCompare(b.title);
             });
         } else {
             // Sort all plugins alphabetically
-            return [...pluginsWithCounts].sort((a, b) => a.title.localeCompare(b.title));
+            return [...initialPlugins].sort((a, b) => a.title.localeCompare(b.title));
         }
     };
 
@@ -167,13 +127,7 @@ const PluginsSection: React.FC = () => {
                 </ToggleButtonGroup>
             </Box>
             
-            {isLoading ? (
-                <Typography variant="body1" sx={{ textAlign: 'center', marginY: 4 }}>
-                    Loading plugin data...
-                </Typography>
-            ) : (
-                <PluginSection plugins={getSortedPlugins()} />
-            )}
+            <PluginSection plugins={getSortedPlugins()} />
         </Box>
     );
 };
@@ -181,28 +135,44 @@ const PluginsSection: React.FC = () => {
 interface HomeProps {
     visits: number;
     startDate: string;
+    pluginsWithCounts: PluginWithServerCount[];
 }
 
 export const getServerSideProps = async () => {
+    // Increment visits and get visit data
     await incrementVisits();
     const data = await getVisits();
+    
+    // Fetch server counts for all plugins with rate limiting
+    const bStatsIds = pluginData.plugins
+        .filter(plugin => plugin.bStatsId)
+        .map(plugin => plugin.bStatsId as string);
+    
+    const serverCountsMap = await getServerCountsWithRateLimit(bStatsIds, 5);
+    
+    // Create plugins with server counts
+    const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
+        ...plugin,
+        serverCount: plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined
+    }));
 
     return {
         props: {
             visits: data.visits,
-            startDate: data.startDate
+            startDate: data.startDate,
+            pluginsWithCounts
         }
     };
 };
 
-const Home: NextPage<HomeProps> = ({ visits, startDate }) => {
+const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => {
     return (
         <Box sx={pageStyle}>
             <TopBar/>
             <Container maxWidth="xl" sx={{py: 4}}>
                 <Blurb/>
                 <SectionDivider/>
-                <PluginsSection/>
+                <PluginsSection initialPlugins={pluginsWithCounts} />
             </Container>
             <BottomBar
                 version={version}
