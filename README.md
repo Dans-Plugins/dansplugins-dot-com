@@ -80,6 +80,47 @@ Alternatively, you could execute the `down.sh` script in the project directory:
 ./down.sh
 ```
 
+## Continuous Deployment
+
+This repository is configured with GitHub Actions for automatic Docker image builds and deployments.
+
+### Docker Image
+
+The Docker image is automatically built and pushed to Docker Hub whenever changes are pushed to the `main` branch or when a new release is published.
+
+**Docker Hub Repository:** `dansplugins/dansplugins-dot-com`
+
+### Available Tags
+
+- `latest` - Latest build from the main branch
+- `main` - Latest build from the main branch
+- `main-<sha>` - Specific commit from main branch
+- `v*.*.*` - Semantic versioned releases (e.g., `v0.9.0`)
+- `pr-*` - Pull request builds (build only, not pushed)
+
+### Pulling the Image
+
+To pull and run the latest Docker image:
+
+```bash
+docker pull dansplugins/dansplugins-dot-com:latest
+docker run -p 3000:3000 dansplugins/dansplugins-dot-com:latest
+```
+
+### GitHub Actions Workflow
+
+The workflow is triggered by:
+- Pushes to the `main` branch
+- Pull requests to the `main` branch (build only, no push)
+- Published releases
+- Manual workflow dispatch
+
+### Setup Requirements
+
+For the CI/CD pipeline to work, the following secrets must be configured in the GitHub repository:
+- `DOCKER_USERNAME` - Docker Hub username
+- `DOCKER_PASSWORD` - Docker Hub password or access token
+
 ## Next.js
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
