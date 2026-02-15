@@ -92,11 +92,13 @@ The Docker image is automatically built and pushed to Docker Hub whenever change
 
 ### Available Tags
 
+The following tags are available on Docker Hub:
 - `latest` - Latest build from the main branch
 - `main` - Latest build from the main branch
 - `main-<sha>` - Specific commit from main branch
 - `v*.*.*` - Semantic versioned releases (e.g., `v0.9.0`)
-- `pr-*` - Pull request builds (build only, not pushed)
+
+Note: Pull requests trigger builds for validation but images are not pushed to Docker Hub.
 
 ### Pulling the Image
 
