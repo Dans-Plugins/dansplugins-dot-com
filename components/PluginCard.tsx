@@ -16,6 +16,7 @@ interface PluginCardProps {
     githubLink: string;
     spigotmcLink?: string;
     bStatsId?: string;
+    serverCount?: number;
 }
 
 async function getServerCount(bStatsId: string) {
@@ -49,20 +50,21 @@ async function getServerCount(bStatsId: string) {
     return secondElementOfFirstElement;
 }
 
-const PluginCard: React.FC<PluginCardProps> = ({ title, description, githubLink, spigotmcLink, bStatsId }) => {
-    const [serverCount, setServerCount] = React.useState<number | undefined>(undefined);
+const PluginCard: React.FC<PluginCardProps> = ({ title, description, githubLink, spigotmcLink, bStatsId, serverCount: initialServerCount }) => {
+    const [serverCount, setServerCount] = React.useState<number | undefined>(initialServerCount);
 
     React.useEffect(() => {
-        if (!bStatsId) {
-            return;
+        // Only fetch if we don't have a serverCount prop and we have a bStatsId
+        if (initialServerCount === undefined && bStatsId) {
+            const fetchServerCount = async () => {
+                const count = await getServerCount(bStatsId);
+                setServerCount(count);
+            };
+            fetchServerCount();
+        } else {
+            setServerCount(initialServerCount);
         }
-        const fetchServerCount = async () => {
-            const serverCount = await getServerCount(bStatsId);
-            setServerCount(serverCount);
-        };
-
-        fetchServerCount();
-    }, [bStatsId]);
+    }, [bStatsId, initialServerCount]);
 
     return (
         <Card sx={pluginCardStyle}>
