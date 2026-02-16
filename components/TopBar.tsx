@@ -48,6 +48,7 @@ const TopBar: React.FC = () => {
 
                     <Box sx={(theme) => flexContainerStyle(theme, {gap: 1})}>
                         <NavButton href="/">Home</NavButton>
+                        <NavButton href="/news">News</NavButton>
                         <NavButton href="/guides">Guides</NavButton>
                         <NavButton href="https://discord.gg/xXtuAQ2">Discord</NavButton>
                         <NavButton href="https://www.patreon.com/danspluginscommunity">Patreon</NavButton>
