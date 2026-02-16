@@ -1,4 +1,4 @@
-import {Box, Container, Grid, Typography} from '@mui/material'
+import {Box, Container, Grid, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import type {NextPage} from 'next'
 import TopBar from '../components/TopBar'
 import Blurb from '../components/Blurb'
@@ -6,6 +6,7 @@ import PluginCard from '../components/PluginCard'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
+import { getServerCountsWithRateLimit } from '../utils/bstats';
 
 interface PluginData {
     mostPopular: string[];
@@ -41,7 +42,11 @@ interface Plugin {
     bStatsId?: string;
 }
 
-const PluginSection: React.FC<{ plugins: Plugin[] }> = ({ plugins }) => (
+interface PluginWithServerCount extends Plugin {
+    serverCount?: number;
+}
+
+const PluginSection: React.FC<{ plugins: PluginWithServerCount[] }> = ({ plugins }) => (
     <Grid container {...gridContainerStyle}>
         {plugins.map((plugin) => (
             <Grid item {...gridItemStyle} key={plugin.id}>
@@ -51,63 +56,123 @@ const PluginSection: React.FC<{ plugins: Plugin[] }> = ({ plugins }) => (
                     githubLink={plugin.githubLink}
                     spigotmcLink={plugin.spigotmcLink}
                     bStatsId={plugin.bStatsId}
+                    serverCount={plugin.serverCount}
                 />
             </Grid>
         ))}
     </Grid>
 )
 
-const MostPopularPlugins: React.FC = () => {
-    const popularPlugins = pluginData.mostPopular
-        .map((id: string) => pluginData.plugins.find(p => p.id === id))
-        .filter((plugin): plugin is NonNullable<typeof plugin> => plugin !== undefined);
+type SortOption = 'popularity' | 'alphabetical';
+
+interface PluginsSectionProps {
+    initialPlugins: PluginWithServerCount[];
+}
+
+const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
+    const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
+
+    const handleSortChange = (
+        event: React.MouseEvent<HTMLElement>,
+        newSortBy: SortOption | null,
+    ) => {
+        if (newSortBy !== null) {
+            setSortBy(newSortBy);
+        }
+    };
+
+    const getSortedPlugins = (): PluginWithServerCount[] => {
+        if (sortBy === 'popularity') {
+            // Sort by server count (descending), with plugins without counts at the end
+            return [...initialPlugins].sort((a, b) => {
+                const hasCountA = a.serverCount !== undefined;
+                const hasCountB = b.serverCount !== undefined;
+                
+                // If both have counts, sort by count descending
+                if (hasCountA && hasCountB) {
+                    return (b.serverCount as number) - (a.serverCount as number);
+                }
+                // If only one has a count, prioritize it
+                if (hasCountA) return -1;
+                if (hasCountB) return 1;
+                // If neither has a count, sort alphabetically
+                return a.title.localeCompare(b.title);
+            });
+        } else {
+            // Sort all plugins alphabetically
+            return [...initialPlugins].sort((a, b) => a.title.localeCompare(b.title));
+        }
+    };
 
     return (
         <Box sx={pluginsBoxStyle}>
             <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
-                Most Popular Plugins
+                Plugins
             </Typography>
-            <PluginSection plugins={popularPlugins} />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: 3 }}>
+                <ToggleButtonGroup
+                    value={sortBy}
+                    exclusive
+                    onChange={handleSortChange}
+                    aria-label="sorting option"
+                    size="small"
+                >
+                    <ToggleButton value="popularity" aria-label="sort by popularity">
+                        By Popularity
+                    </ToggleButton>
+                    <ToggleButton value="alphabetical" aria-label="sort alphabetically">
+                        Alphabetical
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+            
+            <PluginSection plugins={getSortedPlugins()} />
         </Box>
-    )
-}
-
-const AllPlugins: React.FC = () => (
-    <Box sx={pluginsBoxStyle}>
-        <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
-            All Plugins
-        </Typography>
-        <PluginSection plugins={pluginData.plugins} />
-    </Box>
-)
+    );
+};
 
 interface HomeProps {
     visits: number;
     startDate: string;
+    pluginsWithCounts: PluginWithServerCount[];
 }
 
 export const getServerSideProps = async () => {
+    // Increment visits and get visit data
     await incrementVisits();
     const data = await getVisits();
+    
+    // Fetch server counts for all plugins with rate limiting
+    const bStatsIds = pluginData.plugins
+        .filter(plugin => plugin.bStatsId)
+        .map(plugin => plugin.bStatsId as string);
+    
+    const serverCountsMap = await getServerCountsWithRateLimit(bStatsIds, 5);
+    
+    // Create plugins with server counts
+    const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
+        ...plugin,
+        serverCount: plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined
+    }));
 
     return {
         props: {
             visits: data.visits,
-            startDate: data.startDate
+            startDate: data.startDate,
+            pluginsWithCounts
         }
     };
 };
 
-const Home: NextPage<HomeProps> = ({ visits, startDate }) => {
+const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => {
     return (
         <Box sx={pageStyle}>
             <TopBar/>
             <Container maxWidth="xl" sx={{py: 4}}>
                 <Blurb/>
                 <SectionDivider/>
-                <MostPopularPlugins/>
-                <SectionDivider/>
-                <AllPlugins/>
+                <PluginsSection initialPlugins={pluginsWithCounts} />
             </Container>
             <BottomBar
                 version={version}
