@@ -10,7 +10,7 @@ making any changes.
 - Framework: Next.js (React)
 - Build tool: npm
 - Styling: MUI (Material UI) with Emotion
-- Target platform: Node.js web server / static export
+- Target platform: Node.js web server (Next.js server via `next start`)
 
 ## Project Structure
 

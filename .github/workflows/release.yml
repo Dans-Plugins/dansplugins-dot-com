@@ -5,10 +5,10 @@ on:
     types: [ created ]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-attach:
+  build:
     runs-on: ubuntu-latest
 
     steps:

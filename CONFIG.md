@@ -4,7 +4,7 @@ This document describes the configuration options for the Dan's Plugins Communit
 
 ## Environment Variables
 
-The application is configured via environment variables. Copy `.env.local.example` to `.env.local` (if provided) or set the variables directly in your environment.
+The application is configured via environment variables. Create a `.env.local` file in the project root and set the variables described below, or set them directly in your environment.
 
 ### `NEXT_PUBLIC_SITE_URL`
 
@@ -20,9 +20,9 @@ NEXT_PUBLIC_SITE_URL=https://dansplugins.com
 
 ## Docker Compose Configuration
 
-When running the site with Docker Compose, environment variables can be placed in a `.env` file in the project root. The `.env` file is excluded from version control via `.gitignore`.
+When running the site with Docker Compose, environment variables can be placed in a `.env.local` file in the project root. Files matching the `.env*.local` pattern are excluded from version control via `.gitignore`.
 
-**Example `.env`:**
+**Example `.env.local`:**
 
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000

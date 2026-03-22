@@ -13,7 +13,7 @@ Thank you for your interest in contributing to the Dan's Plugins Community Websi
 
 - A GitHub account
 - Git installed on your local machine
-- [Node.js](https://nodejs.org/en/) (v16 or later)
+- [Node.js](https://nodejs.org/en/) (v18 or later, to match CI/Docker)
 - A code editor (e.g. VS Code)
 - A basic understanding of TypeScript and React
 

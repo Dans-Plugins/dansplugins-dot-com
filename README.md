@@ -8,7 +8,7 @@ Dan's Plugins Community Website is a Next.js web application that serves as the 
 
 ### First Time Installation
 
-1. Ensure [Node.js](https://nodejs.org/en/) (v16 or later) is installed on your machine.
+1. Ensure [Node.js](https://nodejs.org/en/) (v18 or later) is installed on your machine.
 2. Clone this repository: `git clone https://github.com/Dans-Plugins/dansplugins-dot-com.git`
 3. Install dependencies:
    ```bash
@@ -93,7 +93,7 @@ A Docker Compose setup is available for local development.
 
     npm run dev
 
-## Authors and Acknowledgement
+## Authors
 
 ### Developers
 
