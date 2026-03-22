@@ -1,97 +1,114 @@
 # Dan's Plugins Community Website
-This is a website intended to serve as a hub for the Dan's Plugins Community.
 
-The website is currently hosted at [https://dansplugins.com](https://dansplugins.com).
+## Description
+
+Dan's Plugins Community Website is a Next.js web application that serves as the central hub for the Dan's Plugins Community. It showcases DPC plugins, provides links to documentation and support resources, and acts as the public face of the community at [https://dansplugins.com](https://dansplugins.com).
+
+## Installation
+
+### First Time Installation
+
+1. Ensure [Node.js](https://nodejs.org/en/) (v18 or later) is installed on your machine.
+2. Clone this repository: `git clone https://github.com/Dans-Plugins/dansplugins-dot-com.git`
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Build the project:
+   ```bash
+   npm run build
+   ```
+5. Start the server:
+   ```bash
+   npm run start
+   ```
+
+The site will be available at `http://localhost:3000`.
+
+### Docker Compose (Recommended for Development)
+
+See the [Development](#development) section below.
+
+## Usage
+
+### Documentation
+
+- [User Guide](USER_GUIDE.md) – Getting started and common scenarios
+- [Configuration Guide](CONFIG.md) – Detailed configuration options
+- [Changelog](CHANGELOG.md) – Release history
+
+### Website
+
+- [dansplugins.com](https://dansplugins.com)
+
+## Support
+
+You can find the support Discord server [here](https://discord.gg/xXtuAQ2).
+
+### Experiencing a bug?
+
+Please fill out a bug report [here](https://github.com/Dans-Plugins/dansplugins-dot-com/issues/new).
+
+- [Known Bugs](https://github.com/Dans-Plugins/dansplugins-dot-com/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
 ## Contributing
-If you would like to contribute to the website, you can do so by forking the repository and submitting a pull request. If you are not familiar with how to do this, you can follow the steps below:
-1. Fork the repository
-2. Clone the repository to your local machine
-3. Make your changes
-4. Commit your changes
-5. Push your changes to your fork
-6. Submit a pull request
 
-## How to compile & run the project
-### Compile Manually
-To compile the project, you will need to have [Node.js](https://nodejs.org/en/) installed. Once you have Node.js installed, you can run the following commands in the project directory:
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [Notes for Developers](https://github.com/Dans-Plugins/dansplugins-dot-com/wiki)
 
-```bash
-npm install
-npm run build
-```
+## Testing
 
-### Run Manually
-Once the project is compiled, you can run the project by running the following command in the project directory:
+### Lint
 
-```bash
-npm run start
-```
+Linux:
 
-### `build_and_run.sh` Script
-Alternatively, you could execute the `build_and_run.sh` script in the project directory:
+    npm run lint
 
-```bash
-./build_and_run.sh
-```
+Windows:
 
-This script will compile the project and then run it.
+    npm run lint
 
-### Docker
-#### Start
-The website can be run in a Docker container. To do this, you can run the following commands in the project directory:
+If you see no errors, the lint check has passed.
 
-```bash
-docker build -t dpc-website .
-docker run -p 3000:3000 dpc-website
-```
+## Development
 
-#### Stop
-To stop the Docker container, you can run the following command in the project directory:
+### Test Server with Hot-Reloading
 
-```bash
-docker stop dpc-website
-```
+A Docker Compose setup is available for local development.
 
-### Docker Compose
-#### Start
-The website can also be run in a Docker container using Docker Compose. To do this, you can run the following command in the project directory:
+#### Setup
 
-```bash
-docker-compose up
-```
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
+2. Start the development server:
+   ```bash
+   ./up.sh
+   ```
+   The site will be accessible at `http://localhost:3000`.
 
-Alternatively, you could execute the `up.sh` script in the project directory:
+#### Stopping the Server
 
-```bash
-./up.sh
-```
+    ./down.sh
 
-#### Stop
-To stop the Docker container, you can run the following command in the project directory:
+#### Manual npm Dev Server
 
-```bash
-docker-compose down
-```
+    npm run dev
 
-Alternatively, you could execute the `down.sh` script in the project directory:
+## Authors
 
-```bash
-./down.sh
-```
+### Developers
 
-## Next.js
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+| Name | Main Contributions |
+|------|--------------------|
+| Dans | Project founder and lead developer |
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This project is licensed under the [MIT License](LICENSE).
 
-## 📄 License
+You are free to use, modify, and distribute this software, provided that the original copyright and license notice are included.
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+See the [LICENSE](LICENSE) file for the full text.
 
-### Why MIT?
-We chose the MIT License because it’s **simple, permissive, and widely used**. It allows anyone to use, modify, and distribute the code — even in proprietary projects — as long as the original copyright and license notice are included.  
-This helps maximize **adoption**, **collaboration**, and **contribution** by keeping barriers low while still ensuring attribution.
+## Project Status
+
+This project is in active development.
