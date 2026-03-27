@@ -31,7 +31,7 @@ services:
       DB_NAME: dpc
       DB_USERNAME: dpc
       DB_PASSWORD: dpc
-      DPC_API_KEY: ${DPC_API_KEY:-changeme}
+      DPC_API_KEY: ${DPC_API_KEY:?DPC_API_KEY must be set}
     depends_on:
       - dpc-db
     restart: always

@@ -14,7 +14,7 @@ public class ApiKeyConfig {
     public void validateApiKey() {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
-                    "DPC_API_KEY environment variable must be set. "
+                    "`dpc.api.key` must be configured (e.g., via DPC_API_KEY environment variable). "
                     + "The API will not start without a configured API key.");
         }
     }

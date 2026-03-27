@@ -29,6 +29,7 @@ public class Faction {
     @Column(name = "member_count", nullable = false)
     private int memberCount;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "created_at", nullable = false, updatable = false)

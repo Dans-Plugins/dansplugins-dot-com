@@ -1,5 +1,5 @@
 CREATE TABLE factions (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          UUID PRIMARY KEY,
     name        VARCHAR(255)    NOT NULL,
     server_id   VARCHAR(255)    NOT NULL,
     member_count INTEGER        NOT NULL DEFAULT 0,

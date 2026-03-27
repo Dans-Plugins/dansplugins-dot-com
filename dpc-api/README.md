@@ -13,7 +13,7 @@ Spring Boot back end for the DPC (Dan's Plugins Community) website providing a R
 The easiest way to run the API locally is with Docker Compose from the **repository root**:
 
 ```bash
-docker compose up --build
+DPC_API_KEY=my-secret-key docker compose up --build
 ```
 
 This starts:
