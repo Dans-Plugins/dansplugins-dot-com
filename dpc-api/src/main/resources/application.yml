@@ -15,4 +15,4 @@ server:
 
 dpc:
   api:
-    key: ${DPC_API_KEY:changeme}
+    key: ${DPC_API_KEY:}

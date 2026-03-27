@@ -47,7 +47,7 @@ Configuration is managed via environment variables:
 | `DB_NAME` | `dpc` | Database name |
 | `DB_USERNAME` | `dpc` | Database username |
 | `DB_PASSWORD` | `dpc` | Database password |
-| `DPC_API_KEY` | `changeme` | API key for write endpoints |
+| `DPC_API_KEY` | *(required)* | API key for write endpoints |
 
 ## Database Migrations
 
