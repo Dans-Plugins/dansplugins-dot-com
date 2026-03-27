@@ -42,3 +42,8 @@ yarn-error.log*
 
 #xml
 *.xml
+!dpc-api/pom.xml
+
+# Java / Maven
+dpc-api/target/
+dpc-api/.mvn/wrapper/maven-wrapper.jar

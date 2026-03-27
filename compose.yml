@@ -8,3 +8,33 @@ services:
       - ./node_modules:/app/node_modules
       - ./data:/app/data
     restart: always
+
+  dpc-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dpc
+      POSTGRES_USER: dpc
+      POSTGRES_PASSWORD: dpc
+    ports:
+      - "5432:5432"
+    volumes:
+      - dpc-db-data:/var/lib/postgresql/data
+    restart: always
+
+  dpc-api:
+    build: ./dpc-api
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: dpc-db
+      DB_PORT: 5432
+      DB_NAME: dpc
+      DB_USERNAME: dpc
+      DB_PASSWORD: dpc
+      DPC_API_KEY: ${DPC_API_KEY:-changeme}
+    depends_on:
+      - dpc-db
+    restart: always
+
+volumes:
+  dpc-db-data:
