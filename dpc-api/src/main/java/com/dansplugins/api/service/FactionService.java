@@ -4,11 +4,13 @@ import com.dansplugins.api.dto.FactionRequest;
 import com.dansplugins.api.dto.FactionResponse;
 import com.dansplugins.api.entity.Faction;
 import com.dansplugins.api.repository.FactionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,13 +19,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FactionService {
 
     private final FactionRepository factionRepository;
-
-    public FactionService(FactionRepository factionRepository) {
-        this.factionRepository = factionRepository;
-    }
 
     @Transactional
     public List<FactionResponse> syncFactions(List<FactionRequest> requests) {
@@ -31,8 +30,14 @@ public class FactionService {
             return List.of();
         }
 
-        // Group requests by serverId to enable bulk fetching
-        Map<String, List<FactionRequest>> byServer = requests.stream()
+        // De-duplicate: last-write-wins for same (serverId, name) within a single payload
+        Map<String, FactionRequest> deduped = new LinkedHashMap<>();
+        for (FactionRequest req : requests) {
+            deduped.put(req.serverId() + "\0" + req.name(), req);
+        }
+
+        // Group de-duplicated requests by serverId for bulk fetching
+        Map<String, List<FactionRequest>> byServer = deduped.values().stream()
                 .collect(Collectors.groupingBy(FactionRequest::serverId));
 
         List<Faction> results = byServer.entrySet().stream()

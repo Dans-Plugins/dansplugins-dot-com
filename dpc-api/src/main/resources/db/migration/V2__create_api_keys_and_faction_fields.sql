@@ -5,7 +5,5 @@ CREATE TABLE api_keys (
     created_at  TIMESTAMPTZ     NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_api_keys_key_hash ON api_keys (key_hash);
-
 ALTER TABLE factions ADD COLUMN server_ip    VARCHAR(255);
 ALTER TABLE factions ADD COLUMN discord_link VARCHAR(255);

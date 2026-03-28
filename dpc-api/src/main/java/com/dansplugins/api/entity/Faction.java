@@ -9,6 +9,9 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,10 +20,14 @@ import java.util.UUID;
 @Table(name = "factions", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"name", "server_id"})
 })
+@Getter
+@Setter
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class Faction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(lombok.AccessLevel.NONE)
     private UUID id;
 
     @Column(nullable = false)
@@ -42,13 +49,11 @@ public class Faction {
     private String discordLink;
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    protected Faction() {
-    }
 
     public Faction(String name, String serverId, int memberCount, String description,
                    String serverIp, String discordLink) {
@@ -70,69 +75,5 @@ public class Faction {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
-    }
-
-    public int getMemberCount() {
-        return memberCount;
-    }
-
-    public void setMemberCount(int memberCount) {
-        this.memberCount = memberCount;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getServerIp() {
-        return serverIp;
-    }
-
-    public void setServerIp(String serverIp) {
-        this.serverIp = serverIp;
-    }
-
-    public String getDiscordLink() {
-        return discordLink;
-    }
-
-    public void setDiscordLink(String discordLink) {
-        this.discordLink = discordLink;
     }
 }

@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     private static final String API_KEY_HEADER = "X-API-Key";
@@ -25,10 +27,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     );
 
     private final ApiKeyService apiKeyService;
-
-    public ApiKeyAuthFilter(ApiKeyService apiKeyService) {
-        this.apiKeyService = apiKeyService;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

@@ -33,7 +33,7 @@ This starts:
 2. Build and run the API:
    ```bash
    cd dpc-api
-   ./mvnw spring-boot:run
+   DB_USERNAME=dpc DB_PASSWORD=dpc ./mvnw spring-boot:run
    ```
 
 ## Configuration
@@ -45,8 +45,8 @@ Configuration is managed via environment variables:
 | `DB_HOST` | `localhost` | PostgreSQL hostname |
 | `DB_PORT` | `5432` | PostgreSQL port |
 | `DB_NAME` | `dpc` | Database name |
-| `DB_USERNAME` | `dpc` | Database username |
-| `DB_PASSWORD` | `dpc` | Database password |
+| `DB_USERNAME` | *(required)* | Database username |
+| `DB_PASSWORD` | *(required)* | Database password |
 
 ## Database Migrations
 
@@ -136,6 +136,14 @@ cd dpc-api
 ```
 
 Tests use an embedded H2 database so no external services are needed.
+
+## API Documentation
+
+OpenAPI documentation is auto-generated via [springdoc-openapi](https://springdoc.org/). Once the API is running:
+
+- **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+- **OpenAPI YAML**: [http://localhost:8080/v3/api-docs.yaml](http://localhost:8080/v3/api-docs.yaml)
 
 ## Building the JAR
 

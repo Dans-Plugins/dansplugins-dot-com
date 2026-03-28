@@ -2,6 +2,7 @@ package com.dansplugins.api.service;
 
 import com.dansplugins.api.entity.ApiKey;
 import com.dansplugins.api.repository.ApiKeyRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,13 +13,10 @@ import java.util.HexFormat;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
-
-    public ApiKeyService(ApiKeyRepository apiKeyRepository) {
-        this.apiKeyRepository = apiKeyRepository;
-    }
 
     @Transactional
     public String register(String serverName) {

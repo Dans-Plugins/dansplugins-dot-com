@@ -4,7 +4,6 @@ import com.dansplugins.api.entity.Faction;
 import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.repository.FactionRepository;
 import com.dansplugins.api.service.ApiKeyService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +27,6 @@ class FactionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private FactionRepository factionRepository;
