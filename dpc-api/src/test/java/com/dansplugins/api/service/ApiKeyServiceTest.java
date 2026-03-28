@@ -1,6 +1,7 @@
 package com.dansplugins.api.service;
 
 import com.dansplugins.api.repository.ApiKeyRepository;
+import com.dansplugins.api.util.HashUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +24,7 @@ class ApiKeyServiceTest {
     @Test
     void isValidKey_withMatchingHash_returnsTrue() {
         String rawKey = "test-api-key";
-        String expectedHash = apiKeyService.sha256(rawKey);
+        String expectedHash = HashUtil.sha256(rawKey);
 
         when(apiKeyRepository.existsByKeyHash(expectedHash)).thenReturn(true);
 
@@ -40,15 +41,15 @@ class ApiKeyServiceTest {
     @Test
     void isValidKey_hashIsDeterministic() {
         String rawKey = "test-key-123";
-        String hash1 = apiKeyService.sha256(rawKey);
-        String hash2 = apiKeyService.sha256(rawKey);
+        String hash1 = HashUtil.sha256(rawKey);
+        String hash2 = HashUtil.sha256(rawKey);
 
         assertThat(hash1).isEqualTo(hash2);
     }
 
     @Test
     void sha256_producesValidHexHash() {
-        String hash = apiKeyService.sha256("test");
+        String hash = HashUtil.sha256("test");
 
         // SHA-256 produces a 64-char hex string
         assertThat(hash).hasSize(64);
@@ -57,8 +58,8 @@ class ApiKeyServiceTest {
 
     @Test
     void sha256_differentInputsProduceDifferentHashes() {
-        String hash1 = apiKeyService.sha256("key-1");
-        String hash2 = apiKeyService.sha256("key-2");
+        String hash1 = HashUtil.sha256("key-1");
+        String hash2 = HashUtil.sha256("key-2");
 
         assertThat(hash1).isNotEqualTo(hash2);
     }

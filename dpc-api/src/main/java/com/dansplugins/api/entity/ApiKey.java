@@ -35,8 +35,8 @@ public class ApiKey {
     @Column(name = "server_name", nullable = false)
     private String serverName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     private Account owner;
 
     @Column(name = "created_at", nullable = false, updatable = false)

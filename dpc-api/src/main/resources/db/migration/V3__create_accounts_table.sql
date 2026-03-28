@@ -5,5 +5,5 @@ CREATE TABLE accounts (
     created_at    TIMESTAMPTZ     NOT NULL DEFAULT now()
 );
 
-ALTER TABLE api_keys ADD COLUMN owner_id UUID REFERENCES accounts(id);
+ALTER TABLE api_keys ADD COLUMN owner_id UUID NOT NULL REFERENCES accounts(id);
 CREATE INDEX idx_api_keys_owner_id ON api_keys (owner_id);

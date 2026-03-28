@@ -23,6 +23,11 @@ public class JwtService {
     public JwtService(
             @Value("${dpc.jwt.secret}") String secret,
             @Value("${dpc.jwt.expiration:24h}") Duration expiration) {
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "dpc.jwt.secret must be at least 32 bytes for HMAC-SHA256. "
+                            + "Current length: " + secret.getBytes(StandardCharsets.UTF_8).length + " bytes.");
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = expiration;
     }

@@ -48,14 +48,10 @@ public class AccountController {
     @ApiResponse(responseCode = "201", description = "Account created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request or username already taken")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody AccountRegisterRequest request) {
-        try {
-            accountService.register(request.username(), request.password());
-            String token = jwtService.generateToken(request.username());
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new LoginResponse(token, request.username()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        accountService.register(request.username(), request.password());
+        String token = jwtService.generateToken(request.username());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new LoginResponse(token, request.username()));
     }
 
     @PostMapping("/login")

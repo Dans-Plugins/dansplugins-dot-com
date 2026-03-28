@@ -67,6 +67,9 @@ const AccountPage: NextPage = () => {
                 setToken(null)
                 localStorage.removeItem('dpc-token')
                 setError('Session expired. Please log in again.')
+            } else {
+                setProfile(null)
+                setError(`Failed to load profile (HTTP ${res.status}).`)
             }
         } catch {
             setError('Failed to fetch profile.')
@@ -179,10 +182,14 @@ const AccountPage: NextPage = () => {
         }
     }
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text)
-        setSuccess('Copied to clipboard!')
-        setTimeout(() => setSuccess(null), 2000)
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text)
+            setSuccess('Copied to clipboard!')
+            setTimeout(() => setSuccess(null), 2000)
+        } catch {
+            setError('Failed to copy — please select and copy the key manually.')
+        }
     }
 
     return (
