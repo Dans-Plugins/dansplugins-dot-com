@@ -25,6 +25,11 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             HttpMethod.PATCH.name(),
             HttpMethod.DELETE.name()
     );
+    private static final Set<String> EXEMPT_SUFFIXES = Set.of(
+            "/api/v1/register",
+            "/api/v1/accounts/register",
+            "/api/v1/accounts/login"
+    );
 
     private final ApiKeyService apiKeyService;
 
@@ -36,8 +41,19 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
-        String registerPath = contextPath + "/api/v1/register";
-        if (registerPath.equals(requestUri) || (registerPath + "/").equals(requestUri)) {
+
+        // Skip auth for exempt paths
+        for (String suffix : EXEMPT_SUFFIXES) {
+            String path = contextPath + suffix;
+            if (path.equals(requestUri) || (path + "/").equals(requestUri)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
+
+        // Skip auth for account management endpoints (handled by JWT)
+        String accountsPath = contextPath + "/api/v1/accounts/";
+        if (requestUri.startsWith(accountsPath)) {
             filterChain.doFilter(request, response);
             return;
         }

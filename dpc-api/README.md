@@ -13,7 +13,7 @@ Spring Boot back end for the DPC (Dan's Plugins Community) website providing a R
 The easiest way to run the API locally is with Docker Compose from the **repository root**:
 
 ```bash
-docker compose up --build
+JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
 This starts:
@@ -33,7 +33,7 @@ This starts:
 2. Build and run the API:
    ```bash
    cd dpc-api
-   DB_USERNAME=dpc DB_PASSWORD=dpc ./mvnw spring-boot:run
+   DB_USERNAME=dpc DB_PASSWORD=dpc JWT_SECRET="your-secret-key-at-least-32-bytes-long" ./mvnw spring-boot:run
    ```
 
 ## Configuration
@@ -47,6 +47,8 @@ Configuration is managed via environment variables:
 | `DB_NAME` | `dpc` | Database name |
 | `DB_USERNAME` | *(required)* | Database username |
 | `DB_PASSWORD` | *(required)* | Database password |
+| `JWT_SECRET` | *(required)* | Secret key for JWT signing (min 32 bytes) |
+| `JWT_EXPIRATION` | `24h` | JWT token expiration duration |
 
 ## Database Migrations
 
@@ -54,17 +56,46 @@ Schemas are managed by [Flyway](https://flywaydb.org/). Migration scripts live i
 
 ## API Endpoints
 
-### Registration
+### Account Management
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/v1/register` | Public | Register for an API key |
+| `POST` | `/api/v1/accounts/register` | Public | Create an account |
+| `POST` | `/api/v1/accounts/login` | Public | Login and get JWT token |
+| `GET` | `/api/v1/accounts/me` | JWT | Get account profile and API keys |
+| `POST` | `/api/v1/accounts/me/api-keys` | JWT | Create a new API key |
+| `DELETE` | `/api/v1/accounts/me/api-keys/{id}` | JWT | Delete an API key |
 
-#### Register for an API key
+#### Register an account
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/register \
+curl -X POST http://localhost:8080/api/v1/accounts/register \
   -H "Content-Type: application/json" \
+  -d '{ "username": "myserver", "password": "secure-pass-123" }'
+```
+
+Response:
+```json
+{
+  "token": "<jwt-token>",
+  "username": "myserver"
+}
+```
+
+#### Login
+
+```bash
+curl -X POST http://localhost:8080/api/v1/accounts/login \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "myserver", "password": "secure-pass-123" }'
+```
+
+#### Create an API key (requires JWT)
+
+```bash
+curl -X POST http://localhost:8080/api/v1/accounts/me/api-keys \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <jwt-token>" \
   -d '{ "serverName": "my-survival-server" }'
 ```
 
@@ -77,6 +108,14 @@ Response:
 ```
 
 Save the returned `apiKey` — it is shown only once and stored as a SHA-256 hash.
+
+### Legacy Registration
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/register` | Public | Register for an API key (no account) |
+
+The legacy endpoint still works for backwards compatibility with existing plugins.
 
 ### Factions
 
@@ -120,13 +159,23 @@ curl http://localhost:8080/api/v1/factions/<faction-uuid>
 
 ## Plugin Authentication Flow
 
-Server operators who want to publish data from their Minecraft plugins (e.g. Medieval Factions) need an API key.
+### With Account (Recommended)
+
+Minecraft plugins can register and manage API keys programmatically:
+
+1. The plugin registers an account: `POST /api/v1/accounts/register` with `{ "username": "...", "password": "..." }`.
+2. The API returns a JWT token.
+3. The plugin creates an API key: `POST /api/v1/accounts/me/api-keys` with the JWT token and `{ "serverName": "..." }`.
+4. The API returns a one-time API key.
+5. The plugin stores the API key and uses it for write requests via the `X-API-Key` header.
+
+Alternatively, server operators can manage keys from the website UI at `/account`.
+
+### Without Account (Legacy)
 
 1. The operator registers by calling `POST /api/v1/register` with their server name.
-2. The API returns a one-time API key (stored as a SHA-256 hash on the server side).
-3. The operator configures the key in their plugin (e.g. `dpc-api.key` in Medieval Factions `config.yml`).
-4. The plugin sends write requests with the `X-API-Key` header.
-5. `GET` endpoints are public and require no authentication.
+2. The API returns a one-time API key.
+3. The operator configures the key in their plugin.
 
 ## Running Tests
 

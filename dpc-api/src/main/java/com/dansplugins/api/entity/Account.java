@@ -2,12 +2,10 @@ package com.dansplugins.api.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -15,43 +13,38 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "api_keys")
+@Table(name = "accounts")
 @Getter
 @Setter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-public class ApiKey {
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Setter(lombok.AccessLevel.NONE)
     private UUID id;
 
-    @Column(name = "key_hash", nullable = false, unique = true, length = 64)
-    private String keyHash;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-    @Column(name = "server_name", nullable = false)
-    private String serverName;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
-    private Account owner;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;
 
-    public ApiKey(String keyHash, String serverName) {
-        this.keyHash = keyHash;
-        this.serverName = serverName;
-    }
+    @OneToMany(mappedBy = "owner")
+    private List<ApiKey> apiKeys = new ArrayList<>();
 
-    public ApiKey(String keyHash, String serverName, Account owner) {
-        this.keyHash = keyHash;
-        this.serverName = serverName;
-        this.owner = owner;
+    public Account(String username, String passwordHash) {
+        this.username = username;
+        this.passwordHash = passwordHash;
     }
 
     @PrePersist
