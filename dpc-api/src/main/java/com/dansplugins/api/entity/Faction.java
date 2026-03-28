@@ -32,6 +32,12 @@ public class Faction {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "server_ip")
+    private String serverIp;
+
+    @Column(name = "discord_link")
+    private String discordLink;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -41,11 +47,14 @@ public class Faction {
     protected Faction() {
     }
 
-    public Faction(String name, String serverId, int memberCount, String description) {
+    public Faction(String name, String serverId, int memberCount, String description,
+                   String serverIp, String discordLink) {
         this.name = name;
         this.serverId = serverId;
         this.memberCount = memberCount;
         this.description = description;
+        this.serverIp = serverIp;
+        this.discordLink = discordLink;
     }
 
     @PrePersist
@@ -106,5 +115,21 @@ public class Faction {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getServerIp() {
+        return serverIp;
+    }
+
+    public void setServerIp(String serverIp) {
+        this.serverIp = serverIp;
+    }
+
+    public String getDiscordLink() {
+        return discordLink;
+    }
+
+    public void setDiscordLink(String discordLink) {
+        this.discordLink = discordLink;
     }
 }

@@ -15,6 +15,10 @@ public record FactionRequest(
         @Min(value = 0, message = "Member count must be zero or positive")
         Integer memberCount,
 
-        String description
+        String description,
+
+        String serverIp,
+
+        String discordLink
 ) {
 }

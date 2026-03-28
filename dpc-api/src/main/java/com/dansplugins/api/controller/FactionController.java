@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,9 +29,10 @@ public class FactionController {
     }
 
     @PostMapping
-    public ResponseEntity<FactionResponse> createFaction(@Valid @RequestBody FactionRequest request) {
-        FactionResponse response = factionService.createFaction(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<List<FactionResponse>> syncFactions(
+            @Valid @RequestBody List<FactionRequest> requests) {
+        List<FactionResponse> responses = factionService.syncFactions(requests);
+        return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
     @GetMapping

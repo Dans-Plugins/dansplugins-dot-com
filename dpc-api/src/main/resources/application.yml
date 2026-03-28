@@ -17,7 +17,3 @@ spring:
 
 server:
   port: 8080
-
-dpc:
-  api:
-    key: ${DPC_API_KEY:}

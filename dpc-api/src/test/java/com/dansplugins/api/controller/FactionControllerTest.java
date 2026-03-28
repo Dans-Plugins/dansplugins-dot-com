@@ -1,7 +1,9 @@
 package com.dansplugins.api.controller;
 
 import com.dansplugins.api.entity.Faction;
+import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.repository.FactionRepository;
+import com.dansplugins.api.service.ApiKeyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class FactionControllerTest {
 
-    private static final String API_KEY = "test-api-key";
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -35,41 +35,123 @@ class FactionControllerTest {
     @Autowired
     private FactionRepository factionRepository;
 
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
+
+    @Autowired
+    private ApiKeyService apiKeyService;
+
+    private String apiKey;
+
     @BeforeEach
     void setUp() {
         factionRepository.deleteAll();
+        apiKeyRepository.deleteAll();
+        apiKey = apiKeyService.register("test-server");
     }
 
     @Test
-    void createFaction_withValidApiKey_returnsCreated() throws Exception {
+    void syncFactions_withValidApiKey_returnsOk() throws Exception {
         String body = """
-                {
-                    "name": "The Knights",
-                    "serverId": "server-1",
-                    "memberCount": 10,
-                    "description": "A noble faction"
-                }
+                [
+                    {
+                        "name": "The Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10,
+                        "description": "A noble faction"
+                    }
+                ]
                 """;
 
         mockMvc.perform(post("/api/v1/factions")
-                        .header("X-API-Key", API_KEY)
+                        .header("X-API-Key", apiKey)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name", is("The Knights")))
-                .andExpect(jsonPath("$.serverId", is("server-1")))
-                .andExpect(jsonPath("$.memberCount", is(10)))
-                .andExpect(jsonPath("$.id").exists());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].name", is("The Knights")))
+                .andExpect(jsonPath("$[0].serverId", is("server-1")))
+                .andExpect(jsonPath("$[0].memberCount", is(10)))
+                .andExpect(jsonPath("$[0].id").exists());
     }
 
     @Test
-    void createFaction_withoutApiKey_returnsUnauthorized() throws Exception {
+    void syncFactions_withOptionalFields_returnsOk() throws Exception {
         String body = """
-                {
-                    "name": "The Knights",
-                    "serverId": "server-1",
-                    "memberCount": 10
-                }
+                [
+                    {
+                        "name": "The Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10,
+                        "description": "A noble faction",
+                        "serverIp": "192.168.1.1",
+                        "discordLink": "https://discord.gg/test"
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].serverIp", is("192.168.1.1")))
+                .andExpect(jsonPath("$[0].discordLink", is("https://discord.gg/test")));
+    }
+
+    @Test
+    void syncFactions_upsertExistingFaction() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "The Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10,
+                        "description": "Original"
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        String updatedBody = """
+                [
+                    {
+                        "name": "The Knights",
+                        "serverId": "server-1",
+                        "memberCount": 25,
+                        "description": "Updated"
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatedBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].memberCount", is(25)))
+                .andExpect(jsonPath("$[0].description", is("Updated")));
+
+        mockMvc.perform(get("/api/v1/factions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(1)));
+    }
+
+    @Test
+    void syncFactions_withoutApiKey_returnsUnauthorized() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "The Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    }
+                ]
                 """;
 
         mockMvc.perform(post("/api/v1/factions")
@@ -79,13 +161,15 @@ class FactionControllerTest {
     }
 
     @Test
-    void createFaction_withInvalidApiKey_returnsUnauthorized() throws Exception {
+    void syncFactions_withInvalidApiKey_returnsUnauthorized() throws Exception {
         String body = """
-                {
-                    "name": "The Knights",
-                    "serverId": "server-1",
-                    "memberCount": 10
-                }
+                [
+                    {
+                        "name": "The Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    }
+                ]
                 """;
 
         mockMvc.perform(post("/api/v1/factions")
@@ -96,25 +180,9 @@ class FactionControllerTest {
     }
 
     @Test
-    void createFaction_withMissingName_returnsBadRequest() throws Exception {
-        String body = """
-                {
-                    "serverId": "server-1",
-                    "memberCount": 10
-                }
-                """;
-
-        mockMvc.perform(post("/api/v1/factions")
-                        .header("X-API-Key", API_KEY)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getAllFactions_returnsPagedResults() throws Exception {
-        factionRepository.save(new Faction("Faction A", "server-1", 5, null));
-        factionRepository.save(new Faction("Faction B", "server-2", 8, "Description B"));
+        factionRepository.save(new Faction("Faction A", "server-1", 5, null, null, null));
+        factionRepository.save(new Faction("Faction B", "server-2", 8, "Description B", null, null));
 
         mockMvc.perform(get("/api/v1/factions")
                         .param("page", "0")
@@ -132,7 +200,8 @@ class FactionControllerTest {
 
     @Test
     void getFactionById_existingFaction_returnsFaction() throws Exception {
-        Faction saved = factionRepository.save(new Faction("Test Faction", "server-1", 3, "Desc"));
+        Faction saved = factionRepository.save(
+                new Faction("Test Faction", "server-1", 3, "Desc", null, null));
 
         mockMvc.perform(get("/api/v1/factions/" + saved.getId()))
                 .andExpect(status().isOk())

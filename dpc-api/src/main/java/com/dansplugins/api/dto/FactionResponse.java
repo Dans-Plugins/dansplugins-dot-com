@@ -11,6 +11,8 @@ public record FactionResponse(
         String serverId,
         int memberCount,
         String description,
+        String serverIp,
+        String discordLink,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -21,6 +23,8 @@ public record FactionResponse(
                 faction.getServerId(),
                 faction.getMemberCount(),
                 faction.getDescription(),
+                faction.getServerIp(),
+                faction.getDiscordLink(),
                 faction.getCreatedAt(),
                 faction.getUpdatedAt()
         );

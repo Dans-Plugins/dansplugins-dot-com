@@ -1,18 +1,16 @@
 package com.dansplugins.api.filter;
 
+import com.dansplugins.api.service.ApiKeyService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.Set;
 
 @Component
@@ -26,10 +24,10 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             HttpMethod.DELETE.name()
     );
 
-    private final String apiKey;
+    private final ApiKeyService apiKeyService;
 
-    public ApiKeyAuthFilter(@Value("${dpc.api.key}") String apiKey) {
-        this.apiKey = apiKey;
+    public ApiKeyAuthFilter(ApiKeyService apiKeyService) {
+        this.apiKeyService = apiKeyService;
     }
 
     @Override
@@ -38,9 +36,15 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/v1/register")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (WRITE_METHODS.contains(request.getMethod())) {
             String providedKey = request.getHeader(API_KEY_HEADER);
-            if (providedKey == null || !constantTimeEquals(providedKey, apiKey)) {
+            if (providedKey == null || !apiKeyService.isValidKey(providedKey)) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType("application/json");
                 response.getWriter().write("{\"error\":\"Invalid or missing API key\"}");
@@ -49,11 +53,5 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private static boolean constantTimeEquals(String a, String b) {
-        byte[] aBytes = a.getBytes(StandardCharsets.UTF_8);
-        byte[] bBytes = b.getBytes(StandardCharsets.UTF_8);
-        return MessageDigest.isEqual(aBytes, bBytes);
     }
 }

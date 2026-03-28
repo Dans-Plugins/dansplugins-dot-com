@@ -11,7 +11,3 @@ spring:
     open-in-view: false
   flyway:
     enabled: false
-
-dpc:
-  api:
-    key: test-api-key

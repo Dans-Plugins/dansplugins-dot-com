@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,14 +23,35 @@ public class FactionService {
     }
 
     @Transactional
-    public FactionResponse createFaction(FactionRequest request) {
-        Faction faction = new Faction(
-                request.name(),
-                request.serverId(),
-                request.memberCount(),
-                request.description()
-        );
-        return FactionResponse.from(factionRepository.save(faction));
+    public List<FactionResponse> syncFactions(List<FactionRequest> requests) {
+        return requests.stream()
+                .map(this::upsertFaction)
+                .map(FactionResponse::from)
+                .toList();
+    }
+
+    private Faction upsertFaction(FactionRequest request) {
+        Optional<Faction> existing = factionRepository.findByNameAndServerId(
+                request.name(), request.serverId());
+
+        Faction faction;
+        if (existing.isPresent()) {
+            faction = existing.get();
+            faction.setMemberCount(request.memberCount());
+            faction.setDescription(request.description());
+            faction.setServerIp(request.serverIp());
+            faction.setDiscordLink(request.discordLink());
+        } else {
+            faction = new Faction(
+                    request.name(),
+                    request.serverId(),
+                    request.memberCount(),
+                    request.description(),
+                    request.serverIp(),
+                    request.discordLink()
+            );
+        }
+        return factionRepository.save(faction);
     }
 
     @Transactional(readOnly = true)
