@@ -26,7 +26,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             HttpMethod.DELETE.name()
     );
     private static final Set<String> EXEMPT_SUFFIXES = Set.of(
-            "/api/v1/register",
             "/api/v1/accounts/register",
             "/api/v1/accounts/login"
     );

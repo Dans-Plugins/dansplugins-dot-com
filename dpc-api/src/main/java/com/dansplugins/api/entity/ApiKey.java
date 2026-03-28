@@ -43,11 +43,6 @@ public class ApiKey {
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;
 
-    public ApiKey(String keyHash, String serverName) {
-        this.keyHash = keyHash;
-        this.serverName = serverName;
-    }
-
     public ApiKey(String keyHash, String serverName, Account owner) {
         this.keyHash = keyHash;
         this.serverName = serverName;

@@ -1,9 +1,10 @@
 package com.dansplugins.api.controller;
 
 import com.dansplugins.api.entity.Faction;
+import com.dansplugins.api.repository.AccountRepository;
 import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.repository.FactionRepository;
-import com.dansplugins.api.service.ApiKeyService;
+import com.dansplugins.api.service.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,10 @@ class FactionControllerTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Autowired
-    private ApiKeyService apiKeyService;
+    private AccountRepository accountRepository;
+
+    @Autowired
+    private AccountService accountService;
 
     private String apiKey;
 
@@ -45,7 +49,9 @@ class FactionControllerTest {
     void setUp() {
         factionRepository.deleteAll();
         apiKeyRepository.deleteAll();
-        apiKey = apiKeyService.register("test-server");
+        accountRepository.deleteAll();
+        var account = accountService.register("test-user", "test-password");
+        apiKey = accountService.createApiKey(account, "test-server");
     }
 
     @Test

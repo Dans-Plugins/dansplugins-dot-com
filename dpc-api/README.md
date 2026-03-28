@@ -109,14 +109,6 @@ Response:
 
 Save the returned `apiKey` — it is shown only once and stored as a SHA-256 hash.
 
-### Legacy Registration
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/v1/register` | Public | Register for an API key (no account) |
-
-The legacy endpoint still works for backwards compatibility with existing plugins.
-
 ### Factions
 
 | Method | Path | Auth | Description |
@@ -159,8 +151,6 @@ curl http://localhost:8080/api/v1/factions/<faction-uuid>
 
 ## Plugin Authentication Flow
 
-### With Account (Recommended)
-
 Minecraft plugins can register and manage API keys programmatically:
 
 1. The plugin registers an account: `POST /api/v1/accounts/register` with `{ "username": "...", "password": "..." }`.
@@ -170,12 +160,6 @@ Minecraft plugins can register and manage API keys programmatically:
 5. The plugin stores the API key and uses it for write requests via the `X-API-Key` header.
 
 Alternatively, server operators can manage keys from the website UI at `/account`.
-
-### Without Account (Legacy)
-
-1. The operator registers by calling `POST /api/v1/register` with their server name.
-2. The API returns a one-time API key.
-3. The operator configures the key in their plugin.
 
 ## Running Tests
 
