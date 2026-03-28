@@ -31,9 +31,10 @@ public class FactionService {
         }
 
         // De-duplicate: last-write-wins for same (serverId, name) within a single payload
-        Map<String, FactionRequest> deduped = new LinkedHashMap<>();
+        record FactionKey(String serverId, String name) {}
+        Map<FactionKey, FactionRequest> deduped = new LinkedHashMap<>();
         for (FactionRequest req : requests) {
-            deduped.put(req.serverId() + "\0" + req.name(), req);
+            deduped.put(new FactionKey(req.serverId(), req.name()), req);
         }
 
         // Group de-duplicated requests by serverId for bulk fetching
