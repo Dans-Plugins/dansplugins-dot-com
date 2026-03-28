@@ -9,3 +9,4 @@ CREATE TABLE factions (
 );
 
 CREATE INDEX idx_factions_server_id ON factions (server_id);
+CREATE UNIQUE INDEX idx_factions_name_server_id_unique ON factions (name, server_id);

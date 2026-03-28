@@ -13,7 +13,7 @@ Spring Boot back end for the DPC (Dan's Plugins Community) website providing a R
 The easiest way to run the API locally is with Docker Compose from the **repository root**:
 
 ```bash
-DPC_API_KEY=my-secret-key docker compose up --build
+docker compose up --build
 ```
 
 This starts:
@@ -47,7 +47,6 @@ Configuration is managed via environment variables:
 | `DB_NAME` | `dpc` | Database name |
 | `DB_USERNAME` | `dpc` | Database username |
 | `DB_PASSWORD` | `dpc` | Database password |
-| `DPC_API_KEY` | *(required)* | API key for write endpoints |
 
 ## Database Migrations
 
@@ -55,27 +54,57 @@ Schemas are managed by [Flyway](https://flywaydb.org/). Migration scripts live i
 
 ## API Endpoints
 
+### Registration
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/register` | Public | Register for an API key |
+
+#### Register for an API key
+
+```bash
+curl -X POST http://localhost:8080/api/v1/register \
+  -H "Content-Type: application/json" \
+  -d '{ "serverName": "my-survival-server" }'
+```
+
+Response:
+```json
+{
+  "apiKey": "<your-new-api-key>",
+  "serverName": "my-survival-server"
+}
+```
+
+Save the returned `apiKey` — it is shown only once and stored as a SHA-256 hash.
+
 ### Factions
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/v1/factions` | API key | Create a faction |
+| `POST` | `/api/v1/factions` | API key | Sync factions (bulk upsert) |
 | `GET` | `/api/v1/factions` | Public | List factions (paginated) |
 | `GET` | `/api/v1/factions/{id}` | Public | Get a faction by ID |
 
-#### Create a faction
+#### Sync factions
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/factions \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: changeme" \
-  -d '{
-    "name": "The Knights",
-    "serverId": "my-server-uuid",
-    "memberCount": 10,
-    "description": "A noble faction"
-  }'
+  -H "X-API-Key: <your-api-key>" \
+  -d '[
+    {
+      "name": "The Knights",
+      "serverId": "my-server-id",
+      "memberCount": 10,
+      "description": "A noble faction",
+      "serverIp": "play.example.com",
+      "discordLink": "https://discord.gg/example"
+    }
+  ]'
 ```
+
+The endpoint accepts a JSON array. Factions are upserted by `(name, serverId)` — existing factions are updated, new ones are created. `serverIp` and `discordLink` are optional.
 
 #### List factions (paginated)
 
@@ -91,15 +120,13 @@ curl http://localhost:8080/api/v1/factions/<faction-uuid>
 
 ## Plugin Authentication Flow
 
-Server owners who want to publish data from their Minecraft plugins (e.g. Medieval Factions) need an API key.
+Server operators who want to publish data from their Minecraft plugins (e.g. Medieval Factions) need an API key.
 
-1. An administrator provisions an API key and sets the `DPC_API_KEY` environment variable on the API server.
-2. The server owner configures the same key in their plugin configuration.
-3. The plugin sends write requests with the `X-API-Key` header:
-   ```
-   X-API-Key: <your-api-key>
-   ```
-4. `GET` endpoints are public and require no authentication.
+1. The operator registers by calling `POST /api/v1/register` with their server name.
+2. The API returns a one-time API key (stored as a SHA-256 hash on the server side).
+3. The operator configures the key in their plugin (e.g. `dpc-api.key` in Medieval Factions `config.yml`).
+4. The plugin sends write requests with the `X-API-Key` header.
+5. `GET` endpoints are public and require no authentication.
 
 ## Running Tests
 

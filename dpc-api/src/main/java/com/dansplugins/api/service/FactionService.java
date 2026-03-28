@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class FactionService {
@@ -24,34 +27,49 @@ public class FactionService {
 
     @Transactional
     public List<FactionResponse> syncFactions(List<FactionRequest> requests) {
-        return requests.stream()
-                .map(this::upsertFaction)
+        if (requests.isEmpty()) {
+            return List.of();
+        }
+
+        // Group requests by serverId to enable bulk fetching
+        Map<String, List<FactionRequest>> byServer = requests.stream()
+                .collect(Collectors.groupingBy(FactionRequest::serverId));
+
+        List<Faction> results = byServer.entrySet().stream()
+                .flatMap(entry -> {
+                    String serverId = entry.getKey();
+                    List<FactionRequest> serverRequests = entry.getValue();
+                    List<String> names = serverRequests.stream()
+                            .map(FactionRequest::name)
+                            .toList();
+
+                    // Bulk fetch existing factions for this server
+                    Map<String, Faction> existing = factionRepository
+                            .findByServerIdAndNameIn(serverId, names)
+                            .stream()
+                            .collect(Collectors.toMap(Faction::getName, Function.identity()));
+
+                    return serverRequests.stream().map(req -> {
+                        Faction faction = existing.get(req.name());
+                        if (faction != null) {
+                            faction.setMemberCount(req.memberCount());
+                            faction.setDescription(req.description());
+                            faction.setServerIp(req.serverIp());
+                            faction.setDiscordLink(req.discordLink());
+                        } else {
+                            faction = new Faction(
+                                    req.name(), req.serverId(), req.memberCount(),
+                                    req.description(), req.serverIp(), req.discordLink()
+                            );
+                        }
+                        return faction;
+                    });
+                })
+                .toList();
+
+        return factionRepository.saveAll(results).stream()
                 .map(FactionResponse::from)
                 .toList();
-    }
-
-    private Faction upsertFaction(FactionRequest request) {
-        Optional<Faction> existing = factionRepository.findByNameAndServerId(
-                request.name(), request.serverId());
-
-        Faction faction;
-        if (existing.isPresent()) {
-            faction = existing.get();
-            faction.setMemberCount(request.memberCount());
-            faction.setDescription(request.description());
-            faction.setServerIp(request.serverIp());
-            faction.setDiscordLink(request.discordLink());
-        } else {
-            faction = new Faction(
-                    request.name(),
-                    request.serverId(),
-                    request.memberCount(),
-                    request.description(),
-                    request.serverIp(),
-                    request.discordLink()
-            );
-        }
-        return factionRepository.save(faction);
     }
 
     @Transactional(readOnly = true)

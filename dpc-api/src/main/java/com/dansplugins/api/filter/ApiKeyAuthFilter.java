@@ -36,8 +36,10 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getRequestURI();
-        if ("/api/v1/register".equals(path)) {
+        String requestUri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        String registerPath = contextPath + "/api/v1/register";
+        if (registerPath.equals(requestUri) || (registerPath + "/").equals(requestUri)) {
             filterChain.doFilter(request, response);
             return;
         }
