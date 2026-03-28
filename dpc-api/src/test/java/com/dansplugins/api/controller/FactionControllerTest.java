@@ -13,8 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -210,5 +212,210 @@ class FactionControllerTest {
     void getFactionById_nonExistent_returnsNotFound() throws Exception {
         mockMvc.perform(get("/api/v1/factions/00000000-0000-0000-0000-000000000000"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void syncFactions_missingName_returnsBadRequest() throws Exception {
+        String body = """
+                [
+                    {
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void syncFactions_missingServerId_returnsBadRequest() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "memberCount": 10
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void syncFactions_missingMemberCount_returnsBadRequest() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1"
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void syncFactions_negativeMemberCount_returnsBadRequest() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": -1
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void syncFactions_emptyArray_returnsOk() throws Exception {
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void syncFactions_duplicatesInPayload_deduplicatesLastWriteWins() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 5,
+                        "description": "First"
+                    },
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 20,
+                        "description": "Second"
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].memberCount", is(20)))
+                .andExpect(jsonPath("$[0].description", is("Second")));
+
+        // Verify only one row in DB
+        assertThat(factionRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void syncFactions_multipleServers_createsAll() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    },
+                    {
+                        "name": "Warriors",
+                        "serverId": "server-2",
+                        "memberCount": 8
+                    },
+                    {
+                        "name": "Mages",
+                        "serverId": "server-1",
+                        "memberCount": 5
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+
+        assertThat(factionRepository.count()).isEqualTo(3);
+    }
+
+    @Test
+    void syncFactions_setsTimestamps() throws Exception {
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].createdAt", notNullValue()))
+                .andExpect(jsonPath("$[0].updatedAt", notNullValue()));
+    }
+
+    @Test
+    void getAllFactions_respectsPagination() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            factionRepository.save(new Faction("Faction " + i, "server-1", i, null, null, null));
+        }
+
+        mockMvc.perform(get("/api/v1/factions")
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.totalElements", is(5)))
+                .andExpect(jsonPath("$.totalPages", is(3)));
+
+        mockMvc.perform(get("/api/v1/factions")
+                        .param("page", "2")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)));
+    }
+
+    @Test
+    void getFactionById_invalidUuidFormat_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/factions/not-a-uuid"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getFactionById_noApiKeyRequired() throws Exception {
+        Faction saved = factionRepository.save(
+                new Faction("Public Faction", "server-1", 5, null, null, null));
+
+        mockMvc.perform(get("/api/v1/factions/" + saved.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Public Faction")));
     }
 }
