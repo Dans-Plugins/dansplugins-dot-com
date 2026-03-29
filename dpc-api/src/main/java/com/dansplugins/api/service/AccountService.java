@@ -20,6 +20,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountService {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private final AccountRepository accountRepository;
     private final ApiKeyRepository apiKeyRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,7 +49,7 @@ public class AccountService {
     @Transactional
     public ApiKey createApiKey(Account owner, String serverName) {
         byte[] randomBytes = new byte[32];
-        new SecureRandom().nextBytes(randomBytes);
+        SECURE_RANDOM.nextBytes(randomBytes);
         String rawKey = "dpc_" + HexFormat.of().formatHex(randomBytes);
         String keyPrefix = rawKey.substring(0, 8);
         String keyHash = HashUtil.sha256(rawKey);
