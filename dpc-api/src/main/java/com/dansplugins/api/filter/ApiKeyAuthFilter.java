@@ -1,6 +1,7 @@
 package com.dansplugins.api.filter;
 
 import com.dansplugins.api.service.ApiKeyService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,10 +9,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -31,6 +36,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     );
 
     private final ApiKeyService apiKeyService;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -60,13 +66,24 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         if (WRITE_METHODS.contains(request.getMethod())) {
             String providedKey = request.getHeader(API_KEY_HEADER);
             if (providedKey == null || !apiKeyService.isValidKey(providedKey)) {
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\":\"Invalid or missing API key\"}");
+                writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid or missing API key");
                 return;
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, HttpStatus status, String message)
+            throws IOException {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getOutputStream(), body);
     }
 }

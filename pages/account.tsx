@@ -295,7 +295,7 @@ const AccountPage: NextPage = () => {
                                         <strong>Save this key now — it won&apos;t be shown again:</strong>
                                         <Box sx={{display: 'flex', alignItems: 'center', mt: 1}}>
                                             <code>{newApiKey}</code>
-                                            <IconButton size="small" onClick={() => copyToClipboard(newApiKey)} sx={{ml: 1}}>
+                                            <IconButton size="small" onClick={() => copyToClipboard(newApiKey)} sx={{ml: 1}} aria-label="Copy API key to clipboard">
                                                 <ContentCopyIcon fontSize="small"/>
                                             </IconButton>
                                         </Box>
@@ -308,7 +308,7 @@ const AccountPage: NextPage = () => {
                                             <ListItem
                                                 key={key.id}
                                                 secondaryAction={
-                                                    <IconButton edge="end" onClick={() => handleDeleteApiKey(key.id)}>
+                                                    <IconButton edge="end" onClick={() => handleDeleteApiKey(key.id)} aria-label="Delete API key">
                                                         <DeleteIcon/>
                                                     </IconButton>
                                                 }
