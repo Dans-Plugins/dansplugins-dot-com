@@ -98,11 +98,16 @@ public class SecurityConfig {
             body.put("timestamp", Instant.now().toString());
             body.put("status", HttpStatus.UNAUTHORIZED.value());
             body.put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase());
-            body.put("message", "Authentication required");
+            body.put("message", authException.getMessage() != null
+                    ? authException.getMessage() : "Authentication required");
 
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), body);
+            try {
+                objectMapper.writeValue(response.getOutputStream(), body);
+            } catch (IOException ignored) {
+                // Response stream may already be committed; status is already set
+            }
         };
     }
 }
