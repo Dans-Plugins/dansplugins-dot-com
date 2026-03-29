@@ -17,9 +17,11 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import type {NextPage} from 'next'
-import React, {useCallback, useEffect, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import TopBar from '../components/TopBar'
 import BottomBar from '../components/BottomBar'
+
+const version = require('../package.json').version
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -49,11 +51,18 @@ const AccountPage: NextPage = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [serverName, setServerName] = useState('')
+    const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         const saved = localStorage.getItem('dpc-token')
         if (saved) {
             setToken(saved)
+        }
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
         }
     }, [])
 
@@ -187,7 +196,8 @@ const AccountPage: NextPage = () => {
         try {
             await navigator.clipboard.writeText(text)
             setSuccess('Copied to clipboard!')
-            setTimeout(() => setSuccess(null), 2000)
+            if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+            copyTimeoutRef.current = setTimeout(() => setSuccess(null), 2000)
         } catch {
             setError('Failed to copy — please select and copy the key manually.')
         }
@@ -378,7 +388,7 @@ X-API-Key: <api_key>
                     </>
                 )}
             </Container>
-            <BottomBar version="0.9.0"/>
+            <BottomBar version={version}/>
         </Box>
     )
 }

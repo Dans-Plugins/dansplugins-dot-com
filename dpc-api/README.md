@@ -102,12 +102,15 @@ curl -X POST http://localhost:8080/api/v1/accounts/me/api-keys \
 Response:
 ```json
 {
+  "id": "<uuid>",
   "apiKey": "<your-new-api-key>",
+  "keyPrefix": "dpc_abcd",
   "serverName": "my-survival-server"
 }
 ```
 
 Save the returned `apiKey` — it is shown only once and stored as a SHA-256 hash.
+The `keyPrefix` (first 8 characters) can be used to identify the key later.
 
 ### Factions
 
