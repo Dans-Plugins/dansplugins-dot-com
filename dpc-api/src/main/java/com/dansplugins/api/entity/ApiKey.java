@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,7 +33,10 @@ public class ApiKey {
     @Column(name = "key_hash", nullable = false, unique = true, length = 64)
     private String keyHash;
 
-    @Column(name = "server_name", nullable = false)
+    @Column(name = "key_prefix", length = 8)
+    private String keyPrefix;
+
+    @Column(name = "server_name", nullable = false, length = 64)
     private String serverName;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,8 +47,12 @@ public class ApiKey {
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;
 
-    public ApiKey(String keyHash, String serverName, Account owner) {
+    @Transient
+    private String rawKey;
+
+    public ApiKey(String keyHash, String keyPrefix, String serverName, Account owner) {
         this.keyHash = keyHash;
+        this.keyPrefix = keyPrefix;
         this.serverName = serverName;
         this.owner = owner;
     }

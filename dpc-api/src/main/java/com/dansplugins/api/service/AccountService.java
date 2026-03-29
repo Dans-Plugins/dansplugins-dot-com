@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,11 +45,16 @@ public class AccountService {
     }
 
     @Transactional
-    public String createApiKey(Account owner, String serverName) {
-        String rawKey = UUID.randomUUID().toString();
+    public ApiKey createApiKey(Account owner, String serverName) {
+        byte[] randomBytes = new byte[32];
+        new SecureRandom().nextBytes(randomBytes);
+        String rawKey = "dpc_" + HexFormat.of().formatHex(randomBytes);
+        String keyPrefix = rawKey.substring(0, 8);
         String keyHash = HashUtil.sha256(rawKey);
-        apiKeyRepository.save(new ApiKey(keyHash, serverName, owner));
-        return rawKey;
+        ApiKey apiKey = new ApiKey(keyHash, keyPrefix, serverName, owner);
+        apiKeyRepository.save(apiKey);
+        apiKey.setRawKey(rawKey);
+        return apiKey;
     }
 
     @Transactional(readOnly = true)

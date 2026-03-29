@@ -16,11 +16,12 @@ public record AccountResponse(
 
     public record ApiKeyInfo(
             UUID id,
+            String keyPrefix,
             String serverName,
             Instant createdAt
     ) {
         public static ApiKeyInfo from(ApiKey key) {
-            return new ApiKeyInfo(key.getId(), key.getServerName(), key.getCreatedAt());
+            return new ApiKeyInfo(key.getId(), key.getKeyPrefix(), key.getServerName(), key.getCreatedAt());
         }
     }
 

@@ -30,22 +30,22 @@ public class Faction {
     @Setter(lombok.AccessLevel.NONE)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 64)
     private String name;
 
-    @Column(name = "server_id", nullable = false)
+    @Column(name = "server_id", nullable = false, length = 64)
     private String serverId;
 
     @Column(name = "member_count", nullable = false)
     private int memberCount;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 512)
     private String description;
 
-    @Column(name = "server_ip")
+    @Column(name = "server_ip", length = 253)
     private String serverIp;
 
-    @Column(name = "discord_link")
+    @Column(name = "discord_link", length = 512)
     private String discordLink;
 
     @Column(name = "created_at", nullable = false, updatable = false)

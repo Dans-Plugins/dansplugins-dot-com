@@ -25,6 +25,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
 interface ApiKeyInfo {
     id: string
+    keyPrefix: string
     serverName: string
     createdAt: string
 }
@@ -248,7 +249,7 @@ const AccountPage: NextPage = () => {
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             required
-                                            helperText="3-50 characters"
+                                            helperText="3-32 characters, letters, digits, hyphens, underscores"
                                         />
                                         <TextField
                                             label="Password"
@@ -314,7 +315,7 @@ const AccountPage: NextPage = () => {
                                                 }
                                             >
                                                 <ListItemText
-                                                    primary={key.serverName}
+                                                    primary={`${key.serverName}${key.keyPrefix ? ` (${key.keyPrefix}…)` : ''}`}
                                                     secondary={`Created ${new Date(key.createdAt).toLocaleDateString()}`}
                                                 />
                                             </ListItem>

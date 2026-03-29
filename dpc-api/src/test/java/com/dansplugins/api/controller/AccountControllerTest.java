@@ -178,6 +178,8 @@ class AccountControllerTest {
                         .content("{\"serverName\":\"My Server\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.apiKey", notNullValue()))
+                .andExpect(jsonPath("$.id", notNullValue()))
+                .andExpect(jsonPath("$.keyPrefix", notNullValue()))
                 .andExpect(jsonPath("$.serverName").value("My Server"));
     }
 
@@ -196,7 +198,8 @@ class AccountControllerTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.apiKeys", hasSize(1)))
-                .andExpect(jsonPath("$.apiKeys[0].serverName").value("Test Server"));
+                .andExpect(jsonPath("$.apiKeys[0].serverName").value("Test Server"))
+                .andExpect(jsonPath("$.apiKeys[0].keyPrefix", notNullValue()));
     }
 
     @Test

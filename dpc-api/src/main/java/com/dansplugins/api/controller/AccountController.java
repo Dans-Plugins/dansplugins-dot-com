@@ -102,9 +102,10 @@ public class AccountController {
             @Valid @RequestBody CreateApiKeyRequest request) {
         return accountService.findByUsername(principal.getName())
                 .map(account -> {
-                    String rawKey = accountService.createApiKey(account, request.serverName());
+                    var apiKey = accountService.createApiKey(account, request.serverName());
                     return ResponseEntity.status(HttpStatus.CREATED)
-                            .body(new CreateApiKeyResponse(rawKey, request.serverName()));
+                            .body(new CreateApiKeyResponse(apiKey.getId(), apiKey.getRawKey(),
+                                    apiKey.getKeyPrefix(), apiKey.getServerName()));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

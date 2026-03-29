@@ -99,22 +99,25 @@ class AccountServiceTest {
         Account owner = new Account("testuser", "hash");
         when(apiKeyRepository.save(any(ApiKey.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        String rawKey = accountService.createApiKey(owner, "My Server");
+        ApiKey result = accountService.createApiKey(owner, "My Server");
 
-        assertThat(rawKey).isNotBlank();
+        assertThat(result.getRawKey()).isNotBlank();
+        assertThat(result.getRawKey()).startsWith("dpc_");
+        assertThat(result.getRawKey()).hasSize(68); // "dpc_" + 64 hex chars
+        assertThat(result.getKeyPrefix()).isEqualTo(result.getRawKey().substring(0, 8));
 
         ArgumentCaptor<ApiKey> captor = ArgumentCaptor.forClass(ApiKey.class);
         verify(apiKeyRepository).save(captor.capture());
         ApiKey savedKey = captor.getValue();
         assertThat(savedKey.getServerName()).isEqualTo("My Server");
         assertThat(savedKey.getOwner()).isEqualTo(owner);
-        assertThat(savedKey.getKeyHash()).isNotEqualTo(rawKey); // hash, not raw
+        assertThat(savedKey.getKeyHash()).isNotEqualTo(result.getRawKey()); // hash, not raw
     }
 
     @Test
     void getApiKeysReturnsKeysForOwner() {
         Account owner = new Account("testuser", "hash");
-        List<ApiKey> keys = List.of(new ApiKey("hash1", "Server 1", owner));
+        List<ApiKey> keys = List.of(new ApiKey("hash1", "dpc_abcd", "Server 1", owner));
         when(apiKeyRepository.findByOwner(owner)).thenReturn(keys);
 
         List<ApiKey> result = accountService.getApiKeys(owner);

@@ -51,7 +51,7 @@ class FactionControllerTest {
         apiKeyRepository.deleteAll();
         accountRepository.deleteAll();
         var account = accountService.register("test-user", "test-password");
-        apiKey = accountService.createApiKey(account, "test-server");
+        apiKey = accountService.createApiKey(account, "test-server").getRawKey();
     }
 
     @Test
