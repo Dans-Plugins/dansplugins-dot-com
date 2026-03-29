@@ -46,4 +46,3 @@ yarn-error.log*
 
 # Java / Maven
 dpc-api/target/
-dpc-api/.mvn/wrapper/maven-wrapper.jar
