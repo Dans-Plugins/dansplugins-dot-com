@@ -69,7 +69,8 @@ const LeaderboardPage: NextPage = () => {
             } else {
                 setError(`Failed to load factions (HTTP ${res.status}).`)
             }
-        } catch {
+        } catch (e) {
+            console.error('Failed to fetch factions:', e)
             setError('Failed to connect to API. Is the server running?')
         } finally {
             setLoading(false)
