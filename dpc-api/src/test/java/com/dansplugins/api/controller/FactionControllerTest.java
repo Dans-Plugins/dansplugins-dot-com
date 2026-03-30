@@ -197,6 +197,22 @@ class FactionControllerTest {
     }
 
     @Test
+    void getAllFactions_excludesInactiveFactions() throws Exception {
+        factionRepository.save(new Faction("Active Faction", "server-1", 10, null, null, null));
+        Faction inactive = new Faction("Disbanded Faction", "server-1", 5, null, null, null);
+        inactive.setActive(false);
+        factionRepository.save(inactive);
+
+        mockMvc.perform(get("/api/v1/factions")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].name", is("Active Faction")));
+    }
+
+    @Test
     void getAllFactions_noApiKeyRequired() throws Exception {
         mockMvc.perform(get("/api/v1/factions"))
                 .andExpect(status().isOk());
@@ -423,5 +439,180 @@ class FactionControllerTest {
         mockMvc.perform(get("/api/v1/factions/" + saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Public Faction")));
+    }
+
+    @Test
+    void syncFactions_disbandedFaction_markedInactive() throws Exception {
+        // First sync: create two factions on server-1
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    },
+                    {
+                        "name": "Mages",
+                        "serverId": "server-1",
+                        "memberCount": 5
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+
+        // Verify both appear in listing
+        mockMvc.perform(get("/api/v1/factions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(2)));
+
+        // Second sync: only Knights remains (Mages disbanded)
+        String updatedBody = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 15
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatedBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+
+        // Verify only active faction appears in listing (disbanded Mages excluded)
+        mockMvc.perform(get("/api/v1/factions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].name", is("Knights")));
+
+        // Verify total rows still exist in DB (inactive not deleted)
+        assertThat(factionRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void syncFactions_disbandedFaction_otherServerUnaffected() throws Exception {
+        // Create factions on two servers
+        String body = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    },
+                    {
+                        "name": "Warriors",
+                        "serverId": "server-2",
+                        "memberCount": 8
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        // Sync server-1 with no factions (all disbanded on server-1)
+        String emptyServer1 = """
+                [
+                    {
+                        "name": "NewFaction",
+                        "serverId": "server-1",
+                        "memberCount": 3
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emptyServer1))
+                .andExpect(status().isOk());
+
+        // server-2's Warriors should still be active
+        mockMvc.perform(get("/api/v1/factions")
+                        .param("size", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(2)));
+    }
+
+    @Test
+    void syncFactions_reactivatesDisbandedFaction() throws Exception {
+        // First sync: create faction
+        String body1 = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 10
+                    },
+                    {
+                        "name": "Mages",
+                        "serverId": "server-1",
+                        "memberCount": 5
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body1))
+                .andExpect(status().isOk());
+
+        // Second sync: only Knights (Mages disbanded)
+        String body2 = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 15
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body2))
+                .andExpect(status().isOk());
+
+        // Third sync: Mages reformed
+        String body3 = """
+                [
+                    {
+                        "name": "Knights",
+                        "serverId": "server-1",
+                        "memberCount": 15
+                    },
+                    {
+                        "name": "Mages",
+                        "serverId": "server-1",
+                        "memberCount": 3
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body3))
+                .andExpect(status().isOk());
+
+        // Both should be active again
+        mockMvc.perform(get("/api/v1/factions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(2)));
     }
 }

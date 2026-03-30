@@ -13,6 +13,7 @@ public record FactionResponse(
         String description,
         String serverIp,
         String discordLink,
+        boolean active,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -25,6 +26,7 @@ public record FactionResponse(
                 faction.getDescription(),
                 faction.getServerIp(),
                 faction.getDiscordLink(),
+                faction.isActive(),
                 faction.getCreatedAt(),
                 faction.getUpdatedAt()
         );

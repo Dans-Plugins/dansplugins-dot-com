@@ -49,6 +49,9 @@ public class FactionService {
                             .map(FactionRequest::name)
                             .toList();
 
+                    // Mark factions not in this sync batch as inactive (disbanded)
+                    factionRepository.deactivateByServerIdAndNameNotIn(serverId, names);
+
                     // Bulk fetch existing factions for this server
                     Map<String, Faction> existing = factionRepository
                             .findByServerIdAndNameIn(serverId, names)
@@ -62,6 +65,7 @@ public class FactionService {
                             faction.setDescription(req.description());
                             faction.setServerIp(req.serverIp());
                             faction.setDiscordLink(req.discordLink());
+                            faction.setActive(true);
                         } else {
                             faction = new Faction(
                                     req.name(), req.serverId(), req.memberCount(),
@@ -80,7 +84,7 @@ public class FactionService {
 
     @Transactional(readOnly = true)
     public Page<FactionResponse> getAllFactions(Pageable pageable) {
-        return factionRepository.findAll(pageable).map(FactionResponse::from);
+        return factionRepository.findByActiveTrue(pageable).map(FactionResponse::from);
     }
 
     @Transactional(readOnly = true)

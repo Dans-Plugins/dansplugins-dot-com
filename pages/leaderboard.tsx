@@ -34,6 +34,7 @@ interface Faction {
     description: string | null
     serverIp: string | null
     discordLink: string | null
+    active: boolean
     createdAt: string
     updatedAt: string
 }

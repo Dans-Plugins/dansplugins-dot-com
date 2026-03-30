@@ -91,6 +91,7 @@ class FactionServiceTest {
         assertThat(updated.getDescription()).isEqualTo("New");
         assertThat(updated.getServerIp()).isEqualTo("5.6.7.8");
         assertThat(updated.getDiscordLink()).isEqualTo("https://discord.gg/y");
+        assertThat(updated.isActive()).isTrue();
         // Name and serverId should remain unchanged
         assertThat(updated.getName()).isEqualTo("Knights");
         assertThat(updated.getServerId()).isEqualTo("server-1");
@@ -161,17 +162,50 @@ class FactionServiceTest {
     }
 
     @Test
-    void getAllFactions_delegatesToRepository() {
+    void getAllFactions_delegatesToRepositoryActiveFactions() {
         Pageable pageable = PageRequest.of(0, 10);
         Faction faction = new Faction("Knights", "server-1", 10, null, null, null);
         Page<Faction> page = new PageImpl<>(List.of(faction), pageable, 1);
 
-        when(factionRepository.findAll(pageable)).thenReturn(page);
+        when(factionRepository.findByActiveTrue(pageable)).thenReturn(page);
 
         Page<FactionResponse> result = factionService.getAllFactions(pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).name()).isEqualTo("Knights");
+    }
+
+    @Test
+    void syncFactions_deactivatesFactionsMissingFromBatch() {
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(req));
+
+        verify(factionRepository).deactivateByServerIdAndNameNotIn("server-1", List.of("Knights"));
+    }
+
+    @Test
+    void syncFactions_reactivatesExistingInactiveFaction() {
+        Faction existing = new Faction("Knights", "server-1", 5, "Old", null, null);
+        existing.setActive(false);
+        FactionRequest req = new FactionRequest("Knights", "server-1", 20, "Back", null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of(existing));
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(req));
+
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        Faction updated = factionsCaptor.getValue().get(0);
+        assertThat(updated.isActive()).isTrue();
+        assertThat(updated.getMemberCount()).isEqualTo(20);
     }
 
     @Test

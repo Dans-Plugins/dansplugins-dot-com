@@ -48,6 +48,9 @@ public class Faction {
     @Column(name = "discord_link", length = 512)
     private String discordLink;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;
@@ -63,6 +66,7 @@ public class Faction {
         this.description = description;
         this.serverIp = serverIp;
         this.discordLink = discordLink;
+        this.active = true;
     }
 
     @PrePersist
