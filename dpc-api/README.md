@@ -21,7 +21,7 @@ This starts:
 | Service | Port | Description |
 |---|---|---|
 | `dpc-website` | 3000 | Next.js front end |
-| `dpc-api` | 8080 | Spring Boot API |
+| `dpc-api` | 45345 | Spring Boot API |
 | `dpc-db` | 5432 | PostgreSQL database |
 
 ### Running without Docker

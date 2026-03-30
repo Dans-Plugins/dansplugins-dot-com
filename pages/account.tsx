@@ -23,7 +23,7 @@ import BottomBar from '../components/BottomBar'
 
 const version = require('../package.json').version
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345'
 
 interface ApiKeyInfo {
     id: string
