@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.server.ResponseStatusException;
+
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
@@ -63,12 +65,10 @@ public class AccountController {
     @ApiResponse(responseCode = "200", description = "Login successful")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return accountService.authenticate(request.username(), request.password())
-                .map(account -> {
-                    String token = jwtService.generateToken(account.getUsername());
-                    return ResponseEntity.ok(new LoginResponse(token, account.getUsername()));
-                })
-                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        Account account = accountService.authenticate(request.username(), request.password())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+        String token = jwtService.generateToken(account.getUsername());
+        return ResponseEntity.ok(new LoginResponse(token, account.getUsername()));
     }
 
     @GetMapping("/me")
