@@ -1,5 +1,6 @@
 package com.dansplugins.api.config;
 
+import com.dansplugins.api.exception.UsernameAlreadyTakenException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -61,6 +62,14 @@ public class GlobalExceptionHandler {
         String message = "Invalid value for parameter '" + ex.getName() + "'";
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message);
         problem.setTitle("Bad Request");
+        problem.setType(URI.create("about:blank"));
+        return problem;
+    }
+
+    @ExceptionHandler(UsernameAlreadyTakenException.class)
+    public ProblemDetail handleUsernameAlreadyTaken(UsernameAlreadyTakenException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Conflict");
         problem.setType(URI.create("about:blank"));
         return problem;
     }

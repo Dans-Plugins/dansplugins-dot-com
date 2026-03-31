@@ -2,6 +2,7 @@ package com.dansplugins.api.service;
 
 import com.dansplugins.api.entity.Account;
 import com.dansplugins.api.entity.ApiKey;
+import com.dansplugins.api.exception.UsernameAlreadyTakenException;
 import com.dansplugins.api.repository.AccountRepository;
 import com.dansplugins.api.repository.ApiKeyRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,8 +59,8 @@ class AccountServiceTest {
         when(accountRepository.existsByUsername("existinguser")).thenReturn(true);
 
         assertThatThrownBy(() -> accountService.register("existinguser", "password"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Username already taken");
+                .isInstanceOf(UsernameAlreadyTakenException.class)
+                .hasMessageContaining("Username already taken");
 
         verify(accountRepository, never()).save(any());
     }

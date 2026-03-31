@@ -2,6 +2,7 @@ package com.dansplugins.api.service;
 
 import com.dansplugins.api.entity.Account;
 import com.dansplugins.api.entity.ApiKey;
+import com.dansplugins.api.exception.UsernameAlreadyTakenException;
 import com.dansplugins.api.repository.AccountRepository;
 import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.util.HashUtil;
@@ -29,7 +30,7 @@ public class AccountService {
     @Transactional
     public Account register(String username, String password) {
         if (accountRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username already taken");
+            throw new UsernameAlreadyTakenException(username);
         }
         String passwordHash = passwordEncoder.encode(password);
         return accountRepository.save(new Account(username, passwordHash));

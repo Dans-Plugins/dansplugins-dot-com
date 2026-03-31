@@ -48,7 +48,8 @@ public class AccountController {
                     + "Supports both website and Minecraft plugin registration."
     )
     @ApiResponse(responseCode = "201", description = "Account created successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid request or username already taken")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "409", description = "Username already taken")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody AccountRegisterRequest request) {
         accountService.register(request.username(), request.password());
         String token = jwtService.generateToken(request.username());

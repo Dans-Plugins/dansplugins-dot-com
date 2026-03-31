@@ -44,7 +44,7 @@ class AccountControllerTest {
     }
 
     @Test
-    void registerDuplicateUsernameReturnsBadRequest() throws Exception {
+    void registerDuplicateUsernameReturnsConflict() throws Exception {
         mockMvc.perform(post("/api/v1/accounts/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"dupuser\",\"password\":\"password123\"}"));
@@ -52,7 +52,7 @@ class AccountControllerTest {
         mockMvc.perform(post("/api/v1/accounts/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"dupuser\",\"password\":\"password456\"}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
