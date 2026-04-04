@@ -27,14 +27,10 @@ This starts:
 To use a different API port:
 
 ```bash
-API_PORT=9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
+API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
-Set `NEXT_PUBLIC_API_URL` to match so the webapp targets the correct port:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:9090
-```
+`NEXT_PUBLIC_API_URL` is passed to the frontend container automatically via `compose.yml` (as both a build arg and environment variable).
 
 ### Running without Docker
 
