@@ -21,8 +21,20 @@ This starts:
 | Service | Port | Description |
 |---|---|---|
 | `dpc-website` | 3000 | Next.js front end |
-| `dpc-api` | 45345 | Spring Boot API |
+| `dpc-api` | 45345 (configurable via `API_PORT`) | Spring Boot API |
 | `dpc-db` | 5432 | PostgreSQL database |
+
+To use a different API port:
+
+```bash
+API_PORT=9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
+```
+
+Set `NEXT_PUBLIC_API_URL` to match so the webapp targets the correct port:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:9090
+```
 
 ### Running without Docker
 
@@ -35,6 +47,10 @@ This starts:
    cd dpc-api
    DB_USERNAME=dpc DB_PASSWORD=dpc JWT_SECRET="your-secret-key-at-least-32-bytes-long" ./mvnw spring-boot:run
    ```
+   To run on a different port, set `SERVER_PORT`:
+   ```bash
+   SERVER_PORT=9090 DB_USERNAME=dpc DB_PASSWORD=dpc JWT_SECRET="your-secret-key-at-least-32-bytes-long" ./mvnw spring-boot:run
+   ```
 
 ## Configuration
 
@@ -42,6 +58,7 @@ Configuration is managed via environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
+| `SERVER_PORT` | `8080` | Port the Spring Boot server listens on |
 | `DB_HOST` | `localhost` | PostgreSQL hostname |
 | `DB_PORT` | `5432` | PostgreSQL port |
 | `DB_NAME` | `dpc` | Database name |
@@ -49,6 +66,8 @@ Configuration is managed via environment variables:
 | `DB_PASSWORD` | *(required)* | Database password |
 | `JWT_SECRET` | *(required)* | Secret key for JWT signing (min 32 bytes) |
 | `JWT_EXPIRATION` | `24h` | JWT token expiration duration |
+
+The Docker Compose file also supports the `API_PORT` variable (default `45345`) to control the published host port for the API.
 
 ## Database Migrations
 

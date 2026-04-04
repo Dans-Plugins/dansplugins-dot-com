@@ -24,7 +24,7 @@ services:
   dpc-api:
     build: ./dpc-api
     ports:
-      - "45345:8080"
+      - "${API_PORT:-45345}:8080"
     environment:
       DB_HOST: dpc-db
       DB_PORT: 5432
