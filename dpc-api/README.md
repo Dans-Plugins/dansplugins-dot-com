@@ -84,6 +84,12 @@ Schemas are managed by [Flyway](https://flywaydb.org/). Migration scripts live i
 #### Register an account
 
 ```bash
+# Docker Compose (default port 45345)
+curl -X POST http://localhost:45345/api/v1/accounts/register \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "myserver", "password": "secure-pass-123" }'
+
+# Without Docker (default port 8080)
 curl -X POST http://localhost:8080/api/v1/accounts/register \
   -H "Content-Type: application/json" \
   -d '{ "username": "myserver", "password": "secure-pass-123" }'
@@ -100,7 +106,7 @@ Response:
 #### Login
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/accounts/login \
+curl -X POST http://localhost:45345/api/v1/accounts/login \
   -H "Content-Type: application/json" \
   -d '{ "username": "myserver", "password": "secure-pass-123" }'
 ```
@@ -108,7 +114,7 @@ curl -X POST http://localhost:8080/api/v1/accounts/login \
 #### Create an API key (requires JWT)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/accounts/me/api-keys \
+curl -X POST http://localhost:45345/api/v1/accounts/me/api-keys \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <jwt-token>" \
   -d '{ "serverName": "my-survival-server" }'
@@ -138,7 +144,7 @@ The `keyPrefix` (first 8 characters) can be used to identify the key later.
 #### Sync factions
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/factions \
+curl -X POST http://localhost:45345/api/v1/factions \
   -H "Content-Type: application/json" \
   -H "X-API-Key: <your-api-key>" \
   -d '[
@@ -158,13 +164,13 @@ The endpoint accepts a JSON array. Factions are upserted by `(name, serverId)` â
 #### List factions (paginated)
 
 ```bash
-curl "http://localhost:8080/api/v1/factions?page=0&size=20"
+curl "http://localhost:45345/api/v1/factions?page=0&size=20"
 ```
 
 #### Get a faction by ID
 
 ```bash
-curl http://localhost:8080/api/v1/factions/<faction-uuid>
+curl http://localhost:45345/api/v1/factions/<faction-uuid>
 ```
 
 ## Plugin Authentication Flow

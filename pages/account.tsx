@@ -153,6 +153,10 @@ const AccountPage: NextPage = () => {
         e.preventDefault()
         setError(null)
         setNewApiKey(null)
+        if (!token) {
+            setError('Not authenticated. Please log in.')
+            return
+        }
         try {
             const res = await fetch(`${API_BASE}/api/v1/accounts/me/api-keys`, {
                 method: 'POST',
@@ -177,6 +181,10 @@ const AccountPage: NextPage = () => {
 
     const handleDeleteApiKey = async (keyId: string) => {
         setError(null)
+        if (!token) {
+            setError('Not authenticated. Please log in.')
+            return
+        }
         try {
             const res = await fetch(`${API_BASE}/api/v1/accounts/me/api-keys/${keyId}`, {
                 method: 'DELETE',

@@ -78,7 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/accounts/me/**").authenticated()
                         // Write endpoints require API key (handled by ApiKeyAuthFilter)
                         .requestMatchers(HttpMethod.POST, "/api/v1/factions").permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(apiKeyAuthFilter, JwtAuthFilter.class);
