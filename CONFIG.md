@@ -46,7 +46,7 @@ NEXT_PUBLIC_API_URL=http://localhost:45345
 The Docker Compose published port for the API can be changed via `API_PORT`:
 
 ```bash
-API_PORT=9090 JWT_SECRET="your-secret" docker compose up --build
+API_PORT=9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
 When changing the API port, also update `NEXT_PUBLIC_API_URL` to match:
