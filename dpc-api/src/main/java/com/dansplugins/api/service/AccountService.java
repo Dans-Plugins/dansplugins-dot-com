@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service for account registration, authentication, and API key management.
+ */
 @Service
 @RequiredArgsConstructor
 public class AccountService {

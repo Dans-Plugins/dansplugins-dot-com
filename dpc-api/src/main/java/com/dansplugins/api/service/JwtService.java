@@ -14,6 +14,9 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
+/**
+ * Service for JWT token generation and validation using HMAC-SHA256.
+ */
 @Service
 public class JwtService {
 

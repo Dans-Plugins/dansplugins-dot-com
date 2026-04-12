@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for validating API keys by comparing SHA-256 hashes.
+ */
 @Service
 @RequiredArgsConstructor
 public class ApiKeyService {

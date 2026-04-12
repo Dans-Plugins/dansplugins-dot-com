@@ -19,6 +19,9 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Service for faction data synchronization and retrieval.
+ */
 @Service
 @RequiredArgsConstructor
 public class FactionService {
