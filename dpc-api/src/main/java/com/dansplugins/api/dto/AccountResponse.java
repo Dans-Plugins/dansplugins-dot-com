@@ -1,7 +1,5 @@
 package com.dansplugins.api.dto;
 
-import com.dansplugins.api.entity.Account;
-import com.dansplugins.api.entity.ApiKey;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
@@ -37,17 +35,5 @@ public record AccountResponse(
             @Schema(description = "Key creation timestamp")
             Instant createdAt
     ) {
-        public static ApiKeyInfo from(ApiKey key) {
-            return new ApiKeyInfo(key.getId(), key.getKeyPrefix(), key.getServerName(), key.getCreatedAt());
-        }
-    }
-
-    public static AccountResponse from(Account account, List<ApiKey> keys) {
-        return new AccountResponse(
-                account.getId(),
-                account.getUsername(),
-                account.getCreatedAt(),
-                keys.stream().map(ApiKeyInfo::from).toList()
-        );
     }
 }

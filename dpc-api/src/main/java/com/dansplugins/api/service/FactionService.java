@@ -3,6 +3,7 @@ package com.dansplugins.api.service;
 import com.dansplugins.api.dto.FactionRequest;
 import com.dansplugins.api.dto.FactionResponse;
 import com.dansplugins.api.entity.Faction;
+import com.dansplugins.api.mapper.FactionMapper;
 import com.dansplugins.api.repository.FactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class FactionService {
 
     private final FactionRepository factionRepository;
+    private final FactionMapper factionMapper;
 
     @Transactional
     public List<FactionResponse> syncFactions(List<FactionRequest> requests) {
@@ -78,17 +80,17 @@ public class FactionService {
                 .toList();
 
         return factionRepository.saveAll(results).stream()
-                .map(FactionResponse::from)
+                .map(factionMapper::toResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public Page<FactionResponse> getAllFactions(Pageable pageable) {
-        return factionRepository.findByActiveTrue(pageable).map(FactionResponse::from);
+        return factionRepository.findByActiveTrue(pageable).map(factionMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Optional<FactionResponse> getFactionById(UUID id) {
-        return factionRepository.findById(id).map(FactionResponse::from);
+        return factionRepository.findById(id).map(factionMapper::toResponse);
     }
 }

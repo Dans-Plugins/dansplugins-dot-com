@@ -3,8 +3,8 @@ package com.dansplugins.api.service;
 import com.dansplugins.api.dto.FactionRequest;
 import com.dansplugins.api.dto.FactionResponse;
 import com.dansplugins.api.entity.Faction;
+import com.dansplugins.api.mapper.FactionMapper;
 import com.dansplugins.api.repository.FactionRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +33,9 @@ class FactionServiceTest {
 
     @Mock
     private FactionRepository factionRepository;
+
+    @Mock
+    private FactionMapper factionMapper;
 
     @InjectMocks
     private FactionService factionService;
@@ -166,8 +169,10 @@ class FactionServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Faction faction = new Faction("Knights", "server-1", 10, null, null, null);
         Page<Faction> page = new PageImpl<>(List.of(faction), pageable, 1);
+        FactionResponse expectedResponse = new FactionResponse(null, "Knights", "server-1", 10, null, null, null, true, null, null);
 
         when(factionRepository.findByActiveTrue(pageable)).thenReturn(page);
+        when(factionMapper.toResponse(faction)).thenReturn(expectedResponse);
 
         Page<FactionResponse> result = factionService.getAllFactions(pageable);
 
@@ -212,8 +217,10 @@ class FactionServiceTest {
     void getFactionById_existing_returnsResponse() {
         UUID id = UUID.randomUUID();
         Faction faction = new Faction("Knights", "server-1", 10, "Desc", null, null);
+        FactionResponse expectedResponse = new FactionResponse(id, "Knights", "server-1", 10, "Desc", null, null, true, null, null);
 
         when(factionRepository.findById(id)).thenReturn(Optional.of(faction));
+        when(factionMapper.toResponse(faction)).thenReturn(expectedResponse);
 
         Optional<FactionResponse> result = factionService.getFactionById(id);
 

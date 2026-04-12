@@ -8,6 +8,9 @@ import com.dansplugins.api.dto.LoginRequest;
 import com.dansplugins.api.dto.LoginResponse;
 import com.dansplugins.api.entity.Account;
 import com.dansplugins.api.entity.ApiKey;
+import com.dansplugins.api.exception.InvalidCredentialsException;
+import com.dansplugins.api.exception.ResourceNotFoundException;
+import com.dansplugins.api.mapper.AccountMapper;
 import com.dansplugins.api.service.AccountService;
 import com.dansplugins.api.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,8 +30,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.springframework.web.server.ResponseStatusException;
-
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
@@ -35,10 +37,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Accounts", description = "Account registration, login, and API key management")
 public class AccountController {
 
     private final AccountService accountService;
+    private final AccountMapper accountMapper;
     private final JwtService jwtService;
 
     @PostMapping("/register")
@@ -67,7 +71,7 @@ public class AccountController {
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         Account account = accountService.authenticate(request.username(), request.password())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(InvalidCredentialsException::new);
         String token = jwtService.generateToken(account.getUsername());
         return ResponseEntity.ok(new LoginResponse(token, account.getUsername()));
     }
@@ -81,12 +85,10 @@ public class AccountController {
     @ApiResponse(responseCode = "200", description = "Profile retrieved")
     @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<AccountResponse> getProfile(Principal principal) {
-        return accountService.findByUsername(principal.getName())
-                .map(account -> {
-                    List<ApiKey> keys = accountService.getApiKeys(account);
-                    return ResponseEntity.ok(AccountResponse.from(account, keys));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Account account = accountService.findByUsername(principal.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        List<ApiKey> keys = accountService.getApiKeys(account);
+        return ResponseEntity.ok(accountMapper.toResponse(account, keys));
     }
 
     @PostMapping("/me/api-keys")
@@ -101,14 +103,12 @@ public class AccountController {
     public ResponseEntity<CreateApiKeyResponse> createApiKey(
             Principal principal,
             @Valid @RequestBody CreateApiKeyRequest request) {
-        return accountService.findByUsername(principal.getName())
-                .map(account -> {
-                    var apiKey = accountService.createApiKey(account, request.serverName());
-                    return ResponseEntity.status(HttpStatus.CREATED)
-                            .body(new CreateApiKeyResponse(apiKey.getId(), apiKey.getRawKey(),
-                                    apiKey.getKeyPrefix(), apiKey.getServerName()));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Account account = accountService.findByUsername(principal.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        var apiKey = accountService.createApiKey(account, request.serverName());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CreateApiKeyResponse(apiKey.getId(), apiKey.getRawKey(),
+                        apiKey.getKeyPrefix(), apiKey.getServerName()));
     }
 
     @DeleteMapping("/me/api-keys/{keyId}")
@@ -121,13 +121,11 @@ public class AccountController {
     @ApiResponse(responseCode = "404", description = "API key not found or not owned by user")
     @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<Void> deleteApiKey(Principal principal, @PathVariable UUID keyId) {
-        return accountService.findByUsername(principal.getName())
-                .map(account -> {
-                    if (accountService.deleteApiKey(account, keyId)) {
-                        return ResponseEntity.noContent().<Void>build();
-                    }
-                    return ResponseEntity.notFound().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Account account = accountService.findByUsername(principal.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        if (!accountService.deleteApiKey(account, keyId)) {
+            throw new ResourceNotFoundException("API key not found");
+        }
+        return ResponseEntity.noContent().build();
     }
 }

@@ -118,6 +118,21 @@ class AccountControllerTest {
     }
 
     @Test
+    void loginWithWrongPasswordReturnsProblemDetail() throws Exception {
+        mockMvc.perform(post("/api/v1/accounts/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"pdusr\",\"password\":\"password123\"}"));
+
+        mockMvc.perform(post("/api/v1/accounts/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"pdusr\",\"password\":\"wrongpassword\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.title").value("Unauthorized"))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("Invalid credentials"));
+    }
+
+    @Test
     void loginWithNonexistentUserReturnsUnauthorized() throws Exception {
         mockMvc.perform(post("/api/v1/accounts/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,6 +146,18 @@ class AccountControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"nouser\",\"password\":\"password123\"}"))
                 .andExpect(status().isUnauthorized()); // 401, not 403
+    }
+
+    @Test
+    void registerValidationErrorReturnsProblemDetailWithFieldNames() throws Exception {
+        mockMvc.perform(post("/api/v1/accounts/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"a\",\"password\":\"short\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors.username").exists())
+                .andExpect(jsonPath("$.errors.password").exists());
     }
 
     // --- Profile tests ---
@@ -246,6 +273,18 @@ class AccountControllerTest {
         mockMvc.perform(delete("/api/v1/accounts/me/api-keys/00000000-0000-0000-0000-000000000000")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteNonexistentApiKeyReturnsProblemDetailBody() throws Exception {
+        String token = registerAndGetToken("delpdusr", "password123");
+
+        mockMvc.perform(delete("/api/v1/accounts/me/api-keys/00000000-0000-0000-0000-000000000000")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("API key not found"));
     }
 
     @Test

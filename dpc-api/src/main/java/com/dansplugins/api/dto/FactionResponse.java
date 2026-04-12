@@ -1,6 +1,5 @@
 package com.dansplugins.api.dto;
 
-import com.dansplugins.api.entity.Faction;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
@@ -38,18 +37,4 @@ public record FactionResponse(
         @Schema(description = "Timestamp of the last sync update")
         Instant updatedAt
 ) {
-    public static FactionResponse from(Faction faction) {
-        return new FactionResponse(
-                faction.getId(),
-                faction.getName(),
-                faction.getServerId(),
-                faction.getMemberCount(),
-                faction.getDescription(),
-                faction.getServerIp(),
-                faction.getDiscordLink(),
-                faction.isActive(),
-                faction.getCreatedAt(),
-                faction.getUpdatedAt()
-        );
-    }
 }
