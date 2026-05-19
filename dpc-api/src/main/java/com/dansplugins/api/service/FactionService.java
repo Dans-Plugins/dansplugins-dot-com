@@ -94,6 +94,6 @@ public class FactionService {
 
     @Transactional(readOnly = true)
     public Optional<FactionResponse> getFactionById(UUID id) {
-        return factionRepository.findById(id).map(factionMapper::toResponse);
+        return factionRepository.findByIdAndActiveTrue(id).map(factionMapper::toResponse);
     }
 }

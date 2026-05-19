@@ -442,6 +442,36 @@ class FactionControllerTest {
     }
 
     @Test
+    void getFactionById_inactiveFaction_returnsNotFound() throws Exception {
+        // Create faction via sync, then disband it by syncing a different set
+        String create = """
+                [{ "name": "Disbanded", "serverId": "server-1", "memberCount": 5 }]
+                """;
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(create))
+                .andExpect(status().isOk());
+
+        UUID id = factionRepository.findAll().stream()
+                .filter(f -> f.getName().equals("Disbanded"))
+                .findFirst().orElseThrow().getId();
+
+        // Sync a different faction — "Disbanded" is omitted and marked inactive
+        String replace = """
+                [{ "name": "Active", "serverId": "server-1", "memberCount": 3 }]
+                """;
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(replace))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/factions/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void syncFactions_disbandedFaction_markedInactive() throws Exception {
         // First sync: create two factions on server-1
         String body = """

@@ -78,7 +78,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Account endpoints require JWT auth
                         .requestMatchers("/api/v1/accounts/me/**").authenticated()
-                        // Write endpoints require API key (handled by ApiKeyAuthFilter)
+                        // API key auth for faction writes is enforced by ApiKeyAuthFilter (returns 401
+                        // before this authorization layer runs); permitAll here avoids a double-reject.
                         .requestMatchers(HttpMethod.POST, "/api/v1/factions").permitAll()
                         .anyRequest().denyAll()
                 )

@@ -196,11 +196,13 @@ Tests use an embedded H2 database so no external services are needed.
 
 ## API Documentation
 
-OpenAPI documentation is auto-generated via [springdoc-openapi](https://springdoc.org/). Once the API is running:
+OpenAPI documentation is auto-generated via [springdoc-openapi](https://springdoc.org/). Once the API is running, replace `{PORT}` with `45345` (Docker Compose default) or `8080` (non-Docker default):
 
-- **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-- **OpenAPI YAML**: [http://localhost:8080/v3/api-docs.yaml](http://localhost:8080/v3/api-docs.yaml)
+| Doc | URL |
+|---|---|
+| Swagger UI | `http://localhost:{PORT}/swagger-ui.html` |
+| OpenAPI JSON | `http://localhost:{PORT}/v3/api-docs` |
+| OpenAPI YAML | `http://localhost:{PORT}/v3/api-docs.yaml` |
 
 ## Building the JAR
 
