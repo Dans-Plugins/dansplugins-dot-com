@@ -72,6 +72,7 @@ const AccountPage: NextPage = () => {
                 headers: {'Authorization': `Bearer ${jwt}`},
             })
             if (res.ok) {
+                setError(null)
                 setProfile(await res.json())
             } else if (res.status === 401) {
                 setToken(null)

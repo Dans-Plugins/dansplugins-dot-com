@@ -24,6 +24,11 @@ services:
       - "5432:5432"
     volumes:
       - dpc-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dpc -d dpc"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: always
 
   dpc-api:
@@ -38,7 +43,8 @@ services:
       DB_PASSWORD: dpc
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
     depends_on:
-      - dpc-db
+      dpc-db:
+        condition: service_healthy
     restart: always
 
 volumes:
