@@ -161,6 +161,31 @@ curl -X POST http://localhost:45345/api/v1/factions \
 
 The endpoint accepts a JSON array. Factions are upserted by `(name, serverId)` — existing factions are updated, new ones are created. `serverIp` and `discordLink` are optional.
 
+##### Sync safety guards
+
+The endpoint treats each batch as the authoritative snapshot for its
+`serverId`, so factions previously seen on that server but missing from the
+batch are marked inactive (soft-deleted). To stop a single malformed sync from
+wiping a server's registry, two guards run before any faction is deactivated:
+
+| Property | Default | Effect |
+|---|---|---|
+| `dpc.sync.safety.minimum-incoming-factions` (`DPC_SYNC_MIN_INCOMING`) | `2` | Smaller batches still upsert but never deactivate. |
+| `dpc.sync.safety.max-deactivation-ratio` (`DPC_SYNC_MAX_DEACTIVATION_RATIO`) | `0.5` | If a sync would deactivate more than this fraction of the server's active factions, deactivation is skipped. |
+| `dpc.sync.safety.max-deactivations-per-sync` (`DPC_SYNC_MAX_DEACTIVATIONS`) | `1000` | Absolute cap on deactivations per sync. `0` disables this cap. |
+
+When any guard trips, the server still applies the upserts in the batch and
+returns 200; the deactivation step is silently skipped and a `WARN` log entry
+explains why. Operators can tighten or relax these guards via environment
+variables.
+
+A single sync may contain at most `10000` faction entries; oversized payloads
+are rejected with `400 Bad Request`.
+
+The `serverId` field must match `[A-Za-z0-9._:-]+`; values containing
+whitespace or control characters are rejected with `400 Bad Request` to prevent
+accidental near-duplicate registry partitions.
+
 #### List factions (paginated)
 
 ```bash

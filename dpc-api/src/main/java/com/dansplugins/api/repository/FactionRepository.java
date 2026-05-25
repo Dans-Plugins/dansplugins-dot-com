@@ -23,8 +23,14 @@ public interface FactionRepository extends JpaRepository<Faction, UUID> {
 
     Page<Faction> findByActiveTrue(Pageable pageable);
 
+    long countByServerIdAndActiveTrue(String serverId);
+
+    @Query("SELECT f.name FROM Faction f WHERE f.serverId = :serverId AND f.active = true AND f.name NOT IN :names")
+    List<String> findActiveNamesByServerIdAndNameNotIn(@Param("serverId") String serverId,
+                                                       @Param("names") Collection<String> names);
+
     @Modifying
-    @Query("UPDATE Faction f SET f.active = false WHERE f.serverId = :serverId AND f.name NOT IN :names")
-    int deactivateByServerIdAndNameNotIn(@Param("serverId") String serverId,
-                                         @Param("names") Collection<String> names);
+    @Query("UPDATE Faction f SET f.active = false WHERE f.serverId = :serverId AND f.active = true AND f.name IN :names")
+    int deactivateByServerIdAndNameIn(@Param("serverId") String serverId,
+                                      @Param("names") Collection<String> names);
 }

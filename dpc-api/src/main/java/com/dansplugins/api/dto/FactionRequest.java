@@ -16,7 +16,15 @@ public record FactionRequest(
 
         @NotBlank(message = "Server identifier is required")
         @Size(min = 1, max = 64, message = "Server identifier must be 1-64 characters")
-        @Schema(description = "Server identifier (1-64 chars)", example = "survival-1")
+        // serverId is the partition key — anchor name uniqueness, deactivation scope,
+        // and sync safety to it. Restrict to a conservative charset so accidental
+        // whitespace or control characters cannot create a near-duplicate partition
+        // that would shadow the real server's factions.
+        @jakarta.validation.constraints.Pattern(
+                regexp = "^[A-Za-z0-9._:-]+$",
+                message = "Server identifier may contain only letters, digits, dot, underscore, colon, and hyphen"
+        )
+        @Schema(description = "Server identifier (1-64 chars, [A-Za-z0-9._:-])", example = "survival-1")
         String serverId,
 
         @NotNull(message = "Member count is required")

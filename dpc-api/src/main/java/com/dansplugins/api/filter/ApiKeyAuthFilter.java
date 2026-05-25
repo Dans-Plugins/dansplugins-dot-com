@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +22,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     private static final String API_KEY_HEADER = "X-API-Key";
@@ -65,7 +67,20 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
         if (WRITE_METHODS.contains(request.getMethod())) {
             String providedKey = request.getHeader(API_KEY_HEADER);
-            if (providedKey == null || !apiKeyService.isValidKey(providedKey)) {
+            // Trim accidental whitespace from copy/paste; this never accepts a key that
+            // didn't already match after trim, so it cannot create a security regression.
+            if (providedKey != null) {
+                providedKey = providedKey.trim();
+            }
+            if (providedKey == null || providedKey.isEmpty()
+                    || !apiKeyService.isValidKey(providedKey)) {
+                // Log just a short prefix to help ops debug a misconfigured plugin
+                // without ever logging the secret in full.
+                String prefix = (providedKey == null || providedKey.isEmpty())
+                        ? "<missing>"
+                        : providedKey.substring(0, Math.min(8, providedKey.length()));
+                log.warn("Rejected write to {} {}: invalid or missing API key (prefix={})",
+                        request.getMethod(), requestUri, prefix);
                 writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid or missing API key");
                 return;
             }

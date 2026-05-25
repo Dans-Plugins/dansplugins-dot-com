@@ -1,15 +1,16 @@
 package com.dansplugins.api.service;
 
+import com.dansplugins.api.config.FactionSyncSafetyProperties;
 import com.dansplugins.api.dto.FactionRequest;
 import com.dansplugins.api.dto.FactionResponse;
 import com.dansplugins.api.entity.Faction;
 import com.dansplugins.api.mapper.FactionMapper;
 import com.dansplugins.api.repository.FactionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -37,11 +38,19 @@ class FactionServiceTest {
     @Mock
     private FactionMapper factionMapper;
 
-    @InjectMocks
-    private FactionService factionService;
-
     @Captor
     private ArgumentCaptor<List<Faction>> factionsCaptor;
+
+    private FactionService factionService;
+    private FactionSyncSafetyProperties safety;
+
+    @BeforeEach
+    void setUp() {
+        // Permissive defaults so the deactivation-semantic tests still pass; the
+        // guard itself has dedicated tests below that override these.
+        safety = new FactionSyncSafetyProperties(1, 1.0, 0);
+        factionService = new FactionService(factionRepository, factionMapper, safety);
+    }
 
     @Test
     void syncFactions_emptyList_returnsEmptyAndSkipsDb() {
@@ -74,6 +83,7 @@ class FactionServiceTest {
         assertThat(faction.getDescription()).isEqualTo("Desc");
         assertThat(faction.getServerIp()).isEqualTo("1.2.3.4");
         assertThat(faction.getDiscordLink()).isEqualTo("https://discord.gg/x");
+        assertThat(faction.getLastSyncedAt()).isNotNull();
     }
 
     @Test
@@ -95,6 +105,7 @@ class FactionServiceTest {
         assertThat(updated.getServerIp()).isEqualTo("5.6.7.8");
         assertThat(updated.getDiscordLink()).isEqualTo("https://discord.gg/y");
         assertThat(updated.isActive()).isTrue();
+        assertThat(updated.getLastSyncedAt()).isNotNull();
         // Name and serverId should remain unchanged
         assertThat(updated.getName()).isEqualTo("Knights");
         assertThat(updated.getServerId()).isEqualTo("server-1");
@@ -186,12 +197,15 @@ class FactionServiceTest {
 
         when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
                 .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("Mages"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(2L);
         when(factionRepository.saveAll(any()))
                 .thenAnswer(inv -> inv.getArgument(0));
 
         factionService.syncFactions(List.of(req));
 
-        verify(factionRepository).deactivateByServerIdAndNameNotIn("server-1", List.of("Knights"));
+        verify(factionRepository).deactivateByServerIdAndNameIn("server-1", List.of("Mages"));
     }
 
     @Test
@@ -219,7 +233,7 @@ class FactionServiceTest {
         Faction faction = new Faction("Knights", "server-1", 10, "Desc", null, null);
         FactionResponse expectedResponse = new FactionResponse(id, "Knights", "server-1", 10, "Desc", null, null, true, null, null);
 
-        when(factionRepository.findById(id)).thenReturn(Optional.of(faction));
+        when(factionRepository.findByIdAndActiveTrue(id)).thenReturn(Optional.of(faction));
         when(factionMapper.toResponse(faction)).thenReturn(expectedResponse);
 
         Optional<FactionResponse> result = factionService.getFactionById(id);
@@ -231,10 +245,116 @@ class FactionServiceTest {
     @Test
     void getFactionById_nonExistent_returnsEmpty() {
         UUID id = UUID.randomUUID();
-        when(factionRepository.findById(id)).thenReturn(Optional.empty());
+        when(factionRepository.findByIdAndActiveTrue(id)).thenReturn(Optional.empty());
 
         Optional<FactionResponse> result = factionService.getFactionById(id);
 
         assertThat(result).isEmpty();
+    }
+
+    // --- Safety guard tests ---
+
+    @Test
+    void syncFactions_safetyGuard_minimumIncomingFloorBlocksDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(5, 1.0, 0));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        // Below the floor of 5: the lookup and deactivation must be skipped entirely,
+        // protecting against a transient short batch wiping the registry.
+        verify(factionRepository, never())
+                .findActiveNamesByServerIdAndNameNotIn(any(), any());
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+    }
+
+    @Test
+    void syncFactions_safetyGuard_ratioCapBlocksMassDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 0.5, 0));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("A", "B", "C", "D", "E", "F", "G", "H", "I"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(10L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        // Would deactivate 9 of 10 active (ratio 0.9 > 0.5): blocked.
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+    }
+
+    @Test
+    void syncFactions_safetyGuard_absoluteCapBlocksMassDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 1.0, 5));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        List<String> missing = List.of("A", "B", "C", "D", "E", "F", "G");
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(missing);
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(100L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        // 7 deactivations > absolute cap of 5: blocked even though ratio would allow it.
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+    }
+
+    @Test
+    void syncFactions_safetyGuard_allowsModerateDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 0.5, 100));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        // 1 deactivation out of 10 active = ratio 0.1, well below cap.
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("Mages"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(10L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        verify(factionRepository).deactivateByServerIdAndNameIn("server-1", List.of("Mages"));
+    }
+
+    @Test
+    void syncFactions_safetyGuard_upsertsApplyEvenWhenDeactivationBlocked() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 0.5, 0));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, "fresh", null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("A", "B", "C", "D", "E", "F", "G", "H", "I"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(10L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        assertThat(factionsCaptor.getValue()).hasSize(1);
+        assertThat(factionsCaptor.getValue().get(0).getName()).isEqualTo("Knights");
+        assertThat(factionsCaptor.getValue().get(0).getDescription()).isEqualTo("fresh");
     }
 }

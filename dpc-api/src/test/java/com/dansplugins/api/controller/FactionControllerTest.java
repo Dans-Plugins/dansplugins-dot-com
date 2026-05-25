@@ -14,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -443,29 +445,14 @@ class FactionControllerTest {
 
     @Test
     void getFactionById_inactiveFaction_returnsNotFound() throws Exception {
-        // Create faction via sync, then disband it by syncing a different set
-        String create = """
-                [{ "name": "Disbanded", "serverId": "server-1", "memberCount": 5 }]
-                """;
-        mockMvc.perform(post("/api/v1/factions")
-                        .header("X-API-Key", apiKey)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(create))
-                .andExpect(status().isOk());
-
-        UUID id = factionRepository.findAll().stream()
-                .filter(f -> f.getName().equals("Disbanded"))
-                .findFirst().orElseThrow().getId();
-
-        // Sync a different faction — "Disbanded" is omitted and marked inactive
-        String replace = """
-                [{ "name": "Active", "serverId": "server-1", "memberCount": 3 }]
-                """;
-        mockMvc.perform(post("/api/v1/factions")
-                        .header("X-API-Key", apiKey)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(replace))
-                .andExpect(status().isOk());
+        // Seed an inactive faction directly — the sync safety guard intentionally
+        // blocks single-faction deactivations on a server with very few factions,
+        // so we cannot drive an inactive row purely through the public sync API
+        // in a small fixture. The contract under test here is just "GET returns
+        // 404 for inactive", which is independent of how it became inactive.
+        Faction disbanded = new Faction("Disbanded", "server-1", 5, null, null, null);
+        disbanded.setActive(false);
+        UUID id = factionRepository.save(disbanded).getId();
 
         mockMvc.perform(get("/api/v1/factions/" + id))
                 .andExpect(status().isNotFound());
@@ -531,19 +518,16 @@ class FactionControllerTest {
 
     @Test
     void syncFactions_disbandedFaction_otherServerUnaffected() throws Exception {
-        // Create factions on two servers
+        // Seed enough factions on server-1 that the safety guard's ratio cap
+        // does not block the legitimate disband of a single one. server-2 should
+        // be untouched by anything happening on server-1.
         String body = """
                 [
-                    {
-                        "name": "Knights",
-                        "serverId": "server-1",
-                        "memberCount": 10
-                    },
-                    {
-                        "name": "Warriors",
-                        "serverId": "server-2",
-                        "memberCount": 8
-                    }
+                    { "name": "Knights", "serverId": "server-1", "memberCount": 10 },
+                    { "name": "Mages",   "serverId": "server-1", "memberCount": 4 },
+                    { "name": "Rogues",  "serverId": "server-1", "memberCount": 6 },
+                    { "name": "Druids",  "serverId": "server-1", "memberCount": 7 },
+                    { "name": "Warriors", "serverId": "server-2", "memberCount": 8 }
                 ]
                 """;
 
@@ -553,28 +537,69 @@ class FactionControllerTest {
                         .content(body))
                 .andExpect(status().isOk());
 
-        // Sync server-1 with no factions (all disbanded on server-1)
-        String emptyServer1 = """
+        // Sync server-1 with all factions except Knights — Knights should disband.
+        String server1Update = """
                 [
-                    {
-                        "name": "NewFaction",
-                        "serverId": "server-1",
-                        "memberCount": 3
-                    }
+                    { "name": "Mages",   "serverId": "server-1", "memberCount": 4 },
+                    { "name": "Rogues",  "serverId": "server-1", "memberCount": 6 },
+                    { "name": "Druids",  "serverId": "server-1", "memberCount": 7 }
                 ]
                 """;
 
         mockMvc.perform(post("/api/v1/factions")
                         .header("X-API-Key", apiKey)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(emptyServer1))
+                        .content(server1Update))
                 .andExpect(status().isOk());
 
-        // server-2's Warriors should still be active
+        // Active total: 3 on server-1 + 1 (Warriors) on server-2 = 4.
         mockMvc.perform(get("/api/v1/factions")
                         .param("size", "50"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements", is(2)));
+                .andExpect(jsonPath("$.totalElements", is(4)));
+
+        // Verify server-2's faction was never touched.
+        assertThat(factionRepository.findAll().stream()
+                .filter(f -> f.getName().equals("Warriors"))
+                .findFirst().orElseThrow().isActive()).isTrue();
+    }
+
+    @Test
+    void syncFactions_safetyGuard_blocksWipeFromTransientShortBatch() throws Exception {
+        // Seed several factions on a server.
+        String seed = """
+                [
+                    { "name": "F1", "serverId": "server-1", "memberCount": 1 },
+                    { "name": "F2", "serverId": "server-1", "memberCount": 1 },
+                    { "name": "F3", "serverId": "server-1", "memberCount": 1 },
+                    { "name": "F4", "serverId": "server-1", "memberCount": 1 },
+                    { "name": "F5", "serverId": "server-1", "memberCount": 1 }
+                ]
+                """;
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(seed))
+                .andExpect(status().isOk());
+
+        // Simulate a plugin sending a transiently-short batch (just F1). The
+        // ratio guard (4 of 5 = 80% > 50%) must prevent F2..F5 from being
+        // wiped out by this single bad sync.
+        String bad = """
+                [
+                    { "name": "F1", "serverId": "server-1", "memberCount": 1 }
+                ]
+                """;
+        mockMvc.perform(post("/api/v1/factions")
+                        .header("X-API-Key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bad))
+                .andExpect(status().isOk());
+
+        // All five must still be active — the bad batch only upserted F1.
+        mockMvc.perform(get("/api/v1/factions").param("size", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(5)));
     }
 
     @Test

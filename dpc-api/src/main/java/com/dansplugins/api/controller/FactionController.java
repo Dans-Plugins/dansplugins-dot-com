@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,11 @@ public class FactionController {
 
     private final FactionService factionService;
 
+    /** Hard cap on a single sync's payload. A real Minecraft server has tens to hundreds
+     * of factions, not thousands; this prevents a malformed client (or an attacker with
+     * a valid key) from exhausting memory or transaction time with a giant batch. */
+    static final int MAX_FACTIONS_PER_SYNC = 10_000;
+
     @PostMapping
     @Operation(
             summary = "Sync factions (bulk upsert)",
@@ -41,9 +47,13 @@ public class FactionController {
             security = @SecurityRequirement(name = "apiKey")
     )
     @ApiResponse(responseCode = "200", description = "Factions synced successfully")
+    @ApiResponse(responseCode = "400", description = "Validation error or batch too large")
     @ApiResponse(responseCode = "401", description = "Invalid or missing API key")
     public ResponseEntity<List<FactionResponse>> syncFactions(
-            @Valid @RequestBody List<FactionRequest> requests) {
+            @Valid @RequestBody
+            @Size(max = MAX_FACTIONS_PER_SYNC,
+                    message = "Sync batch may contain at most " + MAX_FACTIONS_PER_SYNC + " factions")
+            List<FactionRequest> requests) {
         List<FactionResponse> responses = factionService.syncFactions(requests);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }

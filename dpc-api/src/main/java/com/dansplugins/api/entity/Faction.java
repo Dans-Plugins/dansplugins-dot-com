@@ -58,6 +58,9 @@ public class Faction {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "last_synced_at", nullable = false)
+    private Instant lastSyncedAt;
+
     public Faction(String name, String serverId, int memberCount, String description,
                    String serverIp, String discordLink) {
         this.name = name;
@@ -74,6 +77,9 @@ public class Faction {
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
+        if (this.lastSyncedAt == null) {
+            this.lastSyncedAt = now;
+        }
     }
 
     @PreUpdate
