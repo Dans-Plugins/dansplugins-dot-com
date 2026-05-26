@@ -1,8 +1,10 @@
--- Track the most recent successful sync per faction so a partial sync
--- (e.g. plugin transiently sees an empty/short faction list) cannot
--- immediately mass-deactivate factions. Combined with the deactivation
--- safety guard in FactionService, this keeps a single bad sync from
--- wiping the registry for a server.
+-- Record the most recent successful sync per faction. FactionService.syncFactions
+-- updates this on every upsert; nothing reads it yet. It is a forward-looking
+-- hook so a future staleness-based deactivation pass (e.g. "deactivate factions
+-- whose last_synced_at < now - 2 * sync_interval") can be added without another
+-- schema migration. The actual safety against mass-deactivation today lives in
+-- FactionService.applyDeactivationGuard (minimum-incoming / ratio / absolute
+-- guards) — see dpc-api/README.md "Sync safety guards".
 ALTER TABLE factions ADD COLUMN last_synced_at TIMESTAMPTZ;
 UPDATE factions SET last_synced_at = updated_at WHERE last_synced_at IS NULL;
 ALTER TABLE factions ALTER COLUMN last_synced_at SET NOT NULL;
