@@ -182,6 +182,24 @@ returns 200; the deactivation step is silently skipped and a `WARN` log entry
 explains why. Operators can tighten or relax these guards via environment
 variables.
 
+###### Monitoring
+
+The only signal that a guard tripped is a `WARN` log line from
+`com.dansplugins.api.service.FactionService`. Look for messages starting with
+`Skipping deactivation for serverId='...'` — each one means a plugin sent a
+sync that the server refused to fully apply. A handful of these is normal
+during plugin restarts; a steady stream suggests either a misconfigured
+client or an attacker probing with valid credentials. Sample log line:
+
+```
+WARN  c.d.a.s.FactionService - Skipping deactivation for serverId='survival-1':
+  would deactivate 8 of 10 active factions (80%), exceeding the configured
+  maximum ratio of 50%. Factions in the batch are still upserted.
+```
+
+There is no metric exposed for guard trips today; if you need alerting,
+scrape this log line or follow up with an issue.
+
 A single sync may contain at most `10000` faction entries; oversized payloads
 are rejected with `400 Bad Request`.
 

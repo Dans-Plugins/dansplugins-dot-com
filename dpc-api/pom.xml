@@ -107,6 +107,29 @@
             <version>4.6.7</version>
             <scope>test</scope>
         </dependency>
+        <!--
+            Testcontainers + Postgres so FlywayMigrationTest can run the V*.sql
+            migrations against a real Postgres (matching production) instead of
+            H2. H2 in PostgreSQL mode does not recognize TIMESTAMPTZ, so it
+            cannot validate the production schema. CI runners have Docker
+            available; local devs without Docker will see this single test
+            skipped via Testcontainers' own fallback.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

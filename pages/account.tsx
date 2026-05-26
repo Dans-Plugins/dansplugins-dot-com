@@ -53,6 +53,14 @@ const AccountPage: NextPage = () => {
     const [serverName, setServerName] = useState('')
     const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+    // The JWT is stored in localStorage rather than an HttpOnly cookie. This is
+    // an explicit trade-off: localStorage exposes the token to any XSS injected
+    // into this origin, while HttpOnly cookies would require an API redesign
+    // (the backend doesn't currently issue cookies, and CSRF protection would
+    // need to be added on top). For an opt-in community registry where the
+    // worst-case impact of a compromised token is "an attacker can rotate the
+    // victim's own API keys", the simpler localStorage path is acceptable.
+    // Reconsider if this site ever stores higher-value credentials.
     useEffect(() => {
         const saved = localStorage.getItem('dpc-token')
         if (saved) {
