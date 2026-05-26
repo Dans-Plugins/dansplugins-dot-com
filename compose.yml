@@ -42,6 +42,11 @@ services:
       DB_USERNAME: dpc
       DB_PASSWORD: dpc
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      # Faction-sync safety guards. Defaults match dpc-api/README.md; override
+      # by exporting these on the host before running docker compose.
+      DPC_SYNC_MIN_INCOMING: ${DPC_SYNC_MIN_INCOMING:-2}
+      DPC_SYNC_MAX_DEACTIVATION_RATIO: ${DPC_SYNC_MAX_DEACTIVATION_RATIO:-0.5}
+      DPC_SYNC_MAX_DEACTIVATIONS: ${DPC_SYNC_MAX_DEACTIVATIONS:-1000}
     depends_on:
       dpc-db:
         condition: service_healthy

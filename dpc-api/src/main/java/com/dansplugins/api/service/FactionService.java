@@ -37,18 +37,21 @@ import java.util.stream.Collectors;
  *
  * <p>Step 2 is dangerous: a single bad sync (transient empty list during
  * plugin startup, a database reload, or a bug filtering out factions) would
- * wipe the registry for that server. Two layered guards protect against that:
+ * wipe the registry for that server. Three guards protect against that, each
+ * checked independently in {@link #applyDeactivationGuard}:
  * <ul>
  *     <li><b>Minimum incoming size</b>: batches below
  *         {@link FactionSyncSafetyProperties#minimumIncomingFactions} never
  *         deactivate. Upserts in the batch still apply.</li>
- *     <li><b>Ratio + absolute cap</b>: if the batch would deactivate more
- *         than {@link FactionSyncSafetyProperties#maxDeactivationRatio} of the
- *         server's active factions OR more than
+ *     <li><b>Absolute cap</b>: a single sync may not deactivate more than
  *         {@link FactionSyncSafetyProperties#maxDeactivationsPerSync} factions
- *         in absolute terms, the deactivation step is skipped and a warning is
- *         logged.</li>
+ *         (set to {@code 0} to disable this guard).</li>
+ *     <li><b>Ratio cap</b>: a single sync may not deactivate more than
+ *         {@link FactionSyncSafetyProperties#maxDeactivationRatio} of the
+ *         server's currently-active factions.</li>
  * </ul>
+ * <p>If any guard trips, the deactivation step is skipped (a {@code WARN}
+ * log explains which guard fired) and the upserts in the batch still apply.
  *
  * <p>Inactive factions are not deleted; a subsequent sync that includes them
  * reactivates them.

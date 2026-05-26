@@ -162,7 +162,7 @@ curl -X POST http://localhost:45345/api/v1/factions \
   ]'
 ```
 
-The endpoint accepts a JSON array. Factions are upserted by `(name, serverId)` — existing factions are updated, new ones are created. `serverIp` and `discordLink` are optional.
+The endpoint accepts a JSON array. Factions are upserted by `(name, serverId)` — existing factions are updated, new ones are created. `name`, `serverId`, and `memberCount` are required; `description`, `serverIp`, and `discordLink` are optional.
 
 ##### Sync safety guards
 
@@ -185,9 +185,11 @@ variables.
 A single sync may contain at most `10000` faction entries; oversized payloads
 are rejected with `400 Bad Request`.
 
-The `serverId` field must match `[A-Za-z0-9._:-]+`; values containing
-whitespace or control characters are rejected with `400 Bad Request` to prevent
-accidental near-duplicate registry partitions.
+The `serverId` field must match `[A-Za-z0-9._:-]+`. Any value containing
+characters outside that set (whitespace, slashes, accented letters, emoji,
+etc.) is rejected with `400 Bad Request`. This prevents accidental
+near-duplicate registry partitions from typos that would otherwise shadow a
+real server's factions.
 
 #### List factions (paginated)
 

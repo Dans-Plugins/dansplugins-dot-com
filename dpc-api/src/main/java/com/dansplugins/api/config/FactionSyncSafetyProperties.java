@@ -18,6 +18,12 @@ import org.springframework.validation.annotation.Validated;
  * batch still apply; the sync simply does not flip any other factions to
  * inactive. Subsequent syncs that converge on a normal-sized batch reactivate
  * the registry without operator intervention.</p>
+ *
+ * <p>Production defaults come from {@code application.yml} and the
+ * {@code DPC_SYNC_*} environment variables documented in the dpc-api README.
+ * The validation annotations on each field only forbid out-of-range values;
+ * intentional values like {@code 0} (disable the absolute cap) or {@code 0.0}
+ * (maximally strict ratio — never deactivate) are honored as documented.</p>
  */
 @Validated
 @ConfigurationProperties(prefix = "dpc.sync.safety")
@@ -27,7 +33,8 @@ public record FactionSyncSafetyProperties(
          * for that batch to be eligible to deactivate factions on the same
          * serverId. A batch smaller than this floor never deactivates, even if
          * the server currently has fewer active factions than the floor — this
-         * protects against the "transient empty list" failure mode.
+         * protects against the "transient empty list" failure mode. Set to 0
+         * or 1 to effectively disable this guard.
          */
         @Min(0) int minimumIncomingFactions,
 
@@ -35,20 +42,16 @@ public record FactionSyncSafetyProperties(
          * Maximum fraction (0..1) of currently-active factions that a single
          * sync may deactivate. If applying the incoming batch would deactivate
          * more than this fraction, the deactivation step is skipped and a
-         * warning is logged; upserts in the batch still apply.
+         * warning is logged; upserts in the batch still apply. Set to 1.0 to
+         * effectively disable this guard (any ratio is allowed).
          */
         @DecimalMin("0.0") @DecimalMax("1.0") double maxDeactivationRatio,
 
         /*
          * Hard upper bound on the number of factions a single sync may
          * deactivate. Defends against a runaway sync that would deactivate
-         * thousands of factions. {@code 0} disables this guard.
+         * thousands of factions. Set to {@code 0} to disable this guard.
          */
         @Min(0) int maxDeactivationsPerSync
 ) {
-    public FactionSyncSafetyProperties {
-        if (minimumIncomingFactions <= 0) minimumIncomingFactions = 1;
-        if (maxDeactivationRatio <= 0.0) maxDeactivationRatio = 0.5;
-        if (maxDeactivationsPerSync <= 0) maxDeactivationsPerSync = 1000;
-    }
 }
