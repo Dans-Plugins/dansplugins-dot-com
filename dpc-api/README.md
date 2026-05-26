@@ -62,6 +62,9 @@ Configuration is managed via environment variables:
 | `DB_PASSWORD` | *(required)* | Database password |
 | `JWT_SECRET` | *(required)* | Secret key for JWT signing (min 32 bytes) |
 | `JWT_EXPIRATION` | `24h` | JWT token expiration duration |
+| `DPC_SYNC_MIN_INCOMING` | `2` | Minimum batch size eligible to deactivate factions (see [Sync safety guards](#sync-safety-guards)) |
+| `DPC_SYNC_MAX_DEACTIVATION_RATIO` | `0.5` | Fraction cap on factions one sync may deactivate |
+| `DPC_SYNC_MAX_DEACTIVATIONS` | `1000` | Absolute cap on factions one sync may deactivate (`0` disables) |
 
 The Docker Compose file also supports the `API_PORT` variable (default `45345`) to control the published host port for the API.
 
@@ -166,7 +169,7 @@ The endpoint accepts a JSON array. Factions are upserted by `(name, serverId)` â
 The endpoint treats each batch as the authoritative snapshot for its
 `serverId`, so factions previously seen on that server but missing from the
 batch are marked inactive (soft-deleted). To stop a single malformed sync from
-wiping a server's registry, two guards run before any faction is deactivated:
+wiping a server's registry, three guards run before any faction is deactivated:
 
 | Property | Default | Effect |
 |---|---|---|
