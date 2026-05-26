@@ -36,6 +36,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Postgres-specific types like {@code TIMESTAMPTZ}; it cannot catch drift.
  * This test is the one that does.
  *
+ * <p>Does not use {@code @ActiveProfiles("test")} because that profile pins
+ * the H2 dialect and disables Flyway — both of which this test needs to
+ * override. Everything the test needs (JWT secret, Flyway settings, datasource
+ * via {@code @ServiceConnection}) is supplied directly below.
+ *
  * <p>Skipped automatically in environments without Docker (Testcontainers
  * cannot start its database). CI provides Docker by default.
  */
@@ -44,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIf("dockerAvailable")
 class FlywayMigrationTest {
 
-    /** Used by {@code @EnabledIf} above; must be public for JUnit's reflection. */
+    /** Used by {@code @EnabledIf} above. */
     static boolean dockerAvailable() {
         try {
             return DockerClientFactory.instance().isDockerAvailable();
@@ -59,11 +64,18 @@ class FlywayMigrationTest {
     static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:16-alpine");
 
-    /** Force Flyway on (the default test profile disables it) and validate. */
     @DynamicPropertySource
-    static void overrideFlywayProperties(DynamicPropertyRegistry registry) {
+    static void supplyTestProperties(DynamicPropertyRegistry registry) {
+        // JWT secret — required by JwtService at startup; matches the length
+        // requirement (>= 32 bytes for HMAC-SHA256).
+        registry.add("dpc.jwt.secret", () -> "flyway-migration-test-secret-key-32+");
+        // Flyway on, validate the resulting schema against the JPA entities.
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        // Permissive safety guards so the round-trip below isn't blocked.
+        registry.add("dpc.sync.safety.minimum-incoming-factions", () -> "1");
+        registry.add("dpc.sync.safety.max-deactivation-ratio", () -> "1.0");
+        registry.add("dpc.sync.safety.max-deactivations-per-sync", () -> "0");
     }
 
     @Autowired
