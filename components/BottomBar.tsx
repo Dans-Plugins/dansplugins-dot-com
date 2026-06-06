@@ -86,6 +86,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                     <ColorModeToggleSwitch
                         checked={theme.palette.mode === 'dark'}
                         onChange={colorMode.toggleColorMode}
+                        inputProps={{'aria-label': 'Toggle dark mode'}}
                     />
                 </Box>
             </Toolbar>
