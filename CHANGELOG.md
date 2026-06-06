@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Added a **News** page (`/news`) listing posts newest-first, driven by an editable `pages/data/news.json`, with a **News** link in the top navigation bar.
 - Added an **About Us** page (`/about`) introducing the community, with links to GitHub, Discord, and Patreon.
 - Added a **Road Map** page (`/roadmap`) that lists planned, in-progress, and completed work, driven by an editable `pages/data/roadmap.json`.
 - Added a **Commissions** page (`/commissions`) with a pricing table, what's-included list, availability status, and a link to the commissions Discord, driven by an editable `pages/data/commissions.json`.

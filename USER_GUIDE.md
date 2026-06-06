@@ -20,6 +20,11 @@ No special software is required to use the website. Simply visit [https://danspl
 2. Browse the plugin cards displayed on the page.
 3. Click a plugin card to open its details or external page.
 
+### Reading the Latest News
+
+1. Click **News** in the top navigation bar (or visit `/news`).
+2. Browse the posts, shown newest first.
+
 ### Learning About the Community
 
 1. Click **About** in the top navigation bar (or visit `/about`).
