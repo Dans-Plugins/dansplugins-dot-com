@@ -43,7 +43,7 @@ interface Plugin {
 }
 
 interface PluginWithServerCount extends Plugin {
-    serverCount?: number;
+    serverCount?: number | null;
 }
 
 const PluginSection: React.FC<{ plugins: PluginWithServerCount[] }> = ({ plugins }) => (
@@ -85,8 +85,8 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
         if (sortBy === 'popularity') {
             // Sort by server count (descending), with plugins without counts at the end
             return [...initialPlugins].sort((a, b) => {
-                const hasCountA = a.serverCount !== undefined;
-                const hasCountB = b.serverCount !== undefined;
+                const hasCountA = a.serverCount != null;
+                const hasCountB = b.serverCount != null;
                 
                 // If both have counts, sort by count descending
                 if (hasCountA && hasCountB) {
@@ -163,7 +163,7 @@ export const getServerSideProps = async () => {
     // Create plugins with server counts
     const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
         ...plugin,
-        serverCount: plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined
+        serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null
     }));
 
     return {

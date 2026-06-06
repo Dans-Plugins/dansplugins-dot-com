@@ -16,7 +16,7 @@ interface PluginCardProps {
     githubLink: string;
     spigotmcLink?: string;
     bStatsId?: string;
-    serverCount?: number;
+    serverCount?: number | null;
 }
 
 const PluginCard: React.FC<PluginCardProps> = ({ 
