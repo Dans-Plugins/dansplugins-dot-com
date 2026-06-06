@@ -11,5 +11,8 @@ export const incrementVisits = async (): Promise<void> => {
 
 export const getVisits = async (): Promise<VisitData> => {
     const response = await fetch(`${getBaseUrl()}/api/visits`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch visits: ${response.status} ${response.statusText}`);
+    }
     return response.json();
 };
