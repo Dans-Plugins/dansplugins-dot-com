@@ -34,8 +34,8 @@ const VersionNumber: React.FC<{ version: string }> = ({version}) => (
 
 interface BottomBarProps {
     version: string;
-    visits?: number;
-    startDate?: string;
+    visits?: number | null;
+    startDate?: string | null;
 }
 
 const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
@@ -54,7 +54,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                 <Box sx={(theme) => flexContainerStyle(theme)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <VersionNumber version={version}/>
-                        {visits !== undefined && startDate && (
+                        {visits != null && startDate && (
                             <>
                                 <Typography variant="body2" color="inherit">
                                     •

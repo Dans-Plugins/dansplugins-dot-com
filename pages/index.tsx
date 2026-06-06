@@ -133,16 +133,26 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
 };
 
 interface HomeProps {
-    visits: number;
-    startDate: string;
+    visits: number | null;
+    startDate: string | null;
     pluginsWithCounts: PluginWithServerCount[];
 }
 
 export const getServerSideProps = async () => {
-    // Increment visits and get visit data
-    await incrementVisits();
-    const data = await getVisits();
-    
+    // The visit counter is a non-essential cosmetic feature, so a failure of
+    // the visits API must never take down the entire home page. Fall back to
+    // nulls (hidden by BottomBar) if incrementing or reading visits fails.
+    let visits: number | null = null;
+    let startDate: string | null = null;
+    try {
+        await incrementVisits();
+        const data = await getVisits();
+        visits = data.visits;
+        startDate = data.startDate;
+    } catch (error) {
+        console.error('Failed to load visit data; hiding the visit counter.', error);
+    }
+
     // Fetch server counts for all plugins with rate limiting
     const bStatsIds = pluginData.plugins
         .filter(plugin => plugin.bStatsId)
@@ -158,8 +168,8 @@ export const getServerSideProps = async () => {
 
     return {
         props: {
-            visits: data.visits,
-            startDate: data.startDate,
+            visits,
+            startDate,
             pluginsWithCounts
         }
     };
