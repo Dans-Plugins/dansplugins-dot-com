@@ -40,11 +40,11 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 ) : null}
             </CardContent>
             <CardActions sx={pluginCardActionsStyle}>
-                <Button sx={(theme) => pluginCardButtonStyle()} component={Link} href={githubLink}>
+                <Button sx={(theme) => pluginCardButtonStyle()} component={Link} href={githubLink} target="_blank" rel="noopener noreferrer">
                     GitHub
                 </Button>
                 {spigotmcLink ? (
-                    <Button sx={(theme) => pluginCardButtonStyle()} component={Link} href={spigotmcLink}>
+                    <Button sx={(theme) => pluginCardButtonStyle()} component={Link} href={spigotmcLink} target="_blank" rel="noopener noreferrer">
                         SpigotMC
                     </Button>
                 ) : null}

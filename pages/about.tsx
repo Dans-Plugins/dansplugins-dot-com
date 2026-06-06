@@ -36,6 +36,8 @@ const About: NextPage = () => (
                     variant="contained"
                     color="primary"
                     href="https://github.com/Dans-Plugins"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{mr: 1, mb: 1}}
                 >
                     GitHub
@@ -44,6 +46,8 @@ const About: NextPage = () => (
                     variant="contained"
                     color="primary"
                     href="https://discord.gg/xXtuAQ2"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{mr: 1, mb: 1}}
                 >
                     Discord
@@ -52,6 +56,8 @@ const About: NextPage = () => (
                     variant="contained"
                     color="primary"
                     href="https://www.patreon.com/danspluginscommunity"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{mr: 1, mb: 1}}
                 >
                     Patreon

@@ -23,6 +23,11 @@ const InfoCard: React.FC<{
     <Grid item xs={12} md={4}>
         <Paper
             elevation={3}
+            // When the card links somewhere, expose it as a focusable, keyboard-
+            // operable control: a mouse-only onClick left keyboard and screen-
+            // reader users unable to reach or activate these cards.
+            role={href ? 'link' : undefined}
+            tabIndex={href ? 0 : undefined}
             sx={(theme) => ({
                 ...infoCardStyle(theme),
                 cursor: href ? 'pointer' : 'default',
@@ -31,7 +36,13 @@ const InfoCard: React.FC<{
                     transition: 'transform 0.2s ease-in-out'
                 } : {}
             })}
-            onClick={() => href && window.open(href, '_blank')}
+            onClick={() => href && window.open(href, '_blank', 'noopener,noreferrer')}
+            onKeyDown={(e) => {
+                if (href && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                }
+            }}
         >
             <Box sx={(theme) => infoCardIconStyle(theme)}>
                 {icon}

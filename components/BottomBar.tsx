@@ -21,7 +21,7 @@ const FooterButton: React.FC<{ href: string; icon: React.ReactNode; children: Re
                                                                                                         icon,
                                                                                                         children,
                                                                                                     }) => (
-    <Button color="inherit" href={href} startIcon={icon} sx={(theme) => footerButtonStyle(theme)}>
+    <Button color="inherit" href={href} target="_blank" rel="noopener noreferrer" startIcon={icon} sx={(theme) => footerButtonStyle(theme)}>
         {children}
     </Button>
 );

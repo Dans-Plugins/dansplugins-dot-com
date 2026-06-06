@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- External links now behave consistently: the top-bar community links (Discord, Patreon, LinkedIn, RPKit), the footer links (Source Code, Report a Bug), the plugin-card GitHub/SpigotMC buttons, and the About-page links all open in a new tab with `rel="noopener noreferrer"`, matching the News, Road Map, and home-page cards. The external links in the top navigation also carry an external-link icon so they are distinguishable from in-site navigation.
+- The home-page info cards (Contribute, Download, Try it Out) are now keyboard-accessible: they are focusable, expose a `link` role, and activate on Enter/Space, where previously they responded only to mouse clicks.
 - The dark/light mode toggle now **persists** across navigation and reloads (saved to `localStorage`) and a first-time visitor's initial mode follows their operating-system `prefers-color-scheme` setting instead of always starting in dark. Previously the choice was lost on every page change because navigation triggers a full page load and the mode lived only in memory.
 - The dark-mode toggle switch now has an accessible label (`aria-label="Toggle dark mode"`) in both the top and bottom bars, so assistive technology announces its purpose.
 - `CONFIG.md` no longer documents a phantom `NEXT_PUBLIC_SITE_URL` environment variable: it was read nowhere in the code, Dockerfile, or `compose.yml`. Removed its section and corrected the example `.env.local` block to use `NEXT_PUBLIC_BASE_URL` (the variable actually read by `services/visitService.ts` for the site's own origin).
