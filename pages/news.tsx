@@ -3,7 +3,8 @@ import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
-import {getNewsPosts, NewsPost, NewsSource} from '../utils/newsStorage';
+import {getNewsPosts, mergeNewsPosts, NewsPost, NewsSource} from '../utils/newsStorage';
+import {getApiNewsPosts} from '../services/discordNewsService';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -28,9 +29,16 @@ interface NewsProps {
     posts: NewsPost[];
 }
 
-export const getServerSideProps = async () => ({
-    props: {posts: getNewsPosts()}
-});
+export const getServerSideProps = async () => {
+    // Merge locally-authored posts (data/news.json) with community posts from the
+    // DPC API (Discord announcements). The API fetch degrades to an empty list on
+    // failure, so the page always renders at least the local posts.
+    const [localPosts, apiPosts] = await Promise.all([
+        Promise.resolve(getNewsPosts()),
+        getApiNewsPosts()
+    ]);
+    return {props: {posts: mergeNewsPosts(localPosts, apiPosts)}};
+};
 
 const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
     const badge = SOURCE_BADGE[post.source];

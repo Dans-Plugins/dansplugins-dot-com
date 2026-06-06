@@ -45,9 +45,10 @@ const DEFAULT_POSTS: NewsPost[] = [
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.length > 0;
 
-// Normalize a raw post from the file into a fully-populated, serializable
-// NewsPost (no `undefined` values, which Next.js cannot serialize into props).
-const normalizePost = (raw: unknown): NewsPost | null => {
+// Normalize a raw post (from the file or the DPC API) into a fully-populated,
+// serializable NewsPost (no `undefined` values, which Next.js cannot serialize
+// into props).
+export const normalizePost = (raw: unknown): NewsPost | null => {
     if (typeof raw !== 'object' || raw === null) {
         return null;
     }
@@ -70,6 +71,20 @@ const normalizePost = (raw: unknown): NewsPost | null => {
 
 const sortNewestFirst = (posts: NewsPost[]): NewsPost[] =>
     [...posts].sort((a, b) => b.date.localeCompare(a.date));
+
+// Combine locally-authored posts with posts from the DPC API into a single
+// feed, newest-first. Local posts win on an id collision so a hand-authored
+// post is never overridden by an API post sharing its id.
+export const mergeNewsPosts = (local: NewsPost[], remote: NewsPost[]): NewsPost[] => {
+    const byId = new Map<string, NewsPost>();
+    for (const post of remote) {
+        byId.set(post.id, post);
+    }
+    for (const post of local) {
+        byId.set(post.id, post);
+    }
+    return sortNewestFirst(Array.from(byId.values()));
+};
 
 // Write atomically: temp file + rename, so an interrupted write cannot leave a
 // partial/invalid news.json behind.

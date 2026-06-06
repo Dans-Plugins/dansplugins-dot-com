@@ -62,6 +62,7 @@ The News page (`/news`) reads its posts at request time from `data/news.json`. I
 - The file is **seeded with default posts on first run** if it does not exist.
 - If the file is present but contains invalid JSON, the page serves the default posts and **does not overwrite your file**, so an editing typo never destroys content. Fix the JSON and reload.
 - Posts are displayed newest-first (by `date`).
+- The News page also **merges in community posts from the DPC API** (`GET ${NEXT_PUBLIC_API_URL}/api/v1/news`, currently Discord announcements). These appear in the same feed with a "From Discord" badge. If the API is unreachable the page still renders the local `data/news.json` posts. On an `id` collision a local post wins. See the `dpc-api` README for enabling Discord ingestion (`DISCORD_*` variables).
 
 Each entry in the `posts` array supports these fields:
 

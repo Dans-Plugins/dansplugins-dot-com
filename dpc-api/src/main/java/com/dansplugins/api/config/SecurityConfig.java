@@ -74,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/accounts/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/accounts/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/factions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/news/**").permitAll()
                         // Swagger/OpenAPI
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Account endpoints require JWT auth

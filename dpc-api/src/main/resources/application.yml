@@ -38,3 +38,21 @@ dpc:
       max-deactivation-ratio: ${DPC_SYNC_MAX_DEACTIVATION_RATIO:0.5}
       # Hard absolute cap on factions that one sync may deactivate. 0 disables.
       max-deactivations-per-sync: ${DPC_SYNC_MAX_DEACTIVATIONS:1000}
+  discord:
+    # Ingest announcements from the community Discord into the News feed.
+    # Disabled by default: with enabled=false (or no bot token / channel id)
+    # the poller is a no-op and no calls are made to Discord.
+    enabled: ${DISCORD_ENABLED:false}
+    # Discord bot token (server-only secret). The bot must be a member of the
+    # guild with permission to read the announcements channel.
+    bot-token: ${DISCORD_BOT_TOKEN:}
+    # Numeric id of the announcements channel to read.
+    announcements-channel-id: ${DISCORD_ANNOUNCEMENTS_CHANNEL_ID:}
+    # Numeric guild id, used only to build message permalinks (sourceUrl).
+    guild-id: ${DISCORD_GUILD_ID:}
+    # How many recent messages to request per poll (1..100).
+    fetch-limit: ${DISCORD_FETCH_LIMIT:20}
+    # Discord REST API base URL.
+    api-base-url: ${DISCORD_API_BASE_URL:https://discord.com/api/v10}
+    # Delay between polls, in milliseconds (default 5 minutes).
+    poll-interval-millis: ${DISCORD_POLL_INTERVAL_MILLIS:300000}

@@ -47,6 +47,13 @@ services:
       DPC_SYNC_MIN_INCOMING: ${DPC_SYNC_MIN_INCOMING:-2}
       DPC_SYNC_MAX_DEACTIVATION_RATIO: ${DPC_SYNC_MAX_DEACTIVATION_RATIO:-0.5}
       DPC_SYNC_MAX_DEACTIVATIONS: ${DPC_SYNC_MAX_DEACTIVATIONS:-1000}
+      # Discord announcement ingestion (News feed). Disabled by default; set
+      # DISCORD_ENABLED=true and provide a bot token + channel id to enable.
+      # See dpc-api/README.md "Discord announcement ingestion".
+      DISCORD_ENABLED: ${DISCORD_ENABLED:-false}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DISCORD_ANNOUNCEMENTS_CHANNEL_ID: ${DISCORD_ANNOUNCEMENTS_CHANNEL_ID:-}
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
     depends_on:
       dpc-db:
         condition: service_healthy

@@ -66,6 +66,13 @@ Configuration is managed via environment variables:
 | `DPC_SYNC_MIN_INCOMING` | `2` | Minimum batch size eligible to deactivate factions (see [Sync safety guards](#sync-safety-guards)) |
 | `DPC_SYNC_MAX_DEACTIVATION_RATIO` | `0.5` | Fraction cap on factions one sync may deactivate |
 | `DPC_SYNC_MAX_DEACTIVATIONS` | `1000` | Absolute cap on factions one sync may deactivate (`0` disables) |
+| `DISCORD_ENABLED` | `false` | Enable ingesting Discord announcements into the News feed (see [Discord announcement ingestion](#discord-announcement-ingestion)) |
+| `DISCORD_BOT_TOKEN` | *(empty)* | Discord bot token (server-only secret); the bot must be in the guild with read access to the announcements channel |
+| `DISCORD_ANNOUNCEMENTS_CHANNEL_ID` | *(empty)* | Numeric id of the announcements channel to read |
+| `DISCORD_GUILD_ID` | *(empty)* | Numeric guild id, used only to build message permalinks (`sourceUrl`); when empty, posts have no source link |
+| `DISCORD_FETCH_LIMIT` | `20` | How many recent messages to request per poll (1–100) |
+| `DISCORD_API_BASE_URL` | `https://discord.com/api/v10` | Discord REST API base URL |
+| `DISCORD_POLL_INTERVAL_MILLIS` | `300000` | Delay between polls, in milliseconds (default 5 minutes) |
 
 The Docker Compose file also supports the `API_PORT` variable (default `45345`) to control the published host port for the API.
 
@@ -221,6 +228,52 @@ curl "http://localhost:45345/api/v1/factions?page=0&size=20"
 ```bash
 curl http://localhost:45345/api/v1/factions/<faction-uuid>
 ```
+
+### News
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/v1/news` | Public | List recent community news posts (Discord announcements), newest-first |
+
+```bash
+curl http://localhost:45345/api/v1/news
+```
+
+Each item matches the website's News post shape:
+
+```json
+[
+  {
+    "id": "discord-1234567890",
+    "title": "Server event this weekend",
+    "date": "2026-06-09",
+    "body": "Join us for a community build event.",
+    "source": "discord",
+    "sourceUrl": "https://discord.com/channels/<guild>/<channel>/<message>",
+    "author": "Dan"
+  }
+]
+```
+
+The website merges these into its own News feed (see the site's News page).
+
+#### Discord announcement ingestion
+
+When enabled, a scheduled poller reads recent messages from the community
+Discord server's announcements channel and stores them in the
+`discord_announcements` table, where `GET /api/v1/news` serves them.
+
+- **Disabled by default.** With `DISCORD_ENABLED=false` (or a missing
+  `DISCORD_BOT_TOKEN` / `DISCORD_ANNOUNCEMENTS_CHANNEL_ID`) the poller is a
+  no-op and the API makes no calls to Discord.
+- **Upsert-only, never delete.** Messages are upserted by Discord message id —
+  inserted once and updated in place if edited. The ingestion path never
+  deletes rows, so a Discord outage or an empty fetch cannot wipe
+  previously-ingested announcements.
+- **Title derivation.** A post's title is the first non-empty line of the
+  message (truncated); the full message becomes the body.
+- **Configuration.** See the `DISCORD_*` variables in the
+  [Configuration](#configuration) table.
 
 ## Plugin Authentication Flow
 

@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The News page now pulls in **announcements from the community Discord server** alongside hand-written posts. A scheduled poller in the `dpc-api` backend ingests the announcements channel into a new `discord_announcements` table (upsert-by-message-id, never deleting) and serves them at `GET /api/v1/news`; the frontend merges them into the single News feed (newest-first, "From Discord" badge), degrading to local-only posts if the API is unavailable. The integration is **disabled by default** and configured per-environment via the `DISCORD_*` variables documented in the `dpc-api` README.
 - Added a **News** page (`/news`) listing posts newest-first, with a **News** link in the top navigation bar. Posts are read at request time from a runtime `data/news.json` (on the mounted data volume), so they can be edited on the server without rebuilding the site; the file is seeded with default posts on first run, and an invalid file falls back to defaults without being overwritten. Each post has a `source` (`direct`, `discord`, or `external`) rendered as a badge, with an optional `sourceUrl` link and `author`.
 - Added an **About Us** page (`/about`) introducing the community, with links to GitHub, Discord, and Patreon.
 - Added a **Road Map** page (`/roadmap`) that lists planned, in-progress, and completed work, driven by an editable `pages/data/roadmap.json`.
