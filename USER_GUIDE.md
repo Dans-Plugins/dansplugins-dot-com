@@ -20,6 +20,24 @@ No special software is required to use the website. Simply visit [https://danspl
 2. Browse the plugin cards displayed on the page.
 3. Click a plugin card to open its details or external page.
 
+### Learning About the Community
+
+1. Click **About** in the top navigation bar (or visit `/about`).
+2. Read the overview of Dan's Plugins Community.
+3. Use the GitHub, Discord, or Patreon links to get involved.
+
+### Viewing the Road Map
+
+1. Click **Road Map** in the top navigation bar (or visit `/roadmap`).
+2. Review the planned, in-progress, and completed work.
+3. Follow the linked GitHub issue tracker for day-to-day detail.
+
+### Requesting a Commission
+
+1. Click **Commissions** in the top navigation bar (or visit `/commissions`).
+2. Review the pricing options, what's included, and the current availability status.
+3. Click **Join the Commissions Discord** to discuss your project.
+
 ### Getting Support
 
 If you need help with any DPC plugin, join the community Discord:

@@ -50,6 +50,9 @@ const TopBar: React.FC = () => {
                         <NavButton href="/">Home</NavButton>
                         <NavButton href="/guides">Guides</NavButton>
                         <NavButton href="/leaderboard">Leaderboard</NavButton>
+                        <NavButton href="/about">About</NavButton>
+                        <NavButton href="/roadmap">Road Map</NavButton>
+                        <NavButton href="/commissions">Commissions</NavButton>
                         <NavButton href="/account">Account</NavButton>
                         <NavButton href="https://discord.gg/xXtuAQ2">Discord</NavButton>
                         <NavButton href="https://www.patreon.com/danspluginscommunity">Patreon</NavButton>
