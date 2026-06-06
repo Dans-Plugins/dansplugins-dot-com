@@ -275,6 +275,44 @@ Discord server's announcements channel and stores them in the
 - **Configuration.** See the `DISCORD_*` variables in the
   [Configuration](#configuration) table.
 
+##### Setting up the Discord bot (one-time)
+
+To enable ingestion you need a Discord bot that can read the announcements
+channel, plus the channel and (optionally) server ids.
+
+1. **Create the application and bot.** Go to the
+   [Discord Developer Portal](https://discord.com/developers/applications) →
+   **New Application**. Open the **Bot** tab and **Reset Token** to reveal the
+   bot token — this is the `DISCORD_BOT_TOKEN` value (treat it as a secret).
+2. **Enable the Message Content intent.** On the **Bot** tab, turn on the
+   **Message Content Intent** (under *Privileged Gateway Intents*).
+   > ⚠️ **Required.** Without this intent the Discord REST API returns **empty**
+   > `content` for messages, so every announcement would be ingested as blank and
+   > skipped. Per Discord's docs, an app "will receive empty values in the
+   > `content`, `embeds`, `attachments` … fields … if they have not configured
+   > (or been approved for) the `MESSAGE_CONTENT` privileged intent." Apps in
+   > 100+ servers must additionally be approved for it; below that the toggle is
+   > sufficient.
+3. **Invite the bot to your server.** Under **OAuth2 → URL Generator**, select
+   the `bot` scope and the **View Channel** + **Read Message History**
+   permissions, open the generated URL, and add the bot to the server. These two
+   permissions are what `GET /channels/{id}/messages` requires; without
+   *Read Message History* it returns no messages.
+4. **Get the ids.** In Discord, enable **User Settings → Advanced → Developer
+   Mode**, then right-click the announcements channel → **Copy Channel ID**
+   (`DISCORD_ANNOUNCEMENTS_CHANNEL_ID`) and right-click the server icon →
+   **Copy Server ID** (`DISCORD_GUILD_ID`, used only to build `sourceUrl`
+   permalinks).
+5. **Configure and enable.** Put the values in the deployment's environment
+   (e.g. the gateway `.env`) and set `DISCORD_ENABLED=true`, then restart/recreate
+   the `dpc-backend` service. Verify with `curl https://api.dansplugins.com/api/v1/news`
+   — it should return the recent announcements within one poll interval
+   (`DISCORD_POLL_INTERVAL_MILLIS`, default 5 minutes).
+
+> The bot only needs **read** access to the announcements channel. It never
+> posts, edits, or deletes anything on Discord, and the ingestion path never
+> deletes stored rows (see above).
+
 ## Plugin Authentication Flow
 
 Minecraft plugins can register and manage API keys programmatically:
