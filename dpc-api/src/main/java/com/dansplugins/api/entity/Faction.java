@@ -1,0 +1,89 @@
+package com.dansplugins.api.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "factions", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "server_id"})
+})
+@Getter
+@Setter
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+public class Faction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(lombok.AccessLevel.NONE)
+    private UUID id;
+
+    @Column(nullable = false, length = 64)
+    private String name;
+
+    @Column(name = "server_id", nullable = false, length = 64)
+    private String serverId;
+
+    @Column(name = "member_count", nullable = false)
+    private int memberCount;
+
+    @Column(length = 512)
+    private String description;
+
+    @Column(name = "server_ip", length = 253)
+    private String serverIp;
+
+    @Column(name = "discord_link", length = 512)
+    private String discordLink;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Setter(lombok.AccessLevel.NONE)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "last_synced_at", nullable = false)
+    private Instant lastSyncedAt;
+
+    public Faction(String name, String serverId, int memberCount, String description,
+                   String serverIp, String discordLink) {
+        this.name = name;
+        this.serverId = serverId;
+        this.memberCount = memberCount;
+        this.description = description;
+        this.serverIp = serverIp;
+        this.discordLink = discordLink;
+        this.active = true;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+        if (this.lastSyncedAt == null) {
+            this.lastSyncedAt = now;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
+}

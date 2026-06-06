@@ -1,0 +1,360 @@
+package com.dansplugins.api.service;
+
+import com.dansplugins.api.config.FactionSyncSafetyProperties;
+import com.dansplugins.api.dto.FactionRequest;
+import com.dansplugins.api.dto.FactionResponse;
+import com.dansplugins.api.entity.Faction;
+import com.dansplugins.api.mapper.FactionMapper;
+import com.dansplugins.api.repository.FactionRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class FactionServiceTest {
+
+    @Mock
+    private FactionRepository factionRepository;
+
+    @Mock
+    private FactionMapper factionMapper;
+
+    @Captor
+    private ArgumentCaptor<List<Faction>> factionsCaptor;
+
+    private FactionService factionService;
+    private FactionSyncSafetyProperties safety;
+
+    @BeforeEach
+    void setUp() {
+        // Permissive defaults so the deactivation-semantic tests still pass; the
+        // guard itself has dedicated tests below that override these.
+        safety = new FactionSyncSafetyProperties(1, 1.0, 0);
+        factionService = new FactionService(factionRepository, factionMapper, safety);
+    }
+
+    @Test
+    void syncFactions_emptyList_returnsEmptyAndSkipsDb() {
+        List<FactionResponse> result = factionService.syncFactions(List.of());
+
+        assertThat(result).isEmpty();
+        verify(factionRepository, never()).findByServerIdAndNameIn(any(), any());
+        verify(factionRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void syncFactions_newFaction_createsEntity() {
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, "Desc", "1.2.3.4", "https://discord.gg/x");
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        List<FactionResponse> result = factionService.syncFactions(List.of(req));
+
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        List<Faction> saved = factionsCaptor.getValue();
+        assertThat(saved).hasSize(1);
+
+        Faction faction = saved.get(0);
+        assertThat(faction.getName()).isEqualTo("Knights");
+        assertThat(faction.getServerId()).isEqualTo("server-1");
+        assertThat(faction.getMemberCount()).isEqualTo(10);
+        assertThat(faction.getDescription()).isEqualTo("Desc");
+        assertThat(faction.getServerIp()).isEqualTo("1.2.3.4");
+        assertThat(faction.getDiscordLink()).isEqualTo("https://discord.gg/x");
+        assertThat(faction.getLastSyncedAt()).isNotNull();
+    }
+
+    @Test
+    void syncFactions_existingFaction_updatesFields() {
+        Faction existing = new Faction("Knights", "server-1", 5, "Old", null, null);
+        FactionRequest req = new FactionRequest("Knights", "server-1", 20, "New", "5.6.7.8", "https://discord.gg/y");
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of(existing));
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(req));
+
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        Faction updated = factionsCaptor.getValue().get(0);
+        assertThat(updated.getMemberCount()).isEqualTo(20);
+        assertThat(updated.getDescription()).isEqualTo("New");
+        assertThat(updated.getServerIp()).isEqualTo("5.6.7.8");
+        assertThat(updated.getDiscordLink()).isEqualTo("https://discord.gg/y");
+        assertThat(updated.isActive()).isTrue();
+        assertThat(updated.getLastSyncedAt()).isNotNull();
+        // Name and serverId should remain unchanged
+        assertThat(updated.getName()).isEqualTo("Knights");
+        assertThat(updated.getServerId()).isEqualTo("server-1");
+    }
+
+    @Test
+    void syncFactions_deduplicatesSameKeyInPayload_lastWriteWins() {
+        FactionRequest first = new FactionRequest("Knights", "server-1", 5, "First", null, null);
+        FactionRequest second = new FactionRequest("Knights", "server-1", 20, "Second", null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(first, second));
+
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        List<Faction> saved = factionsCaptor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getMemberCount()).isEqualTo(20);
+        assertThat(saved.get(0).getDescription()).isEqualTo("Second");
+    }
+
+    @Test
+    void syncFactions_multipleServers_batchesByServerId() {
+        FactionRequest req1 = new FactionRequest("Knights", "server-1", 10, null, null, null);
+        FactionRequest req2 = new FactionRequest("Warriors", "server-2", 8, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn(eq("server-1"), any()))
+                .thenReturn(List.of());
+        when(factionRepository.findByServerIdAndNameIn(eq("server-2"), any()))
+                .thenReturn(List.of());
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        List<FactionResponse> result = factionService.syncFactions(List.of(req1, req2));
+
+        verify(factionRepository).findByServerIdAndNameIn("server-1", List.of("Knights"));
+        verify(factionRepository).findByServerIdAndNameIn("server-2", List.of("Warriors"));
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        assertThat(factionsCaptor.getValue()).hasSize(2);
+    }
+
+    @Test
+    void syncFactions_mixedNewAndExisting_handledCorrectly() {
+        Faction existingFaction = new Faction("Knights", "server-1", 5, "Old", null, null);
+
+        FactionRequest updateReq = new FactionRequest("Knights", "server-1", 15, "Updated", null, null);
+        FactionRequest newReq = new FactionRequest("Warriors", "server-1", 8, "New faction", null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights", "Warriors")))
+                .thenReturn(List.of(existingFaction));
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(updateReq, newReq));
+
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        List<Faction> saved = factionsCaptor.getValue();
+        assertThat(saved).hasSize(2);
+
+        Faction updated = saved.stream().filter(f -> f.getName().equals("Knights")).findFirst().orElseThrow();
+        assertThat(updated.getMemberCount()).isEqualTo(15);
+
+        Faction created = saved.stream().filter(f -> f.getName().equals("Warriors")).findFirst().orElseThrow();
+        assertThat(created.getMemberCount()).isEqualTo(8);
+    }
+
+    @Test
+    void getAllFactions_delegatesToRepositoryActiveFactions() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Faction faction = new Faction("Knights", "server-1", 10, null, null, null);
+        Page<Faction> page = new PageImpl<>(List.of(faction), pageable, 1);
+        FactionResponse expectedResponse = new FactionResponse(null, "Knights", "server-1", 10, null, null, null, true, null, null);
+
+        when(factionRepository.findByActiveTrue(pageable)).thenReturn(page);
+        when(factionMapper.toResponse(faction)).thenReturn(expectedResponse);
+
+        Page<FactionResponse> result = factionService.getAllFactions(pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().get(0).name()).isEqualTo("Knights");
+    }
+
+    @Test
+    void syncFactions_deactivatesFactionsMissingFromBatch() {
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("Mages"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(2L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(req));
+
+        verify(factionRepository).deactivateByServerIdAndNameIn("server-1", List.of("Mages"));
+    }
+
+    @Test
+    void syncFactions_reactivatesExistingInactiveFaction() {
+        Faction existing = new Faction("Knights", "server-1", 5, "Old", null, null);
+        existing.setActive(false);
+        FactionRequest req = new FactionRequest("Knights", "server-1", 20, "Back", null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of(existing));
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        factionService.syncFactions(List.of(req));
+
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        Faction updated = factionsCaptor.getValue().get(0);
+        assertThat(updated.isActive()).isTrue();
+        assertThat(updated.getMemberCount()).isEqualTo(20);
+    }
+
+    @Test
+    void getFactionById_existing_returnsResponse() {
+        UUID id = UUID.randomUUID();
+        Faction faction = new Faction("Knights", "server-1", 10, "Desc", null, null);
+        FactionResponse expectedResponse = new FactionResponse(id, "Knights", "server-1", 10, "Desc", null, null, true, null, null);
+
+        when(factionRepository.findByIdAndActiveTrue(id)).thenReturn(Optional.of(faction));
+        when(factionMapper.toResponse(faction)).thenReturn(expectedResponse);
+
+        Optional<FactionResponse> result = factionService.getFactionById(id);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().name()).isEqualTo("Knights");
+    }
+
+    @Test
+    void getFactionById_nonExistent_returnsEmpty() {
+        UUID id = UUID.randomUUID();
+        when(factionRepository.findByIdAndActiveTrue(id)).thenReturn(Optional.empty());
+
+        Optional<FactionResponse> result = factionService.getFactionById(id);
+
+        assertThat(result).isEmpty();
+    }
+
+    // --- Safety guard tests ---
+
+    @Test
+    void syncFactions_safetyGuard_minimumIncomingFloorBlocksDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(5, 1.0, 0));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        // Below the floor of 5: the lookup and deactivation must be skipped entirely,
+        // protecting against a transient short batch wiping the registry.
+        verify(factionRepository, never())
+                .findActiveNamesByServerIdAndNameNotIn(any(), any());
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+    }
+
+    @Test
+    void syncFactions_safetyGuard_ratioCapBlocksMassDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 0.5, 0));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("A", "B", "C", "D", "E", "F", "G", "H", "I"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(10L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        // Would deactivate 9 of 10 active (ratio 0.9 > 0.5): blocked.
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+    }
+
+    @Test
+    void syncFactions_safetyGuard_absoluteCapBlocksMassDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 1.0, 5));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        List<String> missing = List.of("A", "B", "C", "D", "E", "F", "G");
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(missing);
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(100L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        // 7 deactivations > absolute cap of 5: blocked even though ratio would allow it.
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+    }
+
+    @Test
+    void syncFactions_safetyGuard_allowsModerateDeactivation() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 0.5, 100));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, null, null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        // 1 deactivation out of 10 active = ratio 0.1, well below cap.
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("Mages"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(10L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        verify(factionRepository).deactivateByServerIdAndNameIn("server-1", List.of("Mages"));
+    }
+
+    @Test
+    void syncFactions_safetyGuard_upsertsApplyEvenWhenDeactivationBlocked() {
+        FactionService strict = new FactionService(factionRepository, factionMapper,
+                new FactionSyncSafetyProperties(1, 0.5, 0));
+        FactionRequest req = new FactionRequest("Knights", "server-1", 10, "fresh", null, null);
+
+        when(factionRepository.findByServerIdAndNameIn("server-1", List.of("Knights")))
+                .thenReturn(List.of());
+        when(factionRepository.findActiveNamesByServerIdAndNameNotIn("server-1", List.of("Knights")))
+                .thenReturn(List.of("A", "B", "C", "D", "E", "F", "G", "H", "I"));
+        when(factionRepository.countByServerIdAndActiveTrue("server-1")).thenReturn(10L);
+        when(factionRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        strict.syncFactions(List.of(req));
+
+        verify(factionRepository, never()).deactivateByServerIdAndNameIn(any(), any());
+        verify(factionRepository).saveAll(factionsCaptor.capture());
+        assertThat(factionsCaptor.getValue()).hasSize(1);
+        assertThat(factionsCaptor.getValue().get(0).getName()).isEqualTo("Knights");
+        assertThat(factionsCaptor.getValue().get(0).getDescription()).isEqualTo("fresh");
+    }
+}

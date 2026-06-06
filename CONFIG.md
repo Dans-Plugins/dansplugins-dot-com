@@ -18,6 +18,18 @@ The application is configured via environment variables. Create a `.env.local` f
 NEXT_PUBLIC_SITE_URL=https://dansplugins.com
 ```
 
+### `NEXT_PUBLIC_API_URL`
+
+**Type:** string  
+**Default:** `http://localhost:45345`  
+**Description:** The base URL of the DPC API backend. The frontend uses this for all API calls (account management, factions leaderboard, etc.). Change this when deploying to a different host or port.
+
+**Example:**
+
+```env
+NEXT_PUBLIC_API_URL=https://api.dansplugins.com
+```
+
 ## Docker Compose Configuration
 
 When running the site with Docker Compose, environment variables can be placed in a `.env.local` file in the project root. Files matching the `.env*.local` pattern are excluded from version control via `.gitignore`.
@@ -26,6 +38,21 @@ When running the site with Docker Compose, environment variables can be placed i
 
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:45345
+```
+
+### API Port
+
+The Docker Compose published port for the API can be changed via `API_PORT`:
+
+```bash
+API_PORT=9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
+```
+
+When changing the API port, set `NEXT_PUBLIC_API_URL` to match. This is passed to the frontend as a Docker build arg and environment variable automatically via `compose.yml`:
+
+```bash
+API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
 ## next.config.js

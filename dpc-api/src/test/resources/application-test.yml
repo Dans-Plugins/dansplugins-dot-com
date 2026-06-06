@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+  flyway:
+    enabled: false
+
+dpc:
+  jwt:
+    secret: test-secret-key-that-is-at-least-32-bytes-long-for-hmac
+    expiration: 1h
+  sync:
+    safety:
+      # The integration tests cover the ratio guard via syncFactions_safetyGuard_
+      # blocksWipeFromTransientShortBatch; setting the floor to 1 keeps the
+      # legacy 1-faction-batch disband tests exercising the disband path. The
+      # dedicated unit tests in FactionServiceTest verify the floor itself.
+      minimum-incoming-factions: 1
+      max-deactivation-ratio: 0.5
+      max-deactivations-per-sync: 1000
