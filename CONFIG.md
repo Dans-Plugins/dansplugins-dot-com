@@ -6,18 +6,6 @@ This document describes the configuration options for the Dan's Plugins Communit
 
 The application is configured via environment variables. Create a `.env.local` file in the project root and set the variables described below, or set them directly in your environment.
 
-### `NEXT_PUBLIC_SITE_URL`
-
-**Type:** string  
-**Default:** `https://dansplugins.com`  
-**Description:** The public base URL of the site. Used for generating absolute links and canonical URLs.
-
-**Example:**
-
-```env
-NEXT_PUBLIC_SITE_URL=https://dansplugins.com
-```
-
 ### `NEXT_PUBLIC_API_URL`
 
 **Type:** string  
@@ -49,8 +37,8 @@ When running the site with Docker Compose, environment variables can be placed i
 **Example `.env.local`:**
 
 ```env
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:45345
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
 ### API Port
