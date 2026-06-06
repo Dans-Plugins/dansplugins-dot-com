@@ -22,6 +22,10 @@ COPY tsconfig.json ./
 # Expose port 3000
 EXPOSE 3000
 
+# Next.js NEXT_PUBLIC_* vars are inlined at build time
+ARG NEXT_PUBLIC_API_URL=http://localhost:45345
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 # Build
 RUN npm run build
 
