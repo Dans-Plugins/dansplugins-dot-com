@@ -30,6 +30,18 @@ NEXT_PUBLIC_SITE_URL=https://dansplugins.com
 NEXT_PUBLIC_API_URL=https://api.dansplugins.com
 ```
 
+### `NEXT_PUBLIC_BASE_URL`
+
+**Type:** string  
+**Default:** `http://localhost:3000`  
+**Description:** The site's own base URL, used by the frontend for calls to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`). Set this to the site's public origin when deploying so server-side rendering can reach its own API routes. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend.
+
+**Example:**
+
+```env
+NEXT_PUBLIC_BASE_URL=https://dansplugins.com
+```
+
 ## Docker Compose Configuration
 
 When running the site with Docker Compose, environment variables can be placed in a `.env.local` file in the project root. Files matching the `.env*.local` pattern are excluded from version control via `.gitignore`.
