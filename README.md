@@ -70,6 +70,14 @@ Windows:
 
 If you see no errors, the lint check has passed.
 
+### Unit Tests
+
+The frontend uses [Vitest](https://vitest.dev/) for unit tests. Run the suite with:
+
+    npm test
+
+Test files live in the `__tests__/` directory. If all tests pass, the suite has succeeded.
+
 ## Development
 
 ### Test Server with Hot-Reloading
