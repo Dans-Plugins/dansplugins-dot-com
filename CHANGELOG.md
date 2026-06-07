@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.10.0] – 2026-06-07
+
 ### Fixed
 
 - The **Guides** page now lists a guide for every plugin in the catalogue, not just Medieval Factions. Links are derived from `pages/data/plugins.json` and point at each plugin's in-repo `USER_GUIDE.md` (the required in-repo guide per the DPC conventions), opening in a new tab with `rel="noopener noreferrer"`. Previously the page claimed guides existed "for each plugin" but linked only one.
