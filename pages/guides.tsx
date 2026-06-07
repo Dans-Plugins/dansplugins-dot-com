@@ -4,7 +4,7 @@ import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
-import {wikiGuideUrl} from '../utils/guides';
+import {userGuideUrl} from '../utils/guides';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -32,15 +32,15 @@ const Guides: NextPage = () => (
                 Guides
             </Typography>
             <Typography variant="body1" gutterBottom>
-                Each plugin&apos;s guide is hosted on its GitHub wiki. Select a plugin below to open its
-                guide in a new tab.
+                Each plugin&apos;s guide (its <code>USER_GUIDE.md</code>) lives in the plugin&apos;s
+                repository. Select a plugin below to open its guide in a new tab.
             </Typography>
             <List sx={{maxWidth: 600}}>
                 {guides.map((plugin) => (
                     <ListItem key={plugin.id} disablePadding>
                         <ListItemButton
                             component="a"
-                            href={wikiGuideUrl(plugin.githubLink)}
+                            href={userGuideUrl(plugin.githubLink)}
                             target="_blank"
                             rel="noopener noreferrer"
                         >
