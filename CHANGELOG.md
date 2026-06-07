@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- The **Guides** page now lists a guide for every plugin in the catalogue, not just Medieval Factions. Links are derived from `pages/data/plugins.json` and point at each plugin's GitHub wiki **Guide** page (per the DPC conventions' two-tier documentation model), opening in a new tab with `rel="noopener noreferrer"`. Previously the page claimed guides existed "for each plugin" but linked only one.
 - The top navigation now highlights the link for the page you are on (bold + underline, with `aria-current="page"`), so the current location is visible at a glance instead of having to recall which link was clicked.
 - The faction leaderboard error message now includes a **Retry** action that re-runs the fetch in place, so a transient API failure no longer requires a full page reload to recover from.
 - External links now behave consistently: the top-bar community links (Discord, Patreon, LinkedIn, RPKit), the footer links (Source Code, Report a Bug), the plugin-card GitHub/SpigotMC buttons, and the About-page links all open in a new tab with `rel="noopener noreferrer"`, matching the News, Road Map, and home-page cards. The external links in the top navigation also carry an external-link icon so they are distinguishable from in-site navigation.
