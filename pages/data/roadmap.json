@@ -29,12 +29,22 @@
     {
       "title": "About, Road Map & Commissions Pages",
       "description": "Informational pages introducing the community, its plans, and custom-development availability.",
-      "status": "In Progress"
+      "status": "Completed"
     },
     {
       "title": "News Page",
-      "description": "A news page surfacing community announcements, including posts pulled from the Discord server.",
-      "status": "Planned"
+      "description": "A news page surfacing community announcements, newest-first, with posts editable on the server at runtime.",
+      "status": "Completed"
+    },
+    {
+      "title": "UX & Accessibility Improvements",
+      "description": "A dark/light theme that persists and follows the operating-system preference, current-page navigation highlighting, consistent new-tab external links, keyboard-accessible cards, and in-place error retry on the leaderboard.",
+      "status": "Completed"
+    },
+    {
+      "title": "Discord Announcements in News",
+      "description": "Automatically pull announcements from the community Discord server into the News feed alongside hand-written posts.",
+      "status": "In Progress"
     },
     {
       "title": "Editable Plugin Catalogue",
