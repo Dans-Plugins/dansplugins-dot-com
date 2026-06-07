@@ -21,7 +21,7 @@ const FooterButton: React.FC<{ href: string; icon: React.ReactNode; children: Re
                                                                                                         icon,
                                                                                                         children,
                                                                                                     }) => (
-    <Button color="inherit" href={href} startIcon={icon} sx={(theme) => footerButtonStyle(theme)}>
+    <Button color="inherit" href={href} target="_blank" rel="noopener noreferrer" startIcon={icon} sx={(theme) => footerButtonStyle(theme)}>
         {children}
     </Button>
 );
@@ -34,8 +34,8 @@ const VersionNumber: React.FC<{ version: string }> = ({version}) => (
 
 interface BottomBarProps {
     version: string;
-    visits?: number;
-    startDate?: string;
+    visits?: number | null;
+    startDate?: string | null;
 }
 
 const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
@@ -54,7 +54,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                 <Box sx={(theme) => flexContainerStyle(theme)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <VersionNumber version={version}/>
-                        {visits !== undefined && startDate && (
+                        {visits != null && startDate && (
                             <>
                                 <Typography variant="body2" color="inherit">
                                     •
@@ -86,6 +86,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                     <ColorModeToggleSwitch
                         checked={theme.palette.mode === 'dark'}
                         onChange={colorMode.toggleColorMode}
+                        inputProps={{'aria-label': 'Toggle dark mode'}}
                     />
                 </Box>
             </Toolbar>

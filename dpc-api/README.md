@@ -62,6 +62,7 @@ Configuration is managed via environment variables:
 | `DB_PASSWORD` | *(required)* | Database password |
 | `JWT_SECRET` | *(required)* | Secret key for JWT signing (min 32 bytes) |
 | `JWT_EXPIRATION` | `24h` | JWT token expiration duration |
+| `DPC_CORS_ALLOWED_ORIGINS` | `*` | Comma-separated list of origins allowed to call the API (CORS). The `*` default allows **all** origins; set this explicitly to the site origin(s) in production (e.g. `https://dansplugins.com`). |
 | `DPC_SYNC_MIN_INCOMING` | `2` | Minimum batch size eligible to deactivate factions (see [Sync safety guards](#sync-safety-guards)) |
 | `DPC_SYNC_MAX_DEACTIVATION_RATIO` | `0.5` | Fraction cap on factions one sync may deactivate |
 | `DPC_SYNC_MAX_DEACTIVATIONS` | `1000` | Absolute cap on factions one sync may deactivate (`0` disables) |

@@ -1,6 +1,7 @@
 import {
     Alert,
     Box,
+    Button,
     Card,
     CardContent,
     Chip,
@@ -94,7 +95,16 @@ const LeaderboardPage: NextPage = () => {
                 </Typography>
 
                 {error && (
-                    <Alert severity="error" sx={{mb: 2}} onClose={() => setError(null)}>
+                    <Alert
+                        severity="error"
+                        sx={{mb: 2}}
+                        onClose={() => setError(null)}
+                        action={
+                            <Button color="inherit" size="small" onClick={fetchFactions}>
+                                Retry
+                            </Button>
+                        }
+                    >
                         {error}
                     </Alert>
                 )}

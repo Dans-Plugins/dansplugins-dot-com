@@ -1,0 +1,60 @@
+{
+  "_comment": "Single source of truth for the DPC website/plugin road map. Edit the items below to keep it current; each item has a title, description, and status of 'Completed', 'In Progress', or 'Planned'. The live issue tracker linked on the page holds the day-to-day detail.",
+  "items": [
+    {
+      "title": "Community Data API",
+      "description": "A backend API (dpc-api) that lets Medieval Factions servers publish faction data to a shared community registry.",
+      "status": "Completed"
+    },
+    {
+      "title": "Factions Leaderboard",
+      "description": "A public leaderboard on the website showing community factions synced from participating servers.",
+      "status": "Completed"
+    },
+    {
+      "title": "Account Management & API Keys",
+      "description": "Register an account and manage API keys used by plugins to sync data.",
+      "status": "Completed"
+    },
+    {
+      "title": "Visit-Counter Reliability",
+      "description": "Crash-tolerant visit storage and a home page that degrades gracefully when the counter is unavailable.",
+      "status": "Completed"
+    },
+    {
+      "title": "Automated Test Harness",
+      "description": "A Vitest test suite, run in CI, covering the site's highest-value logic.",
+      "status": "Completed"
+    },
+    {
+      "title": "About, Road Map & Commissions Pages",
+      "description": "Informational pages introducing the community, its plans, and custom-development availability.",
+      "status": "Completed"
+    },
+    {
+      "title": "News Page",
+      "description": "A news page surfacing community announcements, newest-first, with posts editable on the server at runtime.",
+      "status": "Completed"
+    },
+    {
+      "title": "UX & Accessibility Improvements",
+      "description": "A dark/light theme that persists and follows the operating-system preference, current-page navigation highlighting, consistent new-tab external links, keyboard-accessible cards, and in-place error retry on the leaderboard.",
+      "status": "Completed"
+    },
+    {
+      "title": "Discord Announcements in News",
+      "description": "Automatically pull announcements from the community Discord server into the News feed alongside hand-written posts.",
+      "status": "In Progress"
+    },
+    {
+      "title": "Editable Plugin Catalogue",
+      "description": "Allow the plugin cards data to be edited from the website instead of by hand.",
+      "status": "Planned"
+    },
+    {
+      "title": "TLS via Reverse Proxy",
+      "description": "An nginx reverse proxy in the Docker Compose setup to enable HTTPS.",
+      "status": "Planned"
+    }
+  ]
+}

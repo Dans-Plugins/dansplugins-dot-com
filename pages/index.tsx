@@ -43,7 +43,7 @@ interface Plugin {
 }
 
 interface PluginWithServerCount extends Plugin {
-    serverCount?: number;
+    serverCount?: number | null;
 }
 
 const PluginSection: React.FC<{ plugins: PluginWithServerCount[] }> = ({ plugins }) => (
@@ -85,8 +85,8 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
         if (sortBy === 'popularity') {
             // Sort by server count (descending), with plugins without counts at the end
             return [...initialPlugins].sort((a, b) => {
-                const hasCountA = a.serverCount !== undefined;
-                const hasCountB = b.serverCount !== undefined;
+                const hasCountA = a.serverCount != null;
+                const hasCountB = b.serverCount != null;
                 
                 // If both have counts, sort by count descending
                 if (hasCountA && hasCountB) {
@@ -133,16 +133,26 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
 };
 
 interface HomeProps {
-    visits: number;
-    startDate: string;
+    visits: number | null;
+    startDate: string | null;
     pluginsWithCounts: PluginWithServerCount[];
 }
 
 export const getServerSideProps = async () => {
-    // Increment visits and get visit data
-    await incrementVisits();
-    const data = await getVisits();
-    
+    // The visit counter is a non-essential cosmetic feature, so a failure of
+    // the visits API must never take down the entire home page. Fall back to
+    // nulls (hidden by BottomBar) if incrementing or reading visits fails.
+    let visits: number | null = null;
+    let startDate: string | null = null;
+    try {
+        await incrementVisits();
+        const data = await getVisits();
+        visits = data.visits;
+        startDate = data.startDate;
+    } catch (error) {
+        console.error('Failed to load visit data; hiding the visit counter.', error);
+    }
+
     // Fetch server counts for all plugins with rate limiting
     const bStatsIds = pluginData.plugins
         .filter(plugin => plugin.bStatsId)
@@ -153,13 +163,13 @@ export const getServerSideProps = async () => {
     // Create plugins with server counts
     const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
         ...plugin,
-        serverCount: plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined
+        serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null
     }));
 
     return {
         props: {
-            visits: data.visits,
-            startDate: data.startDate,
+            visits,
+            startDate,
             pluginsWithCounts
         }
     };

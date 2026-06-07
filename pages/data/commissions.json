@@ -1,0 +1,25 @@
+{
+  "availability": "open",
+  "discordInvite": "https://discord.gg/fJYH34k9m3",
+  "tiers": [
+    {
+      "name": "Fork & Repair",
+      "description": "Fix, update, or extend an existing plugin (yours or an abandoned open-source one).",
+      "oneTime": "$200 – $400",
+      "retainer": "$75 / mo",
+      "adHoc": "$45 / hr"
+    },
+    {
+      "name": "Custom Plugin",
+      "description": "A new plugin built to your specification from the ground up.",
+      "oneTime": "$800 – $1,500",
+      "retainer": "$100 / mo",
+      "adHoc": "$45 / hr"
+    }
+  ],
+  "included": [
+    "Full source code ownership",
+    "Documentation for the delivered work",
+    "30-day bug-fix guarantee after delivery"
+  ]
+}
