@@ -7,3 +7,9 @@
 // See https://github.com/Dans-Plugins/dpc-conventions (DOCUMENTATION_PRACTICES.md).
 export const userGuideUrl = (githubLink: string): string =>
     `${githubLink.replace(/\/+$/, '')}/blob/HEAD/USER_GUIDE.md`;
+
+// The raw (plain-text) URL for the same USER_GUIDE.md, used to fetch and render
+// the guide on-site. raw.githubusercontent.com accepts `HEAD` as the default
+// branch, so we don't need to know whether the repo uses main or master.
+export const userGuideRawUrl = (githubLink: string): string =>
+    `${githubLink.replace(/\/+$/, '').replace('https://github.com/', 'https://raw.githubusercontent.com/')}/HEAD/USER_GUIDE.md`;

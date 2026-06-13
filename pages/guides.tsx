@@ -1,11 +1,10 @@
 import {Box, Container, List, ListItem, ListItemButton, ListItemText, Paper, Typography} from '@mui/material';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
 import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
-import {userGuideUrl} from '../utils/guides';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -35,7 +34,7 @@ const Guides: NextPage = () => (
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
                 Each plugin&apos;s guide (its <code>USER_GUIDE.md</code>) lives in the plugin&apos;s
-                repository. Select a plugin below to open its guide in a new tab.
+                repository. Select a plugin below to read its guide.
             </Typography>
             <Paper elevation={0} sx={{maxWidth: 600, overflow: 'hidden'}}>
                 <List disablePadding>
@@ -43,12 +42,10 @@ const Guides: NextPage = () => (
                         <ListItem key={plugin.id} disablePadding divider={index < guides.length - 1}>
                             <ListItemButton
                                 component="a"
-                                href={userGuideUrl(plugin.githubLink)}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href={`/guides/${plugin.id}`}
                             >
                                 <ListItemText primary={`${plugin.title} Guide`}/>
-                                <OpenInNewIcon fontSize="small" color="action"/>
+                                <ChevronRightIcon fontSize="small" color="action"/>
                             </ListItemButton>
                         </ListItem>
                     ))}
