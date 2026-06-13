@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { DATA_DIR, writeJsonAtomic } from './atomicJson';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
 const VISITS_FILE = path.join(DATA_DIR, 'visits.json');
 
 interface VisitData {
@@ -22,17 +22,7 @@ const isValidVisitData = (value: unknown): value is VisitData => {
     return typeof data.visits === 'number' && typeof data.startDate === 'string';
 };
 
-// Write atomically: write to a temp file in the same directory, then rename it
-// into place. rename is atomic on POSIX filesystems, so a crash or restart
-// mid-write cannot leave a partially-written (invalid) visits.json behind.
-const writeVisitData = (data: VisitData) => {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    const tempFile = `${VISITS_FILE}.${process.pid}.tmp`;
-    fs.writeFileSync(tempFile, JSON.stringify(data));
-    fs.renameSync(tempFile, VISITS_FILE);
-};
+const writeVisitData = (data: VisitData) => writeJsonAtomic(VISITS_FILE, data);
 
 export const initializeVisitStorage = () => {
     if (!fs.existsSync(VISITS_FILE)) {
