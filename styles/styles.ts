@@ -283,37 +283,3 @@ export const pluginCardContentStyle = {
 export const pluginCardActionsStyle = {
     flexGrow: 0,
 };
-
-/**
- * Standard button style for plugin cards
- */
-export const pluginCardButtonStyle = () => ({
-    variant: 'contained',
-    size: 'small',
-    textTransform: 'none',
-});
-
-/**
- * Title configuration for plugin cards
- */
-export const pluginCardTitleStyle = {
-    gutterBottom: true,
-    variant: 'h5',
-    component: 'div',
-};
-
-/**
- * Description text style for plugin cards
- */
-export const pluginCardDescriptionStyle = {
-    variant: 'body2',
-    color: 'text.secondary',
-};
-
-/**
- * Server count text style for plugin cards
- */
-export const pluginCardServerCountStyle = {
-    variant: 'body2',
-    color: 'text.secondary',
-};
