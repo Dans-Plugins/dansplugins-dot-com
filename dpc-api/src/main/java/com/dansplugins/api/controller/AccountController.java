@@ -85,8 +85,7 @@ public class AccountController {
     @ApiResponse(responseCode = "200", description = "Profile retrieved")
     @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<AccountResponse> getProfile(Principal principal) {
-        Account account = accountService.findByUsername(principal.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        Account account = getCurrentAccount(principal);
         List<ApiKey> keys = accountService.getApiKeys(account);
         return ResponseEntity.ok(accountMapper.toResponse(account, keys));
     }
@@ -103,8 +102,7 @@ public class AccountController {
     public ResponseEntity<CreateApiKeyResponse> createApiKey(
             Principal principal,
             @Valid @RequestBody CreateApiKeyRequest request) {
-        Account account = accountService.findByUsername(principal.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        Account account = getCurrentAccount(principal);
         var apiKey = accountService.createApiKey(account, request.serverName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new CreateApiKeyResponse(apiKey.getId(), apiKey.getRawKey(),
@@ -121,11 +119,17 @@ public class AccountController {
     @ApiResponse(responseCode = "404", description = "API key not found or not owned by user")
     @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<Void> deleteApiKey(Principal principal, @PathVariable UUID keyId) {
-        Account account = accountService.findByUsername(principal.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        Account account = getCurrentAccount(principal);
         if (!accountService.deleteApiKey(account, keyId)) {
             throw new ResourceNotFoundException("API key not found");
         }
         return ResponseEntity.noContent().build();
+    }
+
+    // Resolves the authenticated principal to its Account, or 404s if the account
+    // backing a valid token no longer exists.
+    private Account getCurrentAccount(Principal principal) {
+        return accountService.findByUsername(principal.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
     }
 }
