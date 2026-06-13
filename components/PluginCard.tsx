@@ -1,13 +1,11 @@
 import React from 'react';
-import { Button, Card, CardActions, CardContent, Link, Typography } from '@mui/material';
+import {Avatar, Box, Button, Card, CardActions, CardContent, Chip, Link, Stack, Typography} from '@mui/material';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import DnsIcon from '@mui/icons-material/Dns';
 import {
     pluginCardStyle,
     pluginCardContentStyle,
     pluginCardActionsStyle,
-    pluginCardButtonStyle,
-    pluginCardTitleStyle,
-    pluginCardDescriptionStyle,
-    pluginCardServerCountStyle,
 } from '../styles/styles';
 
 interface PluginCardProps {
@@ -19,32 +17,95 @@ interface PluginCardProps {
     serverCount?: number | null;
 }
 
-const PluginCard: React.FC<PluginCardProps> = ({ 
-    title, 
-    description, 
-    githubLink, 
-    spigotmcLink, 
-    bStatsId, 
-    serverCount 
+// A small, fixed palette of muted brand-ish colours. Each plugin gets a stable
+// colour derived from its title so cards have a bit of visual identity without
+// being random on every render.
+const AVATAR_COLORS = ['#4263eb', '#7048e8', '#1098ad', '#f59f00', '#e8590c', '#0ca678'];
+
+const colorForTitle = (title: string): string => {
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+        hash = (hash * 31 + title.charCodeAt(i)) >>> 0;
+    }
+    return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+};
+
+const PluginCard: React.FC<PluginCardProps> = ({
+    title,
+    description,
+    githubLink,
+    spigotmcLink,
+    serverCount
 }) => {
     return (
         <Card sx={pluginCardStyle}>
             <CardContent sx={pluginCardContentStyle}>
-                <Typography {...pluginCardTitleStyle} component="div" variant="h5">{title}</Typography>
-                <Typography {...pluginCardDescriptionStyle} component="p" variant="body1">{description}</Typography>
-                {serverCount && serverCount > 0 ? (
-                    <Typography {...pluginCardServerCountStyle} component="span" variant="body2">
-                        <br />
-                        {serverCount} servers running
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{mb: 1.5}}>
+                    <Avatar
+                        variant="rounded"
+                        aria-hidden
+                        sx={{
+                            bgcolor: colorForTitle(title),
+                            width: 40,
+                            height: 40,
+                            fontFamily: '"Space Grotesk", sans-serif',
+                            fontWeight: 700,
+                        }}
+                    >
+                        {title.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Typography variant="h6" component="div" sx={{fontWeight: 600, lineHeight: 1.2}}>
+                        {title}
                     </Typography>
-                ) : null}
+                </Stack>
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                        // Clamp to keep every card the same height regardless of
+                        // how long the plugin's description is.
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {description}
+                </Typography>
             </CardContent>
+
+            {serverCount && serverCount > 0 ? (
+                <Box sx={{px: 2, pb: 1}}>
+                    <Chip
+                        size="small"
+                        variant="outlined"
+                        icon={<DnsIcon/>}
+                        label={`${serverCount.toLocaleString()} servers`}
+                    />
+                </Box>
+            ) : null}
+
             <CardActions sx={pluginCardActionsStyle}>
-                <Button sx={(theme) => pluginCardButtonStyle()} component={Link} href={githubLink} target="_blank" rel="noopener noreferrer">
+                <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<GitHubIcon/>}
+                    component={Link}
+                    href={githubLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     GitHub
                 </Button>
                 {spigotmcLink ? (
-                    <Button sx={(theme) => pluginCardButtonStyle()} component={Link} href={spigotmcLink} target="_blank" rel="noopener noreferrer">
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        component={Link}
+                        href={spigotmcLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         SpigotMC
                     </Button>
                 ) : null}

@@ -114,13 +114,26 @@ const LeaderboardPage: NextPage = () => {
                         <TableContainer>
                             <Table>
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell sx={{fontWeight: 'bold', width: 60}} align="center">
+                                    <TableRow
+                                        sx={{
+                                            '& th': {
+                                                bgcolor: 'action.hover',
+                                                borderBottom: 2,
+                                                borderColor: 'divider',
+                                                fontWeight: 600,
+                                                fontSize: '0.72rem',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.07em',
+                                                color: 'text.secondary',
+                                            },
+                                        }}
+                                    >
+                                        <TableCell sx={{width: 60}} align="center">
                                             Rank
                                         </TableCell>
-                                        <TableCell sx={{fontWeight: 'bold'}}>Faction</TableCell>
-                                        <TableCell sx={{fontWeight: 'bold'}}>Server</TableCell>
-                                        <TableCell sx={{fontWeight: 'bold'}} align="right">
+                                        <TableCell>Faction</TableCell>
+                                        <TableCell>Server</TableCell>
+                                        <TableCell align="right">
                                             <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.5}}>
                                                 <GroupIcon fontSize="small"/>
                                                 Members

@@ -30,23 +30,33 @@ const STATUS_ORDER: { status: RoadmapItem['status']; color: 'success' | 'warning
 ];
 
 const RoadmapCard: React.FC<{ item: RoadmapItem; color: 'success' | 'warning' | 'info' }> = ({item, color}) => (
-    <Paper elevation={3} sx={{p: 2, mb: 2}}>
+    <Paper
+        elevation={0}
+        sx={(theme) => ({
+            p: 2,
+            mb: 2,
+            // Status-coloured accent stripe down the left edge for quick scanning.
+            borderLeft: `4px solid ${theme.palette[color].main}`,
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            '&:hover': {transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0,0,0,0.12)'},
+        })}
+    >
         <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
             <Typography variant="h6">{item.title}</Typography>
             <Chip label={item.status} color={color} size="small"/>
         </Box>
-        <Typography variant="body2" sx={{mt: 1}}>{item.description}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{mt: 1}}>{item.description}</Typography>
     </Paper>
 );
 
 const Roadmap: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
         <TopBar/>
-        <Container maxWidth="xl" sx={(theme) => containerPaddingStyle(theme)}>
+        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 Road Map
             </Typography>
-            <Typography variant="body1" gutterBottom>
+            <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
                 This page tracks where Dan&apos;s Plugins Community is headed. For the day-to-day detail,
                 see the{' '}
                 <Link href="https://github.com/Dans-Plugins/dansplugins-dot-com/issues" target="_blank" rel="noopener">
@@ -60,7 +70,10 @@ const Roadmap: NextPage = () => (
                 }
                 return (
                     <Box key={status} sx={{mt: 4}}>
-                        <Typography variant="h5" gutterBottom>{status}</Typography>
+                        <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5}}>
+                            <Typography variant="h5">{status}</Typography>
+                            <Chip label={items.length} color={color} size="small" variant="outlined"/>
+                        </Box>
                         {items.map((item) => (
                             <RoadmapCard key={item.title} item={item} color={color}/>
                         ))}

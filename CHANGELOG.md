@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.12.0] – 2026-06-13
+
+### Changed
+
+- Site-wide visual refresh. A new brand palette and type pairing (Inter for body, Space Grotesk for headings, loaded via a custom `_document`); solid app bars in place of the indigo gradient; removal of the gradient-clip text and the 20px grid-pattern page background; flat surfaces with hairline borders and softened hover lifts; a redesigned home hero with call-to-action buttons; restyled plugin cards (per-plugin avatar, server-count chip, clearer button hierarchy); and consistent table/card/page treatments across the Leaderboard, Account, Commissions, Road Map, About, Guides, and News pages.
+- Bumped the site version to 0.12.0.
+
 ### Fixed
 
 - `USER_GUIDE.md` now documents the **Guides**, **Leaderboard**, and **Account** pages. These are all reachable from the top navigation bar but were previously absent from the guide's "Common Scenarios", which only covered News, About, Road Map, and Commissions.
