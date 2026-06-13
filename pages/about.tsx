@@ -2,6 +2,7 @@ import {Box, Button, Container, Stack, Typography} from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 
@@ -13,6 +14,7 @@ const version = require('../package.json').version;
 
 const About: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
+        <Seo title="About Us" description="Learn about Dan's Plugins Community, an open-source community building plugins for Minecraft servers."/>
         <TopBar/>
         <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

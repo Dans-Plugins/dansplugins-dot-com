@@ -1,6 +1,7 @@
 import {Box, Container, Grid, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import type {NextPage} from 'next'
 import TopBar from '../components/TopBar'
+import Seo from '../components/Seo'
 import Blurb from '../components/Blurb'
 import PluginCard from '../components/PluginCard'
 import React from 'react';
@@ -178,6 +179,7 @@ export const getServerSideProps = async () => {
 const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => {
     return (
         <Box sx={pageStyle}>
+            <Seo/>
             <TopBar/>
             <Container maxWidth="xl" sx={{py: 4}}>
                 <Blurb/>

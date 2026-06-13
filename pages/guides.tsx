@@ -2,6 +2,7 @@ import {Box, Container, List, ListItem, ListItemButton, ListItemText, Paper, Typ
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import {userGuideUrl} from '../utils/guides';
@@ -26,6 +27,7 @@ const guides = [...pluginData.plugins].sort((a, b) => a.title.localeCompare(b.ti
 
 const Guides: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
+        <Seo title="Guides" description="User guides for every Dan's Plugins Community plugin."/>
         <TopBar/>
         <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
