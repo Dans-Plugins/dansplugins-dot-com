@@ -1,7 +1,7 @@
 package com.dansplugins.api.repository;
 
-import com.dansplugins.api.entity.Account;
 import com.dansplugins.api.entity.ApiKey;
+import com.dansplugins.api.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,5 +11,5 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, UUID> {
 
     boolean existsByKeyHash(String keyHash);
 
-    List<ApiKey> findByOwner(Account owner);
+    List<ApiKey> findByOwner(User owner);
 }

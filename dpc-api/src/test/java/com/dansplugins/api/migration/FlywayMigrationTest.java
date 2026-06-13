@@ -66,9 +66,6 @@ class FlywayMigrationTest {
 
     @DynamicPropertySource
     static void supplyTestProperties(DynamicPropertyRegistry registry) {
-        // JWT secret — required by JwtService at startup; matches the length
-        // requirement (>= 32 bytes for HMAC-SHA256).
-        registry.add("dpc.jwt.secret", () -> "flyway-migration-test-secret-key-32+");
         // Flyway on, validate the resulting schema against the JPA entities.
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");

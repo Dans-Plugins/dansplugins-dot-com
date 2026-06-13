@@ -1,13 +1,11 @@
 package com.dansplugins.api.service;
 
-import com.dansplugins.api.entity.Account;
 import com.dansplugins.api.entity.ApiKey;
-import com.dansplugins.api.exception.UsernameAlreadyTakenException;
-import com.dansplugins.api.repository.AccountRepository;
+import com.dansplugins.api.entity.User;
 import com.dansplugins.api.repository.ApiKeyRepository;
+import com.dansplugins.api.repository.UserRepository;
 import com.dansplugins.api.util.HashUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,40 +16,39 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Service for account registration, authentication, and API key management.
+ * Owns the local user mirror and the API keys belonging to a user. Authentication
+ * itself is handled by UserAuth (see {@link UserAuthClient}); this service only
+ * maps a validated UserAuth username to a local {@link User} row and manages the
+ * community/profile state hung off it.
  */
 @Service
 @RequiredArgsConstructor
-public class AccountService {
+public class UserService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
     private final ApiKeyRepository apiKeyRepository;
-    private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Resolve the local mirror for a validated UserAuth username, creating it on first sight.
+     */
     @Transactional
-    public Account register(String username, String password) {
-        if (accountRepository.existsByUsername(username)) {
-            throw new UsernameAlreadyTakenException(username);
-        }
-        String passwordHash = passwordEncoder.encode(password);
-        return accountRepository.save(new Account(username, passwordHash));
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Account> authenticate(String username, String password) {
-        return accountRepository.findByUsername(username)
-                .filter(account -> passwordEncoder.matches(password, account.getPasswordHash()));
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Account> findByUsername(String username) {
-        return accountRepository.findByUsername(username);
+    public User getOrCreate(String userauthUsername) {
+        return userRepository.findByUserauthUsername(userauthUsername)
+                .orElseGet(() -> userRepository.save(new User(userauthUsername)));
     }
 
     @Transactional
-    public ApiKey createApiKey(Account owner, String serverName) {
+    public User updateProfile(User user, String displayName, String avatarUrl, String bio) {
+        user.setDisplayName(displayName);
+        user.setAvatarUrl(avatarUrl);
+        user.setBio(bio);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public ApiKey createApiKey(User owner, String serverName) {
         byte[] randomBytes = new byte[32];
         SECURE_RANDOM.nextBytes(randomBytes);
         String rawKey = "dpc_" + HexFormat.of().formatHex(randomBytes);
@@ -64,12 +61,12 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<ApiKey> getApiKeys(Account owner) {
+    public List<ApiKey> getApiKeys(User owner) {
         return apiKeyRepository.findByOwner(owner);
     }
 
     @Transactional
-    public boolean deleteApiKey(Account owner, UUID keyId) {
+    public boolean deleteApiKey(User owner, UUID keyId) {
         return apiKeyRepository.findById(keyId)
                 .filter(key -> key.getOwner().getId().equals(owner.getId()))
                 .map(key -> {
@@ -77,5 +74,10 @@ public class AccountService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByUsername(String userauthUsername) {
+        return userRepository.findByUserauthUsername(userauthUsername);
     }
 }

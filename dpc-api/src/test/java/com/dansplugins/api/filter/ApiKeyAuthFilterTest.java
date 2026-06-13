@@ -46,7 +46,7 @@ class ApiKeyAuthFilterTest {
 
     @Test
     void doFilterInternal_exemptRegisterPath_passesThroughWithoutKey() throws Exception {
-        MockHttpServletRequest request = request("POST", "/api/v1/accounts/register");
+        MockHttpServletRequest request = request("POST", "/api/v1/auth/register");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilterInternal(request, response, filterChain);
@@ -57,7 +57,7 @@ class ApiKeyAuthFilterTest {
 
     @Test
     void doFilterInternal_exemptLoginPath_passesThroughWithoutKey() throws Exception {
-        MockHttpServletRequest request = request("POST", "/api/v1/accounts/login");
+        MockHttpServletRequest request = request("POST", "/api/v1/auth/login");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilterInternal(request, response, filterChain);
@@ -67,8 +67,8 @@ class ApiKeyAuthFilterTest {
     }
 
     @Test
-    void doFilterInternal_accountManagementPath_passesThroughWithoutKey() throws Exception {
-        MockHttpServletRequest request = request("DELETE", "/api/v1/accounts/me/keys/abc");
+    void doFilterInternal_profileManagementPath_passesThroughWithoutKey() throws Exception {
+        MockHttpServletRequest request = request("DELETE", "/api/v1/profile/me/api-keys/abc");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilterInternal(request, response, filterChain);
