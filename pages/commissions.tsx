@@ -19,6 +19,7 @@ import {
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 
@@ -50,6 +51,7 @@ const Commissions: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
+            <Seo title="Commissions" description="Custom Minecraft plugin development by the creator of Dan's Plugins Community — pricing and availability."/>
             <TopBar/>
             <Container maxWidth="lg" sx={(theme) => containerPaddingStyle(theme)}>
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap'}}>

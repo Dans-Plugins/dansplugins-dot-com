@@ -25,6 +25,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
 import type {NextPage} from 'next'
 import React, {useCallback, useEffect, useState} from 'react'
 import TopBar from '../components/TopBar'
+import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles'
 
@@ -101,6 +102,7 @@ const LeaderboardPage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
+            <Seo title="Faction Leaderboard" description="Medieval Factions ranked by member count across all servers."/>
             <TopBar/>
             <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
                 <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

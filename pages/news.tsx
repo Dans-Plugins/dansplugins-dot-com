@@ -1,6 +1,7 @@
 import {Box, Chip, Container, Link, Paper, Typography} from '@mui/material';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import {getNewsPosts, NewsPost, NewsSource} from '../utils/newsStorage';
@@ -63,6 +64,7 @@ const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
 
 const News: NextPage<NewsProps> = ({posts}) => (
     <Box sx={(theme) => pageStyle(theme)}>
+        <Seo title="News" description="Announcements and updates from Dan's Plugins Community."/>
         <TopBar/>
         <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

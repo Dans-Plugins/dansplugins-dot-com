@@ -19,6 +19,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import type {NextPage} from 'next'
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import TopBar from '../components/TopBar'
+import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 
@@ -223,6 +224,7 @@ const AccountPage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
+            <Seo title="Account" description="Manage your account and the API keys your Minecraft servers use to sync with the DPC community data API."/>
             <TopBar/>
             <Container maxWidth="md" sx={{py: 4}}>
                 <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

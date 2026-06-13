@@ -1,6 +1,7 @@
 import {Box, Chip, Container, Link, Paper, Typography} from '@mui/material';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 
@@ -51,6 +52,7 @@ const RoadmapCard: React.FC<{ item: RoadmapItem; color: 'success' | 'warning' | 
 
 const Roadmap: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
+        <Seo title="Road Map" description="What's planned, in progress, and completed across Dan's Plugins Community."/>
         <TopBar/>
         <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
