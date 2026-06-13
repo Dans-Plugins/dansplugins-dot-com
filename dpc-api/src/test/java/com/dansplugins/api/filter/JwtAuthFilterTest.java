@@ -17,7 +17,6 @@ import jakarta.servlet.FilterChain;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,7 +94,7 @@ class JwtAuthFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer good-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        lenient().when(jwtService.extractUsername("good-token")).thenReturn(Optional.of("alice"));
+        when(jwtService.extractUsername("good-token")).thenReturn(Optional.of("alice"));
         var existing = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                 "preexisting", null, java.util.List.of());
         SecurityContextHolder.getContext().setAuthentication(existing);
