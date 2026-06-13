@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -36,9 +37,20 @@ public class AuthController {
         String password = request.get("password");
         requireCredentials(username, password);
         userAuthClient.register(username.trim(), password);
-        // Log in immediately so the caller receives a token without a second round-trip.
-        Map<String, Object> auth = userAuthClient.login(username.trim(), password);
-        return ResponseEntity.status(HttpStatus.CREATED).body(auth);
+        // Log in immediately so the caller usually receives a token without a second
+        // round-trip. If that login fails (e.g. a transient UserAuth error) the account
+        // still exists — return 201 telling the caller to just log in, rather than
+        // surfacing a failure that would invite a re-register (which then 409s).
+        try {
+            Map<String, Object> auth = userAuthClient.login(username.trim(), password);
+            return ResponseEntity.status(HttpStatus.CREATED).body(auth);
+        } catch (ResponseStatusException e) {
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("registered", true);
+            body.put("tokenIssued", false);
+            body.put("message", "Account created, but automatic login failed. Please log in.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        }
     }
 
     @PostMapping("/login")
