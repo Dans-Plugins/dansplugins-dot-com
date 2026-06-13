@@ -1,16 +1,6 @@
 import {Theme} from '@mui/material/styles';
 
 /**
- * Creates theme-aware gradient values for light/dark modes
- * Light mode: transparent black gradients
- * Dark mode: transparent white gradients
- */
-const getCommonGradient = (theme: Theme) => ({
-    light: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0)' : 'rgba(0,0,0,0)',
-    medium: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-});
-
-/**
  * Standard animation transition for interactive elements
  */
 const commonTransition = {
@@ -27,14 +17,24 @@ const commonHoverBg = (theme: Theme) => ({
 });
 
 /**
- * Styles for section headers with underline accent
+ * Section headers: heading text in the standard text colour with a short
+ * primary-coloured accent bar underneath (replaces the former full-width blue
+ * underline).
  */
 export const sectionHeaderStyle = (theme: Theme) => ({
-    fontWeight: 'bold',
-    color: theme.palette.primary.main,
-    borderBottom: `2px solid ${theme.palette.primary.main}`,
-    paddingBottom: theme.spacing(1),
+    fontWeight: 700,
+    letterSpacing: '-0.01em',
+    display: 'inline-block',
     marginBottom: theme.spacing(3),
+    '&::after': {
+        content: '""',
+        display: 'block',
+        width: '44px',
+        height: '3px',
+        marginTop: theme.spacing(1),
+        borderRadius: '2px',
+        backgroundColor: theme.palette.primary.main,
+    },
 });
 
 /**
@@ -54,16 +54,14 @@ export const cardWrapperStyle = {
 };
 
 /**
- * Creates a responsive horizontal divider with fade effect
+ * Clean hairline section divider (replaces the former gradient-fade line).
  */
-export const sectionDividerStyle = (theme: Theme) => {
-    const gradient = getCommonGradient(theme);
-    return {
-        height: '2px',
-        background: `linear-gradient(to right, ${gradient.light}, ${gradient.medium}, ${gradient.light})`,
-        marginY: theme.spacing(4),
-    };
-};
+export const sectionDividerStyle = (theme: Theme) => ({
+    height: '1px',
+    border: 0,
+    backgroundColor: theme.palette.divider,
+    marginY: theme.spacing(6),
+});
 
 /**
  * Main page layout. Uses a clean themed background (the former 20px grid
@@ -84,7 +82,9 @@ export const pluginsBoxStyle = {flexGrow: 1, marginBottom: 2};
  * Responsive grid item configuration for different breakpoints
  */
 export const gridItemStyle = {
-    xs: 12, sm: 6, md: 4, lg: 3, xl: 2,
+    // Cap at 4 columns (lg) so cards stay readable on wide screens instead of
+    // squeezing to 6 across.
+    xs: 12, sm: 6, md: 4, lg: 3,
     sx: cardWrapperStyle,
 };
 

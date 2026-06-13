@@ -105,7 +105,7 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     };
 
     return (
-        <Box sx={pluginsBoxStyle}>
+        <Box id="plugins" sx={pluginsBoxStyle}>
             <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
                 Plugins
             </Typography>
