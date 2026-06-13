@@ -25,6 +25,16 @@ No special software is required to use the website. Simply visit [https://danspl
 1. Click **News** in the top navigation bar (or visit `/news`).
 2. Browse the posts, shown newest first.
 
+### Browsing Plugin Guides
+
+1. Click **Guides** in the top navigation bar (or visit `/guides`).
+2. Select a plugin from the list to open that plugin's user guide in a new tab.
+
+### Viewing the Faction Leaderboard
+
+1. Click **Leaderboard** in the top navigation bar (or visit `/leaderboard`).
+2. Review the factions, ranked by number of members across all servers.
+
 ### Learning About the Community
 
 1. Click **About** in the top navigation bar (or visit `/about`).
@@ -42,6 +52,12 @@ No special software is required to use the website. Simply visit [https://danspl
 1. Click **Commissions** in the top navigation bar (or visit `/commissions`).
 2. Review the pricing options, what's included, and the current availability status.
 3. Click **Join the Commissions Discord** to discuss your project.
+
+### Managing Your Account
+
+1. Click **Account** in the top navigation bar (or visit `/account`).
+2. Register a new account, or log in with an existing username and password.
+3. Once logged in, create or delete the API keys used to connect a server to the DPC community data API.
 
 ### Getting Support
 
