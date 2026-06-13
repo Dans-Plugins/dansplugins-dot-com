@@ -1,8 +1,6 @@
 package com.dansplugins.api.config;
 
-import com.dansplugins.api.exception.InvalidCredentialsException;
 import com.dansplugins.api.exception.ResourceNotFoundException;
-import com.dansplugins.api.exception.UsernameAlreadyTakenException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -68,26 +66,10 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(UsernameAlreadyTakenException.class)
-    public ProblemDetail handleUsernameAlreadyTaken(UsernameAlreadyTakenException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Conflict");
-        problem.setType(URI.create("about:blank"));
-        return problem;
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Bad Request");
-        problem.setType(URI.create("about:blank"));
-        return problem;
-    }
-
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle("Unauthorized");
         problem.setType(URI.create("about:blank"));
         return problem;
     }
