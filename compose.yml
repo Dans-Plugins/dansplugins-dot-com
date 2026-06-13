@@ -41,7 +41,9 @@ services:
       DB_NAME: dpc
       DB_USERNAME: dpc
       DB_PASSWORD: dpc
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      # Authentication is delegated to the UserAuth service (below); dpc-api
+      # validates UserAuth tokens and no longer signs its own.
+      USERAUTH_URL: http://userauth:9998
       # Faction-sync safety guards. Defaults match dpc-api/README.md; override
       # by exporting these on the host before running docker compose.
       DPC_SYNC_MIN_INCOMING: ${DPC_SYNC_MIN_INCOMING:-2}
@@ -50,7 +52,49 @@ services:
     depends_on:
       dpc-db:
         condition: service_healthy
+      userauth:
+        condition: service_healthy
+    restart: always
+
+  # Shared UserAuth service (https://github.com/Preponderous-Software/UserAuth)
+  # that dpc-api delegates authentication to. Internal-only: not published on a
+  # host port — the browser talks to dpc-api, which proxies to UserAuth.
+  userauth:
+    image: ghcr.io/preponderous-software/userauth:latest
+    environment:
+      DB_URL: jdbc:postgresql://userauth-db:5432/userauth
+      DB_USERNAME: userauth
+      DB_PASSWORD: userauth
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (UserAuth signs tokens with it; min 32 bytes)}
+      SERVER_PORT: 9998
+      # The browser never calls UserAuth directly, so no CORS origins are needed.
+      ALLOWED_ORIGINS: ""
+    depends_on:
+      userauth-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9998/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
+
+  userauth-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: userauth
+      POSTGRES_USER: userauth
+      POSTGRES_PASSWORD: userauth
+    volumes:
+      - userauth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U userauth -d userauth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: always
 
 volumes:
   dpc-db-data:
+  userauth-db-data:

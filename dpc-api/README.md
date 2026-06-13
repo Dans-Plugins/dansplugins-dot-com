@@ -13,21 +13,23 @@ Spring Boot back end for the DPC (Dan's Plugins Community) website providing a R
 The easiest way to run the API locally is with Docker Compose from the **repository root**:
 
 ```bash
-USERAUTH_URL=http://localhost:9998 docker compose up --build
+JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
-This starts:
+`JWT_SECRET` is required: the bundled UserAuth service signs tokens with it (min 32 bytes). This starts:
 
 | Service | Port | Description |
 |---|---|---|
 | `dpc-website` | 3000 | Next.js front end |
 | `dpc-api` | 45345 (configurable via `API_PORT`) | Spring Boot API |
-| `dpc-db` | 5432 | PostgreSQL database |
+| `dpc-db` | 5432 | PostgreSQL database (site data) |
+| `userauth` | *(internal)* | [UserAuth](https://github.com/Preponderous-Software/UserAuth) — authentication, reached by `dpc-api` at `http://userauth:9998` |
+| `userauth-db` | *(internal)* | PostgreSQL database (UserAuth) |
 
 To use a different API port:
 
 ```bash
-API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 USERAUTH_URL=http://localhost:9998 docker compose up --build
+API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
 `NEXT_PUBLIC_API_URL` is passed to the frontend container automatically via `compose.yml` (as both a build arg and environment variable).
@@ -38,7 +40,15 @@ API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 USERAUTH_URL=http://loca
    ```bash
    docker run -d --name dpc-db -e POSTGRES_DB=dpc -e POSTGRES_USER=dpc -e POSTGRES_PASSWORD=dpc -p 5432:5432 postgres:16-alpine
    ```
-2. Build and run the API:
+2. Ensure a [UserAuth](https://github.com/Preponderous-Software/UserAuth) instance is reachable at `USERAUTH_URL` (default `http://localhost:9998`) — dpc-api delegates authentication to it. The Docker Compose path above starts one for you; standalone, run its published image:
+   ```bash
+   docker run -d --name userauth -p 9998:9998 \
+     -e DB_URL=jdbc:postgresql://host.docker.internal:5432/userauth \
+     -e DB_USERNAME=userauth -e DB_PASSWORD=userauth \
+     -e JWT_SECRET="your-secret-key-at-least-32-bytes-long" \
+     ghcr.io/preponderous-software/userauth:latest
+   ```
+3. Build and run the API:
    ```bash
    cd dpc-api
    DB_USERNAME=dpc DB_PASSWORD=dpc USERAUTH_URL=http://localhost:9998 ./mvnw spring-boot:run
