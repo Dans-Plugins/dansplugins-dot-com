@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -117,5 +119,19 @@ class ProfileAuthIntegrationTest {
                         .content("{\"username\":\"bob\",\"password\":\"pw\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").value("bob-token"));
+    }
+
+    @Test
+    void register_whenAutoLoginFails_returns201Registered() throws Exception {
+        when(userAuthClient.register(any(), any())).thenReturn(Map.of("id", 2, "username", "carol"));
+        when(userAuthClient.login("carol", "pw"))
+                .thenThrow(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "down"));
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"carol\",\"password\":\"pw\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.registered").value(true))
+                .andExpect(jsonPath("$.tokenIssued").value(false));
     }
 }
