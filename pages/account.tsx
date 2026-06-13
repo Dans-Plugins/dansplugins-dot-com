@@ -37,6 +37,9 @@ interface ApiKeyInfo {
 interface AccountProfile {
     id: string
     username: string
+    displayName: string | null
+    avatarUrl: string | null
+    bio: string | null
     createdAt: string
     apiKeys: ApiKeyInfo[]
 }
@@ -53,6 +56,10 @@ const AccountPage: NextPage = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [serverName, setServerName] = useState('')
+    // Profile edit fields
+    const [displayName, setDisplayName] = useState('')
+    const [avatarUrl, setAvatarUrl] = useState('')
+    const [bio, setBio] = useState('')
     const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // The JWT is stored in localStorage rather than an HttpOnly cookie. This is
@@ -78,12 +85,16 @@ const AccountPage: NextPage = () => {
 
     const fetchProfile = useCallback(async (jwt: string) => {
         try {
-            const res = await fetch(`${API_BASE}/api/v1/accounts/me`, {
+            const res = await fetch(`${API_BASE}/api/v1/profile/me`, {
                 headers: {'Authorization': `Bearer ${jwt}`},
             })
             if (res.ok) {
                 setError(null)
-                setProfile(await res.json())
+                const data: AccountProfile = await res.json()
+                setProfile(data)
+                setDisplayName(data.displayName ?? '')
+                setAvatarUrl(data.avatarUrl ?? '')
+                setBio(data.bio ?? '')
             } else if (res.status === 401) {
                 setToken(null)
                 localStorage.removeItem('dpc-token')
@@ -108,7 +119,7 @@ const AccountPage: NextPage = () => {
         setError(null)
         setSuccess(null)
         try {
-            const res = await fetch(`${API_BASE}/api/v1/accounts/register`, {
+            const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username, password}),
@@ -133,7 +144,7 @@ const AccountPage: NextPage = () => {
         setError(null)
         setSuccess(null)
         try {
-            const res = await fetch(`${API_BASE}/api/v1/accounts/login`, {
+            const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username, password}),
@@ -154,10 +165,47 @@ const AccountPage: NextPage = () => {
     }
 
     const handleLogout = () => {
+        // Revoke the token server-side (via UserAuth) before clearing it locally.
+        // Best-effort: clearing the local token is the meaningful part of logout.
+        if (token) {
+            fetch(`${API_BASE}/api/v1/auth/logout`, {
+                method: 'POST',
+                headers: {'Authorization': `Bearer ${token}`},
+            }).catch(() => { /* ignore: local clear below still logs the user out */ })
+        }
         setToken(null)
         setProfile(null)
         localStorage.removeItem('dpc-token')
         setSuccess('Logged out.')
+    }
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError(null)
+        setSuccess(null)
+        if (!token) {
+            setError('Not authenticated. Please log in.')
+            return
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/profile/me`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify({
+                    displayName: displayName || null,
+                    avatarUrl: avatarUrl || null,
+                    bio: bio || null,
+                }),
+            })
+            if (res.ok) {
+                setProfile(await res.json())
+                setSuccess('Profile saved.')
+            } else {
+                setError('Failed to save profile.')
+            }
+        } catch {
+            setError('Connection error.')
+        }
     }
 
     const handleCreateApiKey = async (e: React.FormEvent) => {
@@ -169,7 +217,7 @@ const AccountPage: NextPage = () => {
             return
         }
         try {
-            const res = await fetch(`${API_BASE}/api/v1/accounts/me/api-keys`, {
+            const res = await fetch(`${API_BASE}/api/v1/profile/me/api-keys`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -197,7 +245,7 @@ const AccountPage: NextPage = () => {
             return
         }
         try {
-            const res = await fetch(`${API_BASE}/api/v1/accounts/me/api-keys/${keyId}`, {
+            const res = await fetch(`${API_BASE}/api/v1/profile/me/api-keys/${keyId}`, {
                 method: 'DELETE',
                 headers: {'Authorization': `Bearer ${token}`},
             })
@@ -309,9 +357,39 @@ const AccountPage: NextPage = () => {
                                         </Typography>
                                         <Button variant="outlined" onClick={handleLogout}>Logout</Button>
                                     </Box>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
                                         Member since {new Date(profile.createdAt).toLocaleDateString()}
                                     </Typography>
+                                    <Box component="form" onSubmit={handleUpdateProfile}
+                                         sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 2}}>
+                                        <Typography variant="subtitle2" color="text.secondary">Profile</Typography>
+                                        <TextField
+                                            label="Display name"
+                                            value={displayName}
+                                            onChange={(e) => setDisplayName(e.target.value)}
+                                            size="small"
+                                            inputProps={{maxLength: 50}}
+                                        />
+                                        <TextField
+                                            label="Avatar URL"
+                                            value={avatarUrl}
+                                            onChange={(e) => setAvatarUrl(e.target.value)}
+                                            size="small"
+                                            inputProps={{maxLength: 512}}
+                                        />
+                                        <TextField
+                                            label="Bio"
+                                            value={bio}
+                                            onChange={(e) => setBio(e.target.value)}
+                                            size="small"
+                                            multiline
+                                            minRows={2}
+                                            inputProps={{maxLength: 500}}
+                                        />
+                                        <Box>
+                                            <Button type="submit" variant="contained" size="small">Save profile</Button>
+                                        </Box>
+                                    </Box>
                                 </CardContent>
                             </Card>
                         )}
@@ -405,16 +483,16 @@ const AccountPage: NextPage = () => {
                                     fontSize: '0.85rem',
                                     fontFamily: 'monospace',
                                 }}>
-{`# Register (creates account and returns JWT token)
-POST /api/v1/accounts/register
+{`# Register (creates account and returns a token)
+POST /api/v1/auth/register
 {"username": "<name>", "password": "<pass>"}
 
-# Login (returns JWT token)
-POST /api/v1/accounts/login
+# Login (returns a token)
+POST /api/v1/auth/login
 {"username": "<name>", "password": "<pass>"}
 
 # Create API key (requires Bearer token)
-POST /api/v1/accounts/me/api-keys
+POST /api/v1/profile/me/api-keys
 Authorization: Bearer <token>
 {"serverName": "<server_name>"}
 
