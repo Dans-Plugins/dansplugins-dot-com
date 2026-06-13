@@ -41,7 +41,7 @@ public class ApiKey {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
-    private Account owner;
+    private User owner;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
@@ -50,7 +50,7 @@ public class ApiKey {
     @Transient
     private String rawKey;
 
-    public ApiKey(String keyHash, String keyPrefix, String serverName, Account owner) {
+    public ApiKey(String keyHash, String keyPrefix, String serverName, User owner) {
         this.keyHash = keyHash;
         this.keyPrefix = keyPrefix;
         this.serverName = serverName;
