@@ -1,4 +1,5 @@
-import {Box, Container, Grid, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Box, Container, Grid, InputAdornment, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 import type {NextPage} from 'next'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
@@ -72,6 +73,7 @@ interface PluginsSectionProps {
 
 const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
+    const [query, setQuery] = React.useState('');
 
     const handleSortChange = (
         event: React.MouseEvent<HTMLElement>,
@@ -105,13 +107,35 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
         }
     };
 
+    const normalizedQuery = query.trim().toLowerCase();
+    const visiblePlugins = normalizedQuery
+        ? getSortedPlugins().filter((plugin) =>
+            plugin.title.toLowerCase().includes(normalizedQuery) ||
+            plugin.description.toLowerCase().includes(normalizedQuery))
+        : getSortedPlugins();
+
     return (
         <Box id="plugins" sx={pluginsBoxStyle}>
             <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
                 Plugins
             </Typography>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: 3 }}>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap', marginBottom: 3 }}>
+                <TextField
+                    size="small"
+                    placeholder="Search plugins…"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    aria-label="Search plugins"
+                    sx={{ minWidth: 240 }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon fontSize="small" />
+                            </InputAdornment>
+                        ),
+                    }}
+                />
                 <ToggleButtonGroup
                     value={sortBy}
                     exclusive
@@ -127,8 +151,14 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Box>
-            
-            <PluginSection plugins={getSortedPlugins()} />
+
+            {visiblePlugins.length > 0 ? (
+                <PluginSection plugins={visiblePlugins} />
+            ) : (
+                <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
+                    No plugins match your search.
+                </Typography>
+            )}
         </Box>
     );
 };

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The home-page plugin catalogue now has a search box that filters plugins by name or description (in addition to the existing sort), with an empty state when nothing matches.
 - The faction leaderboard now shows each faction's server IP (as a click-to-copy chip) and a link to its Discord, when the faction has published them.
 - Every page now sets a descriptive `<title>`, meta description, and Open Graph / Twitter card tags (via a shared `Seo` component), so browser tabs, search engines, and shared links show meaningful information.
 
