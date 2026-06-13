@@ -19,7 +19,9 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import type {NextPage} from 'next'
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import TopBar from '../components/TopBar'
+import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
+import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 
 const version = require('../package.json').version
 
@@ -221,19 +223,23 @@ const AccountPage: NextPage = () => {
     }
 
     return (
-        <Box>
+        <Box sx={(theme) => pageStyle(theme)}>
+            <Seo title="Account" description="Manage your account and the API keys your Minecraft servers use to sync with the DPC community data API."/>
             <TopBar/>
             <Container maxWidth="md" sx={{py: 4}}>
-                <Typography variant="h4" gutterBottom>
-                    Account Management
+                <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+                    Account
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
+                    Manage your account and the API keys your Minecraft servers use to sync with the DPC community data API.
                 </Typography>
 
                 {error && <Alert severity="error" sx={{mb: 2}} onClose={() => setError(null)}>{error}</Alert>}
                 {success && <Alert severity="success" sx={{mb: 2}} onClose={() => setSuccess(null)}>{success}</Alert>}
 
                 {!token ? (
-                    <>
-                        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{mb: 2}}>
+                    <Box sx={{maxWidth: 460, mx: 'auto', mt: 2}}>
+                        <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{mb: 2}}>
                             <Tab label="Login"/>
                             <Tab label="Register"/>
                         </Tabs>
@@ -291,7 +297,7 @@ const AccountPage: NextPage = () => {
                                 </CardContent>
                             </Card>
                         )}
-                    </>
+                    </Box>
                 ) : (
                     <>
                         {profile && (
@@ -321,9 +327,23 @@ const AccountPage: NextPage = () => {
                                 {newApiKey && (
                                     <Alert severity="warning" sx={{mb: 2}} onClose={() => setNewApiKey(null)}>
                                         <strong>Save this key now — it won&apos;t be shown again:</strong>
-                                        <Box sx={{display: 'flex', alignItems: 'center', mt: 1}}>
-                                            <code>{newApiKey}</code>
-                                            <IconButton size="small" onClick={() => copyToClipboard(newApiKey)} sx={{ml: 1}} aria-label="Copy API key to clipboard">
+                                        <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mt: 1}}>
+                                            <Box
+                                                component="code"
+                                                sx={{
+                                                    flex: 1,
+                                                    fontFamily: 'monospace',
+                                                    fontSize: '0.85rem',
+                                                    wordBreak: 'break-all',
+                                                    bgcolor: 'action.hover',
+                                                    px: 1,
+                                                    py: 0.5,
+                                                    borderRadius: 1,
+                                                }}
+                                            >
+                                                {newApiKey}
+                                            </Box>
+                                            <IconButton size="small" onClick={() => copyToClipboard(newApiKey)} aria-label="Copy API key to clipboard">
                                                 <ContentCopyIcon fontSize="small"/>
                                             </IconButton>
                                         </Box>
@@ -375,12 +395,15 @@ const AccountPage: NextPage = () => {
                                     Use these commands in your Minecraft server plugin to manage your account:
                                 </Typography>
                                 <Box component="pre" sx={{
-                                    bgcolor: 'grey.900',
-                                    color: 'grey.100',
+                                    bgcolor: '#0d1117',
+                                    color: '#c9d1d9',
+                                    border: '1px solid',
+                                    borderColor: 'divider',
                                     p: 2,
-                                    borderRadius: 1,
+                                    borderRadius: 2,
                                     overflow: 'auto',
-                                    fontSize: '0.875rem'
+                                    fontSize: '0.85rem',
+                                    fontFamily: 'monospace',
                                 }}>
 {`# Register (creates account and returns JWT token)
 POST /api/v1/accounts/register

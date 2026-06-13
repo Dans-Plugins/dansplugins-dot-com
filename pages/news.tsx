@@ -1,6 +1,7 @@
 import {Box, Chip, Container, Link, Paper, Typography} from '@mui/material';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import {getNewsPosts, NewsPost, NewsSource} from '../utils/newsStorage';
@@ -35,7 +36,15 @@ export const getServerSideProps = async () => ({
 const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
     const badge = SOURCE_BADGE[post.source];
     return (
-        <Paper elevation={3} sx={{p: 2, mb: 2}}>
+        <Paper
+            elevation={0}
+            sx={{
+                p: 2.5,
+                mb: 2,
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': {transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0,0,0,0.12)'},
+            }}
+        >
             <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
                 <Typography variant="h6">{post.title}</Typography>
                 <Chip label={badge.label} color={badge.color} size="small"/>
@@ -55,8 +64,9 @@ const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
 
 const News: NextPage<NewsProps> = ({posts}) => (
     <Box sx={(theme) => pageStyle(theme)}>
+        <Seo title="News" description="Announcements and updates from Dan's Plugins Community."/>
         <TopBar/>
-        <Container maxWidth="xl" sx={(theme) => containerPaddingStyle(theme)}>
+        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 News
             </Typography>

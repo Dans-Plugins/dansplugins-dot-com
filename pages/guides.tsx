@@ -1,10 +1,10 @@
-import {Box, Container, List, ListItem, ListItemButton, ListItemText, Typography} from '@mui/material';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import {Box, Container, List, ListItem, ListItemButton, ListItemText, Paper, Typography} from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
+import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
-import {userGuideUrl} from '../utils/guides';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -26,30 +26,31 @@ const guides = [...pluginData.plugins].sort((a, b) => a.title.localeCompare(b.ti
 
 const Guides: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
+        <Seo title="Guides" description="User guides for every Dan's Plugins Community plugin."/>
         <TopBar/>
-        <Container maxWidth="xl" sx={(theme) => containerPaddingStyle(theme)}>
+        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 Guides
             </Typography>
-            <Typography variant="body1" gutterBottom>
+            <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
                 Each plugin&apos;s guide (its <code>USER_GUIDE.md</code>) lives in the plugin&apos;s
-                repository. Select a plugin below to open its guide in a new tab.
+                repository. Select a plugin below to read its guide.
             </Typography>
-            <List sx={{maxWidth: 600}}>
-                {guides.map((plugin) => (
-                    <ListItem key={plugin.id} disablePadding>
-                        <ListItemButton
-                            component="a"
-                            href={userGuideUrl(plugin.githubLink)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <ListItemText primary={`${plugin.title} Guide`}/>
-                            <OpenInNewIcon fontSize="small"/>
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>
+            <Paper elevation={0} sx={{maxWidth: 600, overflow: 'hidden'}}>
+                <List disablePadding>
+                    {guides.map((plugin, index) => (
+                        <ListItem key={plugin.id} disablePadding divider={index < guides.length - 1}>
+                            <ListItemButton
+                                component="a"
+                                href={`/guides/${plugin.id}`}
+                            >
+                                <ListItemText primary={`${plugin.title} Guide`}/>
+                                <ChevronRightIcon fontSize="small" color="action"/>
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
+                </List>
+            </Paper>
         </Container>
         <BottomBar version={version}/>
     </Box>

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { DATA_DIR, writeJsonAtomic } from './atomicJson';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
 const NEWS_FILE = path.join(DATA_DIR, 'news.json');
 
 // Where a post came from, so the UI can label its provenance.
@@ -71,16 +71,7 @@ const normalizePost = (raw: unknown): NewsPost | null => {
 const sortNewestFirst = (posts: NewsPost[]): NewsPost[] =>
     [...posts].sort((a, b) => b.date.localeCompare(a.date));
 
-// Write atomically: temp file + rename, so an interrupted write cannot leave a
-// partial/invalid news.json behind.
-const writeNewsData = (posts: NewsPost[]) => {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    const tempFile = `${NEWS_FILE}.${process.pid}.tmp`;
-    fs.writeFileSync(tempFile, JSON.stringify({ posts }, null, 2));
-    fs.renameSync(tempFile, NEWS_FILE);
-};
+const writeNewsData = (posts: NewsPost[]) => writeJsonAtomic(NEWS_FILE, { posts }, { pretty: true });
 
 // Read the news posts, newest first. If the file is absent, seed it with the
 // default posts. If it is present but unreadable/invalid, log and serve the

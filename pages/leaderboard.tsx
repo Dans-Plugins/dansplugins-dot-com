@@ -7,19 +7,25 @@ import {
     Chip,
     Container,
     Skeleton,
+    Snackbar,
+    Stack,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
+    Tooltip,
     Typography,
 } from '@mui/material'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import GroupIcon from '@mui/icons-material/Group'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
 import type {NextPage} from 'next'
 import React, {useCallback, useEffect, useState} from 'react'
 import TopBar from '../components/TopBar'
+import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles'
 
@@ -57,6 +63,17 @@ const LeaderboardPage: NextPage = () => {
     const [factions, setFactions] = useState<Faction[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [copied, setCopied] = useState(false)
+
+    const copyServerIp = useCallback(async (ip: string) => {
+        try {
+            await navigator.clipboard.writeText(ip)
+            setCopied(true)
+        } catch {
+            // Clipboard can be unavailable (older browsers, insecure origin); the
+            // address is still visible on the chip for manual copying.
+        }
+    }, [])
 
     const fetchFactions = useCallback(async () => {
         setLoading(true)
@@ -85,6 +102,7 @@ const LeaderboardPage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
+            <Seo title="Faction Leaderboard" description="Medieval Factions ranked by member count across all servers."/>
             <TopBar/>
             <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
                 <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
@@ -114,13 +132,26 @@ const LeaderboardPage: NextPage = () => {
                         <TableContainer>
                             <Table>
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell sx={{fontWeight: 'bold', width: 60}} align="center">
+                                    <TableRow
+                                        sx={{
+                                            '& th': {
+                                                bgcolor: 'action.hover',
+                                                borderBottom: 2,
+                                                borderColor: 'divider',
+                                                fontWeight: 600,
+                                                fontSize: '0.72rem',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.07em',
+                                                color: 'text.secondary',
+                                            },
+                                        }}
+                                    >
+                                        <TableCell sx={{width: 60}} align="center">
                                             Rank
                                         </TableCell>
-                                        <TableCell sx={{fontWeight: 'bold'}}>Faction</TableCell>
-                                        <TableCell sx={{fontWeight: 'bold'}}>Server</TableCell>
-                                        <TableCell sx={{fontWeight: 'bold'}} align="right">
+                                        <TableCell>Faction</TableCell>
+                                        <TableCell>Server</TableCell>
+                                        <TableCell align="right">
                                             <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.5}}>
                                                 <GroupIcon fontSize="small"/>
                                                 Members
@@ -181,11 +212,37 @@ const LeaderboardPage: NextPage = () => {
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Chip
-                                                        label={faction.serverId}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
+                                                    <Stack spacing={0.5} alignItems="flex-start">
+                                                        <Chip
+                                                            label={faction.serverId}
+                                                            size="small"
+                                                            variant="outlined"
+                                                        />
+                                                        {faction.serverIp && (
+                                                            <Tooltip title="Click to copy server address">
+                                                                <Chip
+                                                                    label={faction.serverIp}
+                                                                    size="small"
+                                                                    color="primary"
+                                                                    variant="outlined"
+                                                                    icon={<ContentCopyIcon/>}
+                                                                    onClick={() => copyServerIp(faction.serverIp as string)}
+                                                                    sx={{fontFamily: 'monospace', cursor: 'pointer'}}
+                                                                />
+                                                            </Tooltip>
+                                                        )}
+                                                        {faction.discordLink && (
+                                                            <Button
+                                                                size="small"
+                                                                startIcon={<ChatBubbleOutlineIcon/>}
+                                                                href={faction.discordLink}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                Discord
+                                                            </Button>
+                                                        )}
+                                                    </Stack>
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     <Typography
@@ -204,6 +261,13 @@ const LeaderboardPage: NextPage = () => {
                     </CardContent>
                 </Card>
             </Container>
+            <Snackbar
+                open={copied}
+                autoHideDuration={2000}
+                onClose={() => setCopied(false)}
+                message="Server address copied to clipboard"
+                anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+            />
             <BottomBar version={version}/>
         </Box>
     )

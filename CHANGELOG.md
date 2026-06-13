@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Plugin guides now render on-site at `/guides/[id]` (fetched from each plugin's `USER_GUIDE.md` and rendered with `markdown-to-jsx`) instead of linking out to raw GitHub markdown; the Guides page links to these in-site pages, and each guide keeps a "View on GitHub" link and falls back to GitHub if the content can't be loaded.
+- The home-page plugin catalogue now has a search box that filters plugins by name or description (in addition to the existing sort), with an empty state when nothing matches.
+- The faction leaderboard now shows each faction's server IP (as a click-to-copy chip) and a link to its Discord, when the faction has published them.
+- Every page now sets a descriptive `<title>`, meta description, and Open Graph / Twitter card tags (via a shared `Seo` component), so browser tabs, search engines, and shared links show meaningful information.
+
+## [0.12.0] – 2026-06-13
+
+### Changed
+
+- Site-wide visual refresh. A new brand palette and type pairing (Inter for body, Space Grotesk for headings, loaded via a custom `_document`); solid app bars in place of the indigo gradient; removal of the gradient-clip text and the 20px grid-pattern page background; flat surfaces with hairline borders and softened hover lifts; a redesigned home hero with call-to-action buttons; restyled plugin cards (per-plugin avatar, server-count chip, clearer button hierarchy); and consistent table/card/page treatments across the Leaderboard, Account, Commissions, Road Map, About, Guides, and News pages.
+- Bumped the site version to 0.12.0.
+
+### Fixed
+
+- `USER_GUIDE.md` now documents the **Guides**, **Leaderboard**, and **Account** pages. These are all reachable from the top navigation bar but were previously absent from the guide's "Common Scenarios", which only covered News, About, Road Map, and Commissions.
+- `.github/copilot-instructions.md` now lists the `__tests__/` (Vitest) and `data/` (runtime-persisted JSON, bind-mounted in `compose.yml`) directories in its frontend Project Structure, which previously omitted both tracked directories.
+
+## [0.10.0] – 2026-06-07
+
 ### Fixed
 
 - The **Guides** page now lists a guide for every plugin in the catalogue, not just Medieval Factions. Links are derived from `pages/data/plugins.json` and point at each plugin's in-repo `USER_GUIDE.md` (the required in-repo guide per the DPC conventions), opening in a new tab with `rel="noopener noreferrer"`. Previously the page claimed guides existed "for each plugin" but linked only one.
