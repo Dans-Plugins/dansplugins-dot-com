@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The faction leaderboard now shows each faction's server IP (as a click-to-copy chip) and a link to its Discord, when the faction has published them.
+
 ## [0.12.0] – 2026-06-13
 
 ### Changed
