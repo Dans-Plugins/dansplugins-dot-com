@@ -34,6 +34,8 @@ This repository is a monorepo containing a frontend and a backend.
 - `public/` – Static assets served at the root URL
 - `utils/` – Shared utility functions
 - `services/` – Data-fetching or business-logic services
+- `__tests__/` – Unit tests (Vitest)
+- `data/` – Runtime-persisted JSON (`news.json`, `visits.json`); bind-mounted in `compose.yml`
 
 ### Backend
 

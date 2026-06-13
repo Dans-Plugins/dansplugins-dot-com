@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `USER_GUIDE.md` now documents the **Guides**, **Leaderboard**, and **Account** pages. These are all reachable from the top navigation bar but were previously absent from the guide's "Common Scenarios", which only covered News, About, Road Map, and Commissions.
+- `.github/copilot-instructions.md` now lists the `__tests__/` (Vitest) and `data/` (runtime-persisted JSON, bind-mounted in `compose.yml`) directories in its frontend Project Structure, which previously omitted both tracked directories.
+
 ## [0.10.0] – 2026-06-07
 
 ### Fixed
