@@ -16,8 +16,8 @@ const About: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo title="About Us" description="Learn about Dan's Plugins Community, an open-source community building plugins for Minecraft servers."/>
         <TopBar/>
-        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
-            <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+        <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
+            <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 About Us
             </Typography>
             <Typography variant="body1" gutterBottom>

@@ -62,6 +62,7 @@ const Blurb: React.FC = () => (
         <Box sx={{textAlign: 'center', py: {xs: 4, md: 8}}}>
             <Typography
                 variant="h2"
+                component="h1"
                 gutterBottom
                 sx={(theme) => ({...blurbTitleStyle(theme), marginBottom: theme.spacing(2)})}
             >
