@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Sign-in, registration, and leaderboard error messages now use plain, user-facing language instead of developer-speak like "Is the API running?" (#207, #211). A failed registration no longer speculatively blames the username; it points at both the username and the password requirements (#208).
+
 ### Fixed
 
 - The `<html>` element now sets `lang="en"`, so assistive technology and translation tools can identify the page language (WCAG 3.1.1) (#217).

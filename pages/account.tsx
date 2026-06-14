@@ -157,10 +157,10 @@ const AccountPage: NextPage = () => {
                 setPassword('')
                 returnAfterAuth()
             } else {
-                setError('Registration failed. Username may already be taken.')
+                setError('Registration failed. Make sure your username is available and your password meets the requirements (8–128 characters).')
             }
         } catch {
-            setError('Connection error. Is the API running?')
+            setError('We couldn’t reach the server. Please check your connection and try again.')
         }
     }
 
@@ -186,7 +186,7 @@ const AccountPage: NextPage = () => {
                 setError('Invalid credentials.')
             }
         } catch {
-            setError('Connection error. Is the API running?')
+            setError('We couldn’t reach the server. Please check your connection and try again.')
         }
     }
 
