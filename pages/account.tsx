@@ -5,6 +5,7 @@ import {
     Card,
     CardContent,
     Chip,
+    CircularProgress,
     Container,
     IconButton,
     List,
@@ -61,6 +62,10 @@ const AccountPage: NextPage = () => {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [newApiKey, setNewApiKey] = useState<string | null>(null)
+    // Disables submit buttons and shows a spinner while a request is in flight,
+    // so a slow action gives feedback instead of looking like "nothing happened"
+    // and can't be double-submitted.
+    const [submitting, setSubmitting] = useState(false)
 
     // Form state
     const [username, setUsername] = useState('')
@@ -142,6 +147,7 @@ const AccountPage: NextPage = () => {
         e.preventDefault()
         setError(null)
         setSuccess(null)
+        setSubmitting(true)
         try {
             const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
                 method: 'POST',
@@ -161,6 +167,8 @@ const AccountPage: NextPage = () => {
             }
         } catch {
             setError('We couldn’t reach the server. Please check your connection and try again.')
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -168,6 +176,7 @@ const AccountPage: NextPage = () => {
         e.preventDefault()
         setError(null)
         setSuccess(null)
+        setSubmitting(true)
         try {
             const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
                 method: 'POST',
@@ -187,6 +196,8 @@ const AccountPage: NextPage = () => {
             }
         } catch {
             setError('We couldn’t reach the server. Please check your connection and try again.')
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -214,6 +225,7 @@ const AccountPage: NextPage = () => {
             setError('Not authenticated. Please log in.')
             return
         }
+        setSubmitting(true)
         try {
             const res = await fetch(`${API_BASE}/api/v1/profile/me`, {
                 method: 'PATCH',
@@ -232,6 +244,8 @@ const AccountPage: NextPage = () => {
             }
         } catch {
             setError('Connection error.')
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -243,6 +257,7 @@ const AccountPage: NextPage = () => {
             setError('Not authenticated. Please log in.')
             return
         }
+        setSubmitting(true)
         try {
             const res = await fetch(`${API_BASE}/api/v1/profile/me/api-keys`, {
                 method: 'POST',
@@ -262,6 +277,8 @@ const AccountPage: NextPage = () => {
             }
         } catch {
             setError('Connection error.')
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -339,7 +356,10 @@ const AccountPage: NextPage = () => {
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                         />
-                                        <Button type="submit" variant="contained">Login</Button>
+                                        <Button type="submit" variant="contained" disabled={submitting}
+                                                startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
+                                            Login
+                                        </Button>
                                     </Box>
                                 </CardContent>
                             </Card>
@@ -369,7 +389,10 @@ const AccountPage: NextPage = () => {
                                             required
                                             helperText="8-128 characters"
                                         />
-                                        <Button type="submit" variant="contained">Register</Button>
+                                        <Button type="submit" variant="contained" disabled={submitting}
+                                                startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
+                                            Register
+                                        </Button>
                                     </Box>
                                 </CardContent>
                             </Card>
@@ -427,7 +450,10 @@ const AccountPage: NextPage = () => {
                                             inputProps={{maxLength: 500}}
                                         />
                                         <Box>
-                                            <Button type="submit" variant="contained" size="small">Save profile</Button>
+                                            <Button type="submit" variant="contained" size="small" disabled={submitting}
+                                                    startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
+                                                Save profile
+                                            </Button>
                                         </Box>
                                     </Box>
                                 </CardContent>
@@ -535,7 +561,10 @@ const AccountPage: NextPage = () => {
                                         size="small"
                                         sx={{flex: 1}}
                                     />
-                                    <Button type="submit" variant="contained">Create Key</Button>
+                                    <Button type="submit" variant="contained" disabled={submitting}
+                                            startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
+                                        Create Key
+                                    </Button>
                                 </Box>
                             </CardContent>
                         </Card>
