@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.14.0] – 2026-06-14
+
 ### Added
 
 - Each faction row on the leaderboard now shows how recently its data was synced ("Updated N days ago"), so visitors can tell whether a member count is current or stale (#212). Backed by a tested `utils/relativeTime` helper.
