@@ -1,5 +1,6 @@
-import {Box, Container, Grid, InputAdornment, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Box, Container, Grid, IconButton, InputAdornment, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 import type {NextPage} from 'next'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
@@ -137,6 +138,13 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                                 <SearchIcon fontSize="small" />
                             </InputAdornment>
                         ),
+                        endAdornment: query ? (
+                            <InputAdornment position="end">
+                                <IconButton size="small" aria-label="Clear search" onClick={() => setQuery('')}>
+                                    <ClearIcon fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : undefined,
                     }}
                 />
                 <ToggleButtonGroup
@@ -157,6 +165,12 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Box>
+
+            {normalizedQuery && (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+                    Showing {visiblePlugins.length} of {initialPlugins.length} plugins
+                </Typography>
+            )}
 
             {visiblePlugins.length > 0 ? (
                 <PluginSection plugins={visiblePlugins} likeCounts={likeCounts} likedSet={likedSet} token={token} />
