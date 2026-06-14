@@ -74,6 +74,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/factions/**").permitAll()
                         // Public like counts (must precede the authenticated /likes rule below)
                         .requestMatchers(HttpMethod.GET, "/api/v1/likes/counts").permitAll()
+                        // Public single-user profile (GET /api/v1/profile/{username}). The /me rule
+                        // is listed first so the authenticated self-profile (which exposes API keys)
+                        // is never served by the public path; the single-segment glob then permits
+                        // any other username, while the /** rule below still guards PATCH /me and
+                        // the /me/api-keys routes.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/profile/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/profile/*").permitAll()
                         // Swagger/OpenAPI
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Profile, likes, and logout require a valid UserAuth token

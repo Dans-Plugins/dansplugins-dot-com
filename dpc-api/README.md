@@ -97,6 +97,7 @@ keeps a local profile mirror that owns each user's API keys.
 | `POST` | `/api/v1/auth/login` | Public | Login (proxied to UserAuth) and return a token |
 | `POST` | `/api/v1/auth/logout` | Bearer | Revoke the current token |
 | `GET` | `/api/v1/profile/me` | Bearer | Get the current user's profile and API keys |
+| `GET` | `/api/v1/profile/{username}` | Public | Get a user's public profile (display name, avatar, bio, join date, liked plugins/guides; no id or API keys) |
 | `PATCH` | `/api/v1/profile/me` | Bearer | Update display name / avatar / bio |
 | `POST` | `/api/v1/profile/me/api-keys` | Bearer | Create a new API key |
 | `DELETE` | `/api/v1/profile/me/api-keys/{id}` | Bearer | Delete an API key |
