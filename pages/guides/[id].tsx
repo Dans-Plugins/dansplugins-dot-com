@@ -6,6 +6,7 @@ import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import Seo from '../../components/Seo';
+import GuideLikeButton from '../../components/GuideLikeButton';
 import BottomBar from '../../components/BottomBar';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {userGuideUrl, userGuideRawUrl} from '../../utils/guides';
@@ -21,6 +22,7 @@ interface GuidePlugin {
 const pluginData = require('../data/plugins.json') as { plugins: GuidePlugin[] };
 
 interface GuidePageProps {
+    id: string;
     title: string;
     githubLink: string;
     // The fetched guide markdown, or null if it couldn't be loaded (the page then
@@ -43,7 +45,7 @@ export const getServerSideProps: GetServerSideProps<GuidePageProps> = async ({pa
     } catch {
         // Leave markdown null; the page renders a fallback link to GitHub.
     }
-    return {props: {title: plugin.title, githubLink: plugin.githubLink, markdown}};
+    return {props: {id, title: plugin.title, githubLink: plugin.githubLink, markdown}};
 };
 
 // Themed styling for the rendered markdown elements (markdown-to-jsx emits plain
@@ -80,7 +82,7 @@ const guideBodyStyle = {
     '& th, & td': {border: '1px solid', borderColor: 'divider', p: 1, textAlign: 'left'},
 };
 
-const GuidePage: NextPage<GuidePageProps> = ({title, githubLink, markdown}) => (
+const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo title={`${title} Guide`} description={`User guide for the ${title} plugin from Dan's Plugins Community.`}/>
         <TopBar/>
@@ -88,9 +90,12 @@ const GuidePage: NextPage<GuidePageProps> = ({title, githubLink, markdown}) => (
             <Button href="/guides" startIcon={<ArrowBackIcon/>} sx={{mb: 2}}>
                 All guides
             </Button>
-            <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
-                {title} Guide
-            </Typography>
+            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
+                <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+                    {title} Guide
+                </Typography>
+                <GuideLikeButton guideId={id}/>
+            </Box>
 
             {markdown ? (
                 <Box sx={guideBodyStyle}>

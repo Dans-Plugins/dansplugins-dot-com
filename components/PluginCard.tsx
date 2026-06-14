@@ -2,6 +2,7 @@ import React from 'react';
 import {Avatar, Box, Button, Card, CardActions, CardContent, Chip, Link, Stack, Typography} from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import DnsIcon from '@mui/icons-material/Dns';
+import LikeButton from './LikeButton';
 import {
     pluginCardStyle,
     pluginCardContentStyle,
@@ -9,12 +10,16 @@ import {
 } from '../styles/styles';
 
 interface PluginCardProps {
+    id: string;
     title: string;
     description: string;
     githubLink: string;
     spigotmcLink?: string;
     bStatsId?: string;
     serverCount?: number | null;
+    likeCount: number;
+    liked: boolean;
+    token: string | null;
 }
 
 // A small, fixed palette of muted brand-ish colours. Each plugin gets a stable
@@ -31,11 +36,15 @@ const colorForTitle = (title: string): string => {
 };
 
 const PluginCard: React.FC<PluginCardProps> = ({
+    id,
     title,
     description,
     githubLink,
     spigotmcLink,
-    serverCount
+    serverCount,
+    likeCount,
+    liked,
+    token
 }) => {
     return (
         <Card sx={pluginCardStyle}>
@@ -86,6 +95,8 @@ const PluginCard: React.FC<PluginCardProps> = ({
             ) : null}
 
             <CardActions sx={pluginCardActionsStyle}>
+                <LikeButton targetType="plugin" targetId={id} count={likeCount} liked={liked} token={token}/>
+                <Box sx={{flexGrow: 1}}/>
                 <Button
                     variant="contained"
                     size="small"

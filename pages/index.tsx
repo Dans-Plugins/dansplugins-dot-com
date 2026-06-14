@@ -9,6 +9,7 @@ import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
+import { getLikeCounts, getMyLikes } from '../services/likeService';
 
 interface PluginData {
     mostPopular: string[];
@@ -48,17 +49,28 @@ interface PluginWithServerCount extends Plugin {
     serverCount?: number | null;
 }
 
-const PluginSection: React.FC<{ plugins: PluginWithServerCount[] }> = ({ plugins }) => (
+interface PluginSectionProps {
+    plugins: PluginWithServerCount[];
+    likeCounts: Record<string, number>;
+    likedSet: Set<string>;
+    token: string | null;
+}
+
+const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, likedSet, token }) => (
     <Grid container {...gridContainerStyle}>
         {plugins.map((plugin) => (
             <Grid item {...gridItemStyle} key={plugin.id}>
                 <PluginCard
+                    id={plugin.id}
                     title={plugin.title}
                     description={plugin.description}
                     githubLink={plugin.githubLink}
                     spigotmcLink={plugin.spigotmcLink}
                     bStatsId={plugin.bStatsId}
                     serverCount={plugin.serverCount}
+                    likeCount={likeCounts[plugin.id] || 0}
+                    liked={likedSet.has(plugin.id)}
+                    token={token}
                 />
             </Grid>
         ))}
@@ -74,6 +86,19 @@ interface PluginsSectionProps {
 const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
     const [query, setQuery] = React.useState('');
+    const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>({});
+    const [likedSet, setLikedSet] = React.useState<Set<string>>(new Set());
+    const [token, setToken] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        getLikeCounts('plugin').then(setLikeCounts);
+        const saved = typeof window !== 'undefined' ? window.localStorage.getItem('dpc-token') : null;
+        setToken(saved);
+        if (saved) {
+            getMyLikes(saved).then((likes) =>
+                setLikedSet(new Set(likes.filter((l) => l.targetType === 'plugin').map((l) => l.targetId))));
+        }
+    }, []);
 
     const handleSortChange = (
         event: React.MouseEvent<HTMLElement>,
@@ -153,7 +178,7 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
             </Box>
 
             {visiblePlugins.length > 0 ? (
-                <PluginSection plugins={visiblePlugins} />
+                <PluginSection plugins={visiblePlugins} likeCounts={likeCounts} likedSet={likedSet} token={token} />
             ) : (
                 <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
                     No plugins match your search.
