@@ -17,6 +17,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import type {NextPage} from 'next'
+import {useRouter} from 'next/router'
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
@@ -45,6 +46,7 @@ interface AccountProfile {
 }
 
 const AccountPage: NextPage = () => {
+    const router = useRouter()
     const [tab, setTab] = useState(0)
     const [token, setToken] = useState<string | null>(null)
     const [profile, setProfile] = useState<AccountProfile | null>(null)
@@ -114,6 +116,17 @@ const AccountPage: NextPage = () => {
         }
     }, [token, fetchProfile])
 
+    // After authenticating, send the user back to wherever they came from — e.g. a
+    // plugin whose like button bounced them here (LikeButton sets ?returnTo=...).
+    // Only internal paths are honored, never an absolute URL, to avoid an open redirect.
+    const returnAfterAuth = () => {
+        const returnTo = router.query.returnTo
+        const path = typeof returnTo === 'string' ? returnTo : null
+        if (path && path.startsWith('/') && !path.startsWith('//')) {
+            router.push(path)
+        }
+    }
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
@@ -131,6 +144,7 @@ const AccountPage: NextPage = () => {
                 setSuccess('Account created successfully!')
                 setUsername('')
                 setPassword('')
+                returnAfterAuth()
             } else {
                 setError('Registration failed. Username may already be taken.')
             }
@@ -156,6 +170,7 @@ const AccountPage: NextPage = () => {
                 setSuccess('Logged in!')
                 setUsername('')
                 setPassword('')
+                returnAfterAuth()
             } else {
                 setError('Invalid credentials.')
             }
