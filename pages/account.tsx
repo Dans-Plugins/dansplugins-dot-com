@@ -386,6 +386,10 @@ const AccountPage: NextPage = () => {
                                     </Box>
                                     <Typography variant="body2" color="text.secondary" gutterBottom>
                                         Member since {new Date(profile.createdAt).toLocaleDateString()}
+                                        {' · '}
+                                        <Box component="a" href={`/u/${profile.username}`} sx={{color: 'primary.main'}}>
+                                            View your public profile
+                                        </Box>
                                     </Typography>
                                     <Box component="form" onSubmit={handleUpdateProfile}
                                          sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 2}}>
