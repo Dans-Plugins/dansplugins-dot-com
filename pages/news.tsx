@@ -55,7 +55,7 @@ const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
             <Typography variant="body1">{post.body}</Typography>
             {post.sourceUrl && (
                 <Typography variant="body2" sx={{mt: 1}}>
-                    <Link href={post.sourceUrl} target="_blank" rel="noopener">View source</Link>
+                    <Link href={post.sourceUrl} target="_blank" rel="noopener noreferrer">View source</Link>
                 </Typography>
             )}
         </Paper>

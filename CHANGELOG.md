@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The `<html>` element now sets `lang="en"`, so assistive technology and translation tools can identify the page language (WCAG 3.1.1) (#217).
+- External links on the News, Road Map, and Commissions pages now use `rel="noopener noreferrer"` (previously only `noopener`), matching the rest of the site and avoiding referrer leakage (#213).
+
 ## [0.13.0] – 2026-06-14
 
 ### Changed
