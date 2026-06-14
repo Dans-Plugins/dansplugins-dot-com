@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The plugin catalogue gains a **"Most Liked"** sort option alongside "By Popularity" (server count) and "Alphabetical", ranking plugins by their like count (#201, epic #167 phase 2). The sort logic was extracted into a unit-tested `utils/sortPlugins.ts`.
 - Earned **badges now also appear on the signed-in user's own Account page** (not just the public profile), and the badge-label map is shared between the two pages (`utils/badges.ts`). The authenticated `GET /api/v1/profile/me` response gains a `badges` array (#194, epic #167 phase 3).
 - **Profile badges** (#194, epic #167 phase 3). Public profiles now show earned badges, starting with **Server Owner** (awarded to any user who owns at least one API key — i.e. runs a server that syncs with DPC). Badges are *derived* from existing state rather than stored, so they stay accurate automatically; the public `GET /api/v1/profile/{username}` response gains a `badges` array.
 - **Public profile pages** (#181, epic #167 phase 3). A new public `GET /api/v1/profile/{username}` returns a user's public profile — display name, avatar, bio, join date, and the plugins/guides they've liked — deliberately **excluding** the internal id and API keys (which stay on the authenticated `GET /api/v1/profile/me`). The website renders these at `/u/{username}`, and the Account page links to your own public profile. This is the foundation for the social layer (following, activity, comment author links).
