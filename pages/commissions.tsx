@@ -134,7 +134,7 @@ const Commissions: NextPage = () => {
                         size="large"
                         href={commissionsData.discordInvite}
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                     >
                         Join the Commissions Discord
                     </Button>

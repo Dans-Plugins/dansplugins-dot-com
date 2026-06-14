@@ -5,7 +5,7 @@ import {Html, Head, Main, NextScript} from 'next/document';
 // head; preconnect hints keep the extra round-trip cheap.
 export default function Document() {
     return (
-        <Html>
+        <Html lang="en">
             <Head>
                 <link rel="preconnect" href="https://fonts.googleapis.com"/>
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>

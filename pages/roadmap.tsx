@@ -61,7 +61,7 @@ const Roadmap: NextPage = () => (
             <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
                 This page tracks where Dan&apos;s Plugins Community is headed. For the day-to-day detail,
                 see the{' '}
-                <Link href="https://github.com/Dans-Plugins/dansplugins-dot-com/issues" target="_blank" rel="noopener">
+                <Link href="https://github.com/Dans-Plugins/dansplugins-dot-com/issues" target="_blank" rel="noopener noreferrer">
                     issue tracker on GitHub
                 </Link>.
             </Typography>
