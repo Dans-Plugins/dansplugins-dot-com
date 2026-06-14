@@ -11,6 +11,7 @@ export interface PublicProfile {
     avatarUrl: string | null
     bio: string | null
     createdAt: string
+    badges: string[]
     likes: LikedTarget[]
 }
 

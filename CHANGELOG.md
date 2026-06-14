@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Profile badges** (#194, epic #167 phase 3). Public profiles now show earned badges, starting with **Server Owner** (awarded to any user who owns at least one API key — i.e. runs a server that syncs with DPC). Badges are *derived* from existing state rather than stored, so they stay accurate automatically; the public `GET /api/v1/profile/{username}` response gains a `badges` array.
 - **Public profile pages** (#181, epic #167 phase 3). A new public `GET /api/v1/profile/{username}` returns a user's public profile — display name, avatar, bio, join date, and the plugins/guides they've liked — deliberately **excluding** the internal id and API keys (which stay on the authenticated `GET /api/v1/profile/me`). The website renders these at `/u/{username}`, and the Account page links to your own public profile. This is the foundation for the social layer (following, activity, comment author links).
 - The Account page now shows a **"My likes"** section listing the plugins and guides the signed-in user has liked — a personal toolbox linking to each item (#180, epic #167 phase 3). Frontend-only: it reads the existing `GET /api/v1/likes/me` and resolves ids against the plugin catalogue.
 - Plugin cards and guide pages now show a **like button with a count** (#169, frontend). Signed-in users can like/unlike (the count updates live); logged-out visitors see counts and are sent to the Account page to sign in. Backed by the likes API.

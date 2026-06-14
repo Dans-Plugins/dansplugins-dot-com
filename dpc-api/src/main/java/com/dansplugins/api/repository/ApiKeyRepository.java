@@ -11,5 +11,7 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, UUID> {
 
     boolean existsByKeyHash(String keyHash);
 
+    boolean existsByOwner(User owner);
+
     List<ApiKey> findByOwner(User owner);
 }

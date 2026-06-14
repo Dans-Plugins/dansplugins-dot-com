@@ -7,6 +7,7 @@ import com.dansplugins.api.dto.PublicProfileResponse;
 import com.dansplugins.api.dto.UpdateProfileRequest;
 import com.dansplugins.api.entity.User;
 import com.dansplugins.api.exception.ResourceNotFoundException;
+import com.dansplugins.api.service.BadgeService;
 import com.dansplugins.api.service.LikeService;
 import com.dansplugins.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +44,7 @@ public class ProfileController {
 
     private final UserService userService;
     private final LikeService likeService;
+    private final BadgeService badgeService;
 
     @GetMapping("/me")
     @Operation(summary = "Get the current user's profile", security = @SecurityRequirement(name = "bearerAuth"))
@@ -59,7 +61,8 @@ public class ProfileController {
         // The literal /me mapping above takes precedence, so it is never reachable here.
         User user = userService.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return ResponseEntity.ok(PublicProfileResponse.from(user, likeService.likedByUser(user)));
+        return ResponseEntity.ok(PublicProfileResponse.from(
+                user, badgeService.badgesFor(user), likeService.likedByUser(user)));
     }
 
     @PatchMapping("/me")

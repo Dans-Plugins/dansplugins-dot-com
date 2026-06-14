@@ -157,8 +157,31 @@ class ProfileAuthIntegrationTest {
                 .andExpect(jsonPath("$.displayName").value("Alice the Brave"))
                 .andExpect(jsonPath("$.bio").value("hi"))
                 .andExpect(jsonPath("$.likes").isArray())
+                .andExpect(jsonPath("$.badges").isArray())
+                .andExpect(jsonPath("$.badges").isEmpty())
                 .andExpect(jsonPath("$.apiKeys").doesNotExist())
                 .andExpect(jsonPath("$.id").doesNotExist());
+    }
+
+    @Test
+    void publicProfile_showsServerOwnerBadge_onceTheUserHasAnApiKey() throws Exception {
+        // No key yet → no badge.
+        mockMvc.perform(get("/api/v1/profile/me").header("Authorization", BEARER))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/profile/alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.badges").isEmpty());
+
+        // Creating an API key makes alice a server owner.
+        mockMvc.perform(post("/api/v1/profile/me/api-keys")
+                        .header("Authorization", BEARER)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"serverName\":\"survival-1\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/profile/alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.badges[0]").value("SERVER_OWNER"));
     }
 
     @Test
