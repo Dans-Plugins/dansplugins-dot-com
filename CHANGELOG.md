@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The Account page now shows a **"My likes"** section listing the plugins and guides the signed-in user has liked — a personal toolbox linking to each item (#180, epic #167 phase 3). Frontend-only: it reads the existing `GET /api/v1/likes/me` and resolves ids against the plugin catalogue.
 - Plugin cards and guide pages now show a **like button with a count** (#169, frontend). Signed-in users can like/unlike (the count updates live); logged-out visitors see counts and are sent to the Account page to sign in. Backed by the likes API.
 - A likes API in `dpc-api` (#169, backend): authenticated `POST`/`DELETE /api/v1/likes` to like/unlike a plugin or guide (idempotent), public `GET /api/v1/likes/counts?type=...` for aggregate counts, and `GET /api/v1/likes/me` for the current user's liked set.
 - Plugin guides now render on-site at `/guides/[id]` (fetched from each plugin's `USER_GUIDE.md` and rendered with `markdown-to-jsx`) instead of linking out to raw GitHub markdown; the Guides page links to these in-site pages, and each guide keeps a "View on GitHub" link and falls back to GitHub if the content can't be loaded.
