@@ -320,8 +320,8 @@ const AccountPage: NextPage = () => {
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo title="Account" description="Manage your account and the API keys your Minecraft servers use to sync with the DPC community data API."/>
             <TopBar/>
-            <Container maxWidth="md" sx={{py: 4}}>
-                <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+            <Container component="main" id="main" maxWidth="md" sx={{py: 4}}>
+                <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                     Account
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>

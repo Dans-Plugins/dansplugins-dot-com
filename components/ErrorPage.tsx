@@ -18,7 +18,7 @@ const ErrorPage: React.FC<{code: string; title: string; message: string}> = ({co
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo title={`${code} — ${title}`} description={message}/>
         <TopBar/>
-        <Container maxWidth="sm" sx={{py: 8, textAlign: 'center'}}>
+        <Container component="main" id="main" maxWidth="sm" sx={{py: 8, textAlign: 'center'}}>
             <Typography variant="h1" color="primary" sx={{fontWeight: 700}}>
                 {code}
             </Typography>

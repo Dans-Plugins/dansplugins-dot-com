@@ -1,6 +1,6 @@
 import type {AppProps} from 'next/app'
 import React, {useEffect, useMemo, useState} from 'react';
-import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
+import {Box, createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {COLOR_MODE_STORAGE_KEY, ColorMode, resolveInitialColorMode} from '../utils/colorMode';
 
@@ -95,6 +95,30 @@ function MyApp({Component, pageProps}: AppProps) {
             <ColorModeContext.Provider value={colorMode}>
                 <ThemeProvider theme={theme}>
                     <CssBaseline/>
+                    {/* Skip link: the first focusable element, hidden until focused, lets
+                        keyboard/screen-reader users jump past the nav to the page's
+                        <main id="main"> content (WCAG 2.4.1). */}
+                    <Box
+                        component="a"
+                        href="#main"
+                        sx={{
+                            position: 'fixed',
+                            top: 8,
+                            left: 8,
+                            zIndex: (t) => t.zIndex.tooltip + 1,
+                            px: 2,
+                            py: 1,
+                            borderRadius: 1,
+                            boxShadow: 3,
+                            bgcolor: 'background.paper',
+                            color: 'primary.main',
+                            transform: 'translateY(-150%)',
+                            transition: 'transform 0.2s ease',
+                            '&:focus': {transform: 'translateY(0)'},
+                        }}
+                    >
+                        Skip to main content
+                    </Box>
                     <Component {...pageProps} />
                 </ThemeProvider>
             </ColorModeContext.Provider>

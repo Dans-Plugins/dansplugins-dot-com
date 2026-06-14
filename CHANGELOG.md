@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Each page now has a single `<h1>` (its title) and wraps its content in a `<main id="main">` landmark, and a "Skip to main content" link (hidden until focused) lets keyboard and screen-reader users bypass the navigation — fixing the missing-heading and no-bypass-blocks gaps (WCAG 2.4.1, 1.3.1) (#218, #219).
 - The `<html>` element now sets `lang="en"`, so assistive technology and translation tools can identify the page language (WCAG 3.1.1) (#217).
 - External links on the News, Road Map, and Commissions pages now use `rel="noopener noreferrer"` (previously only `noopener`), matching the rest of the site and avoiding referrer leakage (#213).
 

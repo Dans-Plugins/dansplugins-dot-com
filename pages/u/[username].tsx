@@ -55,7 +55,7 @@ const PublicProfilePage: NextPage = () => {
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo title={`${heading} — Profile`} description={`The public DPC community profile for ${heading}.`}/>
             <TopBar/>
-            <Container maxWidth="md" sx={{py: 4}}>
+            <Container component="main" id="main" maxWidth="md" sx={{py: 4}}>
                 {loading ? (
                     <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}>
                         <CircularProgress/>
@@ -73,7 +73,7 @@ const PublicProfilePage: NextPage = () => {
                                         {heading.charAt(0).toUpperCase()}
                                     </Avatar>
                                     <Box>
-                                        <Typography variant="h4" sx={(theme) => sectionHeaderStyle(theme)}>
+                                        <Typography variant="h4" component="h1" sx={(theme) => sectionHeaderStyle(theme)}>
                                             {heading}
                                         </Typography>
                                         {profile.displayName && (

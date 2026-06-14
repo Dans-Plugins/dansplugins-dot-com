@@ -231,7 +231,7 @@ const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => 
         <Box sx={pageStyle}>
             <Seo/>
             <TopBar/>
-            <Container maxWidth="xl" sx={{py: 4}}>
+            <Container component="main" id="main" maxWidth="xl" sx={{py: 4}}>
                 <Blurb/>
                 <SectionDivider/>
                 <PluginsSection initialPlugins={pluginsWithCounts} />

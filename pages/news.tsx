@@ -66,8 +66,8 @@ const News: NextPage<NewsProps> = ({posts}) => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo title="News" description="Announcements and updates from Dan's Plugins Community."/>
         <TopBar/>
-        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
-            <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+        <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
+            <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 News
             </Typography>
             {posts.length > 0 ? (

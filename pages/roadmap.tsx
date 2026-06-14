@@ -54,8 +54,8 @@ const Roadmap: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo title="Road Map" description="What's planned, in progress, and completed across Dan's Plugins Community."/>
         <TopBar/>
-        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
-            <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+        <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
+            <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 Road Map
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
