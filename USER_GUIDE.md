@@ -59,7 +59,7 @@ No special software is required to use the website. Simply visit [https://danspl
 2. Register a new account, or log in with an existing username and password.
 3. Once logged in, create or delete the API keys used to connect a server to the DPC community data API.
 4. The **My likes** section lists the plugins and guides you've liked, linking to each one — your personal toolbox.
-5. Click **View your public profile** to see your profile as other people see it (display name, avatar, bio, join date, and likes). Anyone can view a user's public profile at `/u/<username>`.
+5. Click **View your public profile** to see your profile as other people see it (display name, avatar, bio, join date, badges, and likes). Anyone can view a user's public profile at `/u/<username>`. Badges are earned automatically — for example, **Server Owner** appears once you have created an API key for a server.
 
 ### Getting Support
 

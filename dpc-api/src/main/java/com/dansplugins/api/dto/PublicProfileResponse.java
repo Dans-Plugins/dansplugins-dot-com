@@ -30,6 +30,9 @@ public record PublicProfileResponse(
         @Schema(description = "Profile creation timestamp")
         Instant createdAt,
 
+        @Schema(description = "Badges this user has earned")
+        List<Badge> badges,
+
         @Schema(description = "Plugins and guides this user has liked")
         List<LikedTarget> likes
 ) {
@@ -38,13 +41,14 @@ public record PublicProfileResponse(
     public record LikedTarget(String targetType, String targetId) {
     }
 
-    public static PublicProfileResponse from(User user, List<Like> likes) {
+    public static PublicProfileResponse from(User user, List<Badge> badges, List<Like> likes) {
         return new PublicProfileResponse(
                 user.getUserauthUsername(),
                 user.getDisplayName(),
                 user.getAvatarUrl(),
                 user.getBio(),
                 user.getCreatedAt(),
+                badges,
                 likes.stream()
                         .map(like -> new LikedTarget(like.getTargetType(), like.getTargetId()))
                         .toList()

@@ -26,6 +26,12 @@ import pluginData from '../data/plugins.json'
 
 const version = require('../../package.json').version
 
+// Human-readable labels for the badge codes returned by the API. Unknown codes
+// fall back to the raw value so a newly-added badge still renders.
+const BADGE_LABELS: Record<string, string> = {
+    SERVER_OWNER: 'Server Owner',
+}
+
 const PublicProfilePage: NextPage = () => {
     const router = useRouter()
     const username = typeof router.query.username === 'string' ? router.query.username : null
@@ -83,6 +89,18 @@ const PublicProfilePage: NextPage = () => {
                                         <Typography variant="body2" color="text.secondary">
                                             Member since {new Date(profile.createdAt).toLocaleDateString()}
                                         </Typography>
+                                        {profile.badges.length > 0 && (
+                                            <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1}}>
+                                                {profile.badges.map((badge) => (
+                                                    <Chip
+                                                        key={badge}
+                                                        label={BADGE_LABELS[badge] ?? badge}
+                                                        size="small"
+                                                        color="primary"
+                                                    />
+                                                ))}
+                                            </Box>
+                                        )}
                                     </Box>
                                 </Box>
                                 {profile.bio && (
