@@ -58,6 +58,7 @@ No special software is required to use the website. Simply visit [https://danspl
 1. Click **Account** in the top navigation bar (or visit `/account`).
 2. Register a new account, or log in with an existing username and password.
 3. Once logged in, create or delete the API keys used to connect a server to the DPC community data API.
+4. The **My likes** section lists the plugins and guides you've liked, linking to each one — your personal toolbox.
 
 ### Getting Support
 
