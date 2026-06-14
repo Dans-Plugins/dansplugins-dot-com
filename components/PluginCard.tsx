@@ -2,6 +2,7 @@ import React from 'react';
 import {Avatar, Box, Button, Card, CardActions, CardContent, Chip, Link, Stack, Typography} from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import DnsIcon from '@mui/icons-material/Dns';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LikeButton from './LikeButton';
 import {
     pluginCardStyle,
@@ -97,6 +98,14 @@ const PluginCard: React.FC<PluginCardProps> = ({
             <CardActions sx={pluginCardActionsStyle}>
                 <LikeButton targetType="plugin" targetId={id} count={likeCount} liked={liked} token={token}/>
                 <Box sx={{flexGrow: 1}}/>
+                <Button
+                    size="small"
+                    startIcon={<MenuBookIcon/>}
+                    component={Link}
+                    href={`/guides/${id}`}
+                >
+                    Guide
+                </Button>
                 <Button
                     variant="contained"
                     size="small"

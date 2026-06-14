@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The plugin search box now has a clear (✕) button and, while searching, shows a "Showing N of M plugins" count (#220).
+- Each plugin card now links to that plugin's on-site **Guide** (`/guides/{id}`) alongside the GitHub and SpigotMC buttons (#221).
+
 ### Changed
 
 - The site wordmark in the top bar now links to the home page, matching the universal "click the logo to go home" convention (#209).
