@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.13.0] – 2026-06-14
+
 ### Changed
 
 - Authentication is now provided by the shared UserAuth service instead of dpc-api's own accounts (epic #167, phase 1). dpc-api proxies registration/login/logout to UserAuth and validates its tokens; a local profile mirror owns each user's API keys. The Account page now signs in via UserAuth and supports a profile (display name, avatar, bio). API paths moved from `/api/v1/accounts/*` to `/api/v1/auth/*` and `/api/v1/profile/*`. The Docker Compose stack now bundles the UserAuth service (and its database) so `docker compose up` runs end-to-end; `JWT_SECRET` (used by UserAuth to sign tokens) is now required when starting the stack.
