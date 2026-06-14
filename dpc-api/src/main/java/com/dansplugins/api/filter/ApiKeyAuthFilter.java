@@ -32,9 +32,12 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             HttpMethod.PATCH.name(),
             HttpMethod.DELETE.name()
     );
-    private static final Set<String> EXEMPT_SUFFIXES = Set.of(
-            "/api/v1/accounts/register",
-            "/api/v1/accounts/login"
+    private static final Set<String> EXEMPT_PREFIXES = Set.of(
+            // Auth (proxied to UserAuth) and profile/API-key management authenticate via the
+            // UserAuth bearer token, not an X-API-Key, so they are exempt from this filter.
+            "/api/v1/auth/",
+            "/api/v1/profile/",
+            "/api/v1/likes"
     );
 
     private final ApiKeyService apiKeyService;
@@ -49,20 +52,12 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
 
-        // Skip auth for exempt paths
-        for (String suffix : EXEMPT_SUFFIXES) {
-            String path = contextPath + suffix;
-            if (path.equals(requestUri) || (path + "/").equals(requestUri)) {
+        // Skip the API-key requirement for auth and profile endpoints (they use the UserAuth token).
+        for (String exemptPrefix : EXEMPT_PREFIXES) {
+            if (requestUri.startsWith(contextPath + exemptPrefix)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-        }
-
-        // Skip auth for account management endpoints (handled by JWT)
-        String accountsPath = contextPath + "/api/v1/accounts/";
-        if (requestUri.startsWith(accountsPath)) {
-            filterChain.doFilter(request, response);
-            return;
         }
 
         if (WRITE_METHODS.contains(request.getMethod())) {

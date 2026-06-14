@@ -1,7 +1,7 @@
 package com.dansplugins.api.config;
 
 import com.dansplugins.api.filter.ApiKeyAuthFilter;
-import com.dansplugins.api.filter.JwtAuthFilter;
+import com.dansplugins.api.filter.UserAuthFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,8 +17,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -39,7 +37,7 @@ import java.util.Map;
 @Slf4j
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
+    private final UserAuthFilter userAuthFilter;
     private final ApiKeyAuthFilter apiKeyAuthFilter;
     private final ObjectMapper objectMapper;
 
@@ -70,28 +68,27 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jsonAuthenticationEntryPoint()))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/v1/accounts/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/accounts/login").permitAll()
+                        // Public endpoints (auth proxied to UserAuth)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/factions/**").permitAll()
+                        // Public like counts (must precede the authenticated /likes rule below)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/likes/counts").permitAll()
                         // Swagger/OpenAPI
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        // Account endpoints require JWT auth
-                        .requestMatchers("/api/v1/accounts/me/**").authenticated()
+                        // Profile, likes, and logout require a valid UserAuth token
+                        .requestMatchers("/api/v1/profile/**").authenticated()
+                        .requestMatchers("/api/v1/likes", "/api/v1/likes/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").authenticated()
                         // API key auth for faction writes is enforced by ApiKeyAuthFilter (returns 401
                         // before this authorization layer runs); permitAll here avoids a double-reject.
                         .requestMatchers(HttpMethod.POST, "/api/v1/factions").permitAll()
                         .anyRequest().denyAll()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(apiKeyAuthFilter, JwtAuthFilter.class);
+                .addFilterBefore(userAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(apiKeyAuthFilter, UserAuthFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     private AuthenticationEntryPoint jsonAuthenticationEntryPoint() {

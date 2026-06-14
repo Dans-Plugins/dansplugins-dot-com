@@ -6,8 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Authentication is now provided by the shared UserAuth service instead of dpc-api's own accounts (epic #167, phase 1). dpc-api proxies registration/login/logout to UserAuth and validates its tokens; a local profile mirror owns each user's API keys. The Account page now signs in via UserAuth and supports a profile (display name, avatar, bio). API paths moved from `/api/v1/accounts/*` to `/api/v1/auth/*` and `/api/v1/profile/*`. The Docker Compose stack now bundles the UserAuth service (and its database) so `docker compose up` runs end-to-end; `JWT_SECRET` (used by UserAuth to sign tokens) is now required when starting the stack.
+
+### Fixed
+
+- `POST /api/v1/auth/register` no longer returns a 503 (which hid that the account was already created) when the automatic post-register login fails. It now returns `201` with `{ "registered": true, "tokenIssued": false }`, signalling the caller to log in rather than re-register.
+
 ### Added
 
+- Plugin cards and guide pages now show a **like button with a count** (#169, frontend). Signed-in users can like/unlike (the count updates live); logged-out visitors see counts and are sent to the Account page to sign in. Backed by the likes API.
+- A likes API in `dpc-api` (#169, backend): authenticated `POST`/`DELETE /api/v1/likes` to like/unlike a plugin or guide (idempotent), public `GET /api/v1/likes/counts?type=...` for aggregate counts, and `GET /api/v1/likes/me` for the current user's liked set.
 - Plugin guides now render on-site at `/guides/[id]` (fetched from each plugin's `USER_GUIDE.md` and rendered with `markdown-to-jsx`) instead of linking out to raw GitHub markdown; the Guides page links to these in-site pages, and each guide keeps a "View on GitHub" link and falls back to GitHub if the content can't be loaded.
 - The home-page plugin catalogue now has a search box that filters plugins by name or description (in addition to the existing sort), with an empty state when nothing matches.
 - The faction leaderboard now shows each faction's server IP (as a click-to-copy chip) and a link to its Discord, when the faction has published them.

@@ -18,10 +18,12 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+userauth:
+  # Base URL of the internal UserAuth service that dpc-api delegates authentication
+  # to (registration, login, token validation, logout). UserAuth listens on 9998.
+  url: ${USERAUTH_URL:http://localhost:9998}
+
 dpc:
-  jwt:
-    secret: ${JWT_SECRET}
-    expiration: ${JWT_EXPIRATION:24h}
   cors:
     # Comma-separated list of origins allowed to call the API (CORS).
     # The `*` default allows all origins; set this explicitly to the site

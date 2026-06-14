@@ -1,6 +1,6 @@
 package com.dansplugins.api.filter;
 
-import com.dansplugins.api.service.JwtService;
+import com.dansplugins.api.service.UserAuthClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +11,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.FilterChain;
 
@@ -19,19 +20,20 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JwtAuthFilterTest {
+class UserAuthFilterTest {
 
     @Mock
-    private JwtService jwtService;
+    private UserAuthClient userAuthClient;
 
     @Mock
     private FilterChain filterChain;
 
     @InjectMocks
-    private JwtAuthFilter filter;
+    private UserAuthFilter filter;
 
     @AfterEach
     void clearContext() {
@@ -43,7 +45,7 @@ class JwtAuthFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer good-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtService.extractUsername("good-token")).thenReturn(Optional.of("alice"));
+        when(userAuthClient.validate("good-token")).thenReturn(Optional.of("alice"));
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -62,6 +64,7 @@ class JwtAuthFilterTest {
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         verify(filterChain, times(1)).doFilter(request, response);
+        verifyNoInteractions(userAuthClient);
     }
 
     @Test
@@ -74,14 +77,15 @@ class JwtAuthFilterTest {
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         verify(filterChain, times(1)).doFilter(request, response);
+        verifyNoInteractions(userAuthClient);
     }
 
     @Test
-    void doFilterInternal_whenTokenHasNoUsername_doesNotAuthenticate() throws Exception {
+    void doFilterInternal_whenTokenRejected_doesNotAuthenticate() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("Authorization", "Bearer expired-token");
+        request.addHeader("Authorization", "Bearer bad-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtService.extractUsername("expired-token")).thenReturn(Optional.empty());
+        when(userAuthClient.validate("bad-token")).thenReturn(Optional.empty());
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -90,18 +94,16 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void doFilterInternal_doesNotOverwriteExistingAuthentication() throws Exception {
+    void doFilterInternal_whenUserAuthUnavailable_leavesUnauthenticatedAndContinues() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("Authorization", "Bearer good-token");
+        request.addHeader("Authorization", "Bearer any-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtService.extractUsername("good-token")).thenReturn(Optional.of("alice"));
-        var existing = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                "preexisting", null, java.util.List.of());
-        SecurityContextHolder.getContext().setAuthentication(existing);
+        when(userAuthClient.validate("any-token"))
+                .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "down"));
 
         filter.doFilterInternal(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isSameAs(existing);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         verify(filterChain, times(1)).doFilter(request, response);
     }
 }

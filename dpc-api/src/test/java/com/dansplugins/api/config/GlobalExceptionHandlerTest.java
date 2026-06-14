@@ -1,8 +1,6 @@
 package com.dansplugins.api.config;
 
-import com.dansplugins.api.exception.InvalidCredentialsException;
 import com.dansplugins.api.exception.ResourceNotFoundException;
-import com.dansplugins.api.exception.UsernameAlreadyTakenException;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -90,31 +88,12 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleUsernameAlreadyTaken_returns409WithMessage() {
-        ProblemDetail problem = handler.handleUsernameAlreadyTaken(
-                new UsernameAlreadyTakenException("alice"));
-
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
-        assertThat(problem.getTitle()).isEqualTo("Conflict");
-        assertThat(problem.getDetail()).isEqualTo("Username already taken: alice");
-    }
-
-    @Test
     void handleIllegalArgument_returns400WithMessage() {
         ProblemDetail problem = handler.handleIllegalArgument(
                 new IllegalArgumentException("bad argument"));
 
         assertThat(problem.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(problem.getDetail()).isEqualTo("bad argument");
-    }
-
-    @Test
-    void handleInvalidCredentials_returns401WithMessage() {
-        ProblemDetail problem = handler.handleInvalidCredentials(new InvalidCredentialsException());
-
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
-        assertThat(problem.getTitle()).isEqualTo("Unauthorized");
-        assertThat(problem.getDetail()).isEqualTo("Invalid credentials");
     }
 
     @Test

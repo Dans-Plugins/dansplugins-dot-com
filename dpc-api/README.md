@@ -16,13 +16,15 @@ The easiest way to run the API locally is with Docker Compose from the **reposit
 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
-This starts:
+`JWT_SECRET` is required: the bundled UserAuth service signs tokens with it (min 32 bytes). This starts:
 
 | Service | Port | Description |
 |---|---|---|
 | `dpc-website` | 3000 | Next.js front end |
 | `dpc-api` | 45345 (configurable via `API_PORT`) | Spring Boot API |
-| `dpc-db` | 5432 | PostgreSQL database |
+| `dpc-db` | 5432 | PostgreSQL database (site data) |
+| `userauth` | *(internal)* | [UserAuth](https://github.com/Preponderous-Software/UserAuth) — authentication, reached by `dpc-api` at `http://userauth:9998` |
+| `userauth-db` | *(internal)* | PostgreSQL database (UserAuth) |
 
 To use a different API port:
 
@@ -38,14 +40,22 @@ API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-
    ```bash
    docker run -d --name dpc-db -e POSTGRES_DB=dpc -e POSTGRES_USER=dpc -e POSTGRES_PASSWORD=dpc -p 5432:5432 postgres:16-alpine
    ```
-2. Build and run the API:
+2. Ensure a [UserAuth](https://github.com/Preponderous-Software/UserAuth) instance is reachable at `USERAUTH_URL` (default `http://localhost:9998`) — dpc-api delegates authentication to it. The Docker Compose path above starts one for you; standalone, run its published image:
+   ```bash
+   docker run -d --name userauth -p 9998:9998 \
+     -e DB_URL=jdbc:postgresql://host.docker.internal:5432/userauth \
+     -e DB_USERNAME=userauth -e DB_PASSWORD=userauth \
+     -e JWT_SECRET="your-secret-key-at-least-32-bytes-long" \
+     ghcr.io/preponderous-software/userauth:latest
+   ```
+3. Build and run the API:
    ```bash
    cd dpc-api
-   DB_USERNAME=dpc DB_PASSWORD=dpc JWT_SECRET="your-secret-key-at-least-32-bytes-long" ./mvnw spring-boot:run
+   DB_USERNAME=dpc DB_PASSWORD=dpc USERAUTH_URL=http://localhost:9998 ./mvnw spring-boot:run
    ```
    To run on a different port, set `SERVER_PORT`:
    ```bash
-   SERVER_PORT=9090 DB_USERNAME=dpc DB_PASSWORD=dpc JWT_SECRET="your-secret-key-at-least-32-bytes-long" ./mvnw spring-boot:run
+   SERVER_PORT=9090 DB_USERNAME=dpc DB_PASSWORD=dpc USERAUTH_URL=http://localhost:9998 ./mvnw spring-boot:run
    ```
 
 ## Configuration
@@ -60,8 +70,7 @@ Configuration is managed via environment variables:
 | `DB_NAME` | `dpc` | Database name |
 | `DB_USERNAME` | *(required)* | Database username |
 | `DB_PASSWORD` | *(required)* | Database password |
-| `JWT_SECRET` | *(required)* | Secret key for JWT signing (min 32 bytes) |
-| `JWT_EXPIRATION` | `24h` | JWT token expiration duration |
+| `USERAUTH_URL` | `http://localhost:9998` | Base URL of the [UserAuth](https://github.com/Preponderous-Software/UserAuth) service that dpc-api delegates authentication to (registration, login, token validation, logout). Must be reachable from the API. |
 | `DPC_CORS_ALLOWED_ORIGINS` | `*` | Comma-separated list of origins allowed to call the API (CORS). The `*` default allows **all** origins; set this explicitly to the site origin(s) in production (e.g. `https://dansplugins.com`). |
 | `DPC_SYNC_MIN_INCOMING` | `2` | Minimum batch size eligible to deactivate factions (see [Sync safety guards](#sync-safety-guards)) |
 | `DPC_SYNC_MAX_DEACTIVATION_RATIO` | `0.5` | Fraction cap on factions one sync may deactivate |
@@ -75,52 +84,55 @@ Schemas are managed by [Flyway](https://flywaydb.org/). Migration scripts live i
 
 ## API Endpoints
 
-### Account Management
+### Authentication & Profile
+
+Authentication is delegated to the [UserAuth](https://github.com/Preponderous-Software/UserAuth)
+service. dpc-api proxies registration/login/logout to UserAuth (UserAuth is internal-only,
+so the browser talks to dpc-api) and validates the bearer token on each request. dpc-api
+keeps a local profile mirror that owns each user's API keys.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/v1/accounts/register` | Public | Create an account |
-| `POST` | `/api/v1/accounts/login` | Public | Login and get JWT token |
-| `GET` | `/api/v1/accounts/me` | JWT | Get account profile and API keys |
-| `POST` | `/api/v1/accounts/me/api-keys` | JWT | Create a new API key |
-| `DELETE` | `/api/v1/accounts/me/api-keys/{id}` | JWT | Delete an API key |
+| `POST` | `/api/v1/auth/register` | Public | Register (proxied to UserAuth) and return a token |
+| `POST` | `/api/v1/auth/login` | Public | Login (proxied to UserAuth) and return a token |
+| `POST` | `/api/v1/auth/logout` | Bearer | Revoke the current token |
+| `GET` | `/api/v1/profile/me` | Bearer | Get the current user's profile and API keys |
+| `PATCH` | `/api/v1/profile/me` | Bearer | Update display name / avatar / bio |
+| `POST` | `/api/v1/profile/me/api-keys` | Bearer | Create a new API key |
+| `DELETE` | `/api/v1/profile/me/api-keys/{id}` | Bearer | Delete an API key |
 
 #### Register an account
 
 ```bash
 # Docker Compose (default port 45345)
-curl -X POST http://localhost:45345/api/v1/accounts/register \
-  -H "Content-Type: application/json" \
-  -d '{ "username": "myserver", "password": "secure-pass-123" }'
-
-# Without Docker (default port 8080)
-curl -X POST http://localhost:8080/api/v1/accounts/register \
+curl -X POST http://localhost:45345/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{ "username": "myserver", "password": "secure-pass-123" }'
 ```
 
-Response:
+Response (the token is issued by UserAuth):
 ```json
 {
-  "token": "<jwt-token>",
-  "username": "myserver"
+  "token": "<token>",
+  "tokenType": "Bearer",
+  "expiresAt": "<timestamp>"
 }
 ```
 
 #### Login
 
 ```bash
-curl -X POST http://localhost:45345/api/v1/accounts/login \
+curl -X POST http://localhost:45345/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{ "username": "myserver", "password": "secure-pass-123" }'
 ```
 
-#### Create an API key (requires JWT)
+#### Create an API key (requires the bearer token)
 
 ```bash
-curl -X POST http://localhost:45345/api/v1/accounts/me/api-keys \
+curl -X POST http://localhost:45345/api/v1/profile/me/api-keys \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <jwt-token>" \
+  -H "Authorization: Bearer <token>" \
   -d '{ "serverName": "my-survival-server" }'
 ```
 
@@ -226,9 +238,9 @@ curl http://localhost:45345/api/v1/factions/<faction-uuid>
 
 Minecraft plugins can register and manage API keys programmatically:
 
-1. The plugin registers an account: `POST /api/v1/accounts/register` with `{ "username": "...", "password": "..." }`.
-2. The API returns a JWT token.
-3. The plugin creates an API key: `POST /api/v1/accounts/me/api-keys` with the JWT token and `{ "serverName": "..." }`.
+1. The plugin registers an account: `POST /api/v1/auth/register` with `{ "username": "...", "password": "..." }`.
+2. The API returns a bearer token.
+3. The plugin creates an API key: `POST /api/v1/profile/me/api-keys` with the bearer token and `{ "serverName": "..." }`.
 4. The API returns a one-time API key.
 5. The plugin stores the API key and uses it for write requests via the `X-API-Key` header.
 
