@@ -50,6 +50,12 @@ const LikeButton: React.FC<LikeButtonProps> = ({targetType, targetId, count, lik
         if (result !== null) {
             setIsLiked(!isLiked);
             setCurrentCount(result);
+        } else {
+            // The request failed — a network error, or an expired/invalid token.
+            // Previously the heart just didn't move and the user got no explanation:
+            // the classic "nothing happens" dead end (Nielsen #1 visibility of system
+            // status; #9 help users recognize and recover from errors).
+            setNotice({message: 'Couldn’t save your like — please try again.'});
         }
         setBusy(false);
     };
