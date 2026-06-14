@@ -22,15 +22,10 @@ import BottomBar from '../../components/BottomBar'
 import {pageStyle, sectionHeaderStyle} from '../../styles/styles'
 import {getPublicProfile, type PublicProfile} from '../../services/profileService'
 import {resolveLikedItems} from '../../utils/likedItems'
+import {badgeLabel} from '../../utils/badges'
 import pluginData from '../data/plugins.json'
 
 const version = require('../../package.json').version
-
-// Human-readable labels for the badge codes returned by the API. Unknown codes
-// fall back to the raw value so a newly-added badge still renders.
-const BADGE_LABELS: Record<string, string> = {
-    SERVER_OWNER: 'Server Owner',
-}
 
 const PublicProfilePage: NextPage = () => {
     const router = useRouter()
@@ -94,7 +89,7 @@ const PublicProfilePage: NextPage = () => {
                                                 {profile.badges.map((badge) => (
                                                     <Chip
                                                         key={badge}
-                                                        label={BADGE_LABELS[badge] ?? badge}
+                                                        label={badgeLabel(badge)}
                                                         size="small"
                                                         color="primary"
                                                     />

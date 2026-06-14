@@ -50,7 +50,8 @@ public class ProfileController {
     @Operation(summary = "Get the current user's profile", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<ProfileResponse> getProfile(Principal principal) {
         User user = currentUser(principal);
-        return ResponseEntity.ok(ProfileResponse.from(user, userService.getApiKeys(user)));
+        return ResponseEntity.ok(ProfileResponse.from(
+                user, badgeService.badgesFor(user), userService.getApiKeys(user)));
     }
 
     @GetMapping("/{username}")
@@ -71,7 +72,8 @@ public class ProfileController {
                                                          @Valid @RequestBody UpdateProfileRequest request) {
         User user = currentUser(principal);
         userService.updateProfile(user, request.displayName(), request.avatarUrl(), request.bio());
-        return ResponseEntity.ok(ProfileResponse.from(user, userService.getApiKeys(user)));
+        return ResponseEntity.ok(ProfileResponse.from(
+                user, badgeService.badgesFor(user), userService.getApiKeys(user)));
     }
 
     @PostMapping("/me/api-keys")

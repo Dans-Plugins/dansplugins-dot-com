@@ -74,7 +74,9 @@ class ProfileAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/profile/me").header("Authorization", BEARER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("alice"))
-                .andExpect(jsonPath("$.apiKeys").isArray());
+                .andExpect(jsonPath("$.apiKeys").isArray())
+                .andExpect(jsonPath("$.badges").isArray())
+                .andExpect(jsonPath("$.badges").isEmpty());
     }
 
     @Test
@@ -89,7 +91,8 @@ class ProfileAuthIntegrationTest {
 
         mockMvc.perform(get("/api/v1/profile/me").header("Authorization", BEARER))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.apiKeys.length()").value(1));
+                .andExpect(jsonPath("$.apiKeys.length()").value(1))
+                .andExpect(jsonPath("$.badges[0]").value("SERVER_OWNER"));
     }
 
     @Test

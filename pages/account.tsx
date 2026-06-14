@@ -27,6 +27,7 @@ import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 import {getMyLikes, type LikedTarget} from '../services/likeService'
 import {resolveLikedItems} from '../utils/likedItems'
+import {badgeLabel} from '../utils/badges'
 import pluginData from './data/plugins.json'
 
 const version = require('../package.json').version
@@ -47,6 +48,7 @@ interface AccountProfile {
     avatarUrl: string | null
     bio: string | null
     createdAt: string
+    badges: string[]
     apiKeys: ApiKeyInfo[]
 }
 
@@ -391,6 +393,13 @@ const AccountPage: NextPage = () => {
                                             View your public profile
                                         </Box>
                                     </Typography>
+                                    {profile.badges.length > 0 && (
+                                        <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1}}>
+                                            {profile.badges.map((badge) => (
+                                                <Chip key={badge} label={badgeLabel(badge)} size="small" color="primary"/>
+                                            ))}
+                                        </Box>
+                                    )}
                                     <Box component="form" onSubmit={handleUpdateProfile}
                                          sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 2}}>
                                         <Typography variant="subtitle2" color="text.secondary">Profile</Typography>
