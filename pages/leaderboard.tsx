@@ -28,6 +28,7 @@ import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles'
+import {relativeTimeFrom} from '../utils/relativeTime'
 
 const version = require('../package.json').version
 
@@ -210,6 +211,9 @@ const LeaderboardPage: NextPage = () => {
                                                             {faction.description}
                                                         </Typography>
                                                     )}
+                                                    <Typography variant="caption" color="text.secondary" display="block">
+                                                        Updated {relativeTimeFrom(faction.updatedAt, Date.now())}
+                                                    </Typography>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Stack spacing={0.5} alignItems="flex-start">

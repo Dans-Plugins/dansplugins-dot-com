@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Each faction row on the leaderboard now shows how recently its data was synced ("Updated N days ago"), so visitors can tell whether a member count is current or stale (#212). Backed by a tested `utils/relativeTime` helper.
 - The Account page's Login, Register, Save-profile, and Create-key buttons now show a spinner and disable while the request is in flight, giving feedback on slow actions and preventing accidental double-submits (#206).
 - The plugin search box now has a clear (✕) button and, while searching, shows a "Showing N of M plugins" count (#220).
 - Each plugin card now links to that plugin's on-site **Guide** (`/guides/{id}`) alongside the GitHub and SpigotMC buttons (#221).
