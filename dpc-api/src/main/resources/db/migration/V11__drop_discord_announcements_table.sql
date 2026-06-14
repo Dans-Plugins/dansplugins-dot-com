@@ -1,0 +1,16 @@
+-- Retire the orphaned discord_announcements table.
+--
+-- The Discord-ingestion feature (#24, PR #141) was preview-deployed to prod on
+-- 2026-06-06 -- which applied V8 and created this table -- but that PR was never
+-- merged, so no code in main reads or writes the table. Rather than carry dead
+-- schema (and a migration that creates an unused table on every fresh DB), drop it.
+--
+-- This is forward-only and idempotent: V8 still records that the table once
+-- existed (it is applied in prod history and must stay in the repo), and V11
+-- removes it. If #24 is revived later it should ship its own migration to
+-- recreate the table.
+--
+-- DROP TABLE also removes the table's indexes
+-- (idx_discord_announcements_message_id_unique, idx_discord_announcements_posted_at).
+-- Safe: nothing references this table (no foreign keys point at it).
+DROP TABLE IF EXISTS discord_announcements;
