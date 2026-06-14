@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Authentication is now provided by the shared UserAuth service instead of dpc-api's own accounts (epic #167, phase 1). dpc-api proxies registration/login/logout to UserAuth and validates its tokens; a local profile mirror owns each user's API keys. The Account page now signs in via UserAuth and supports a profile (display name, avatar, bio). API paths moved from `/api/v1/accounts/*` to `/api/v1/auth/*` and `/api/v1/profile/*`. The Docker Compose stack now bundles the UserAuth service (and its database) so `docker compose up` runs end-to-end; `JWT_SECRET` (used by UserAuth to sign tokens) is now required when starting the stack.
 
+### Removed
+
+- The orphaned `discord_announcements` table is dropped (migration V11). The Discord-ingestion feature (#24) was preview-deployed to production on 2026-06-06 — which created the table — but its PR was never merged, so no code referenced the table. It is dropped until the feature lands; the original create migration (V8) is retained because it is recorded in production's migration history.
+
 ### Fixed
 
 - `POST /api/v1/auth/register` no longer returns a 503 (which hid that the account was already created) when the automatic post-register login fails. It now returns `201` with `{ "registered": true, "tokenIssued": false }`, signalling the caller to log in rather than re-register.
