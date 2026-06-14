@@ -4,10 +4,12 @@ import {
     Button,
     Card,
     CardContent,
+    Chip,
     Container,
     IconButton,
     List,
     ListItem,
+    ListItemButton,
     ListItemText,
     Tab,
     Tabs,
@@ -23,6 +25,9 @@ import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle} from '../styles/styles'
+import {getMyLikes, type LikedTarget} from '../services/likeService'
+import {resolveLikedItems} from '../utils/likedItems'
+import pluginData from './data/plugins.json'
 
 const version = require('../package.json').version
 
@@ -50,6 +55,7 @@ const AccountPage: NextPage = () => {
     const [tab, setTab] = useState(0)
     const [token, setToken] = useState<string | null>(null)
     const [profile, setProfile] = useState<AccountProfile | null>(null)
+    const [likes, setLikes] = useState<LikedTarget[]>([])
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [newApiKey, setNewApiKey] = useState<string | null>(null)
@@ -113,6 +119,9 @@ const AccountPage: NextPage = () => {
     useEffect(() => {
         if (token) {
             fetchProfile(token)
+            // The user's "toolbox" of liked plugins/guides. Best-effort: a likes
+            // fetch failure degrades to an empty list and never blocks the page.
+            getMyLikes(token).then(setLikes)
         }
     }, [token, fetchProfile])
 
@@ -190,6 +199,7 @@ const AccountPage: NextPage = () => {
         }
         setToken(null)
         setProfile(null)
+        setLikes([])
         localStorage.removeItem('dpc-token')
         setSuccess('Logged out.')
     }
@@ -284,6 +294,8 @@ const AccountPage: NextPage = () => {
             setError('Failed to copy — please select and copy the key manually.')
         }
     }
+
+    const likedItems = resolveLikedItems(likes, pluginData.plugins)
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
@@ -408,6 +420,40 @@ const AccountPage: NextPage = () => {
                                 </CardContent>
                             </Card>
                         )}
+
+                        <Card sx={{mb: 3}}>
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>My likes</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
+                                    The plugins and guides you&apos;ve liked — your personal toolbox.
+                                </Typography>
+                                {likedItems.length > 0 ? (
+                                    <List disablePadding>
+                                        {likedItems.map((item) => (
+                                            <ListItem key={item.key} disablePadding>
+                                                <ListItemButton component="a" href={item.href}>
+                                                    <ListItemText primary={item.title}/>
+                                                    <Chip
+                                                        label={item.targetType}
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{textTransform: 'capitalize'}}
+                                                    />
+                                                </ListItemButton>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                        You haven&apos;t liked any plugins or guides yet. Browse the{' '}
+                                        <Box component="a" href="/#plugins" sx={{color: 'primary.main'}}>plugins</Box>
+                                        {' '}or{' '}
+                                        <Box component="a" href="/guides" sx={{color: 'primary.main'}}>guides</Box>
+                                        {' '}and tap the like button.
+                                    </Typography>
+                                )}
+                            </CardContent>
+                        </Card>
 
                         <Card sx={{mb: 3}}>
                             <CardContent>
