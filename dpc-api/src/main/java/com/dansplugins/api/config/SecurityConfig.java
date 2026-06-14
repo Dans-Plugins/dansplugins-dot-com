@@ -72,10 +72,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/factions/**").permitAll()
+                        // Public like counts (must precede the authenticated /likes rule below)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/likes/counts").permitAll()
                         // Swagger/OpenAPI
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        // Profile and logout require a valid UserAuth token
+                        // Profile, likes, and logout require a valid UserAuth token
                         .requestMatchers("/api/v1/profile/**").authenticated()
+                        .requestMatchers("/api/v1/likes", "/api/v1/likes/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").authenticated()
                         // API key auth for faction writes is enforced by ApiKeyAuthFilter (returns 401
                         // before this authorization layer runs); permitAll here avoids a double-reject.
