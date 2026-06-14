@@ -90,7 +90,7 @@ const LeaderboardPage: NextPage = () => {
             }
         } catch (e) {
             console.error('Failed to fetch factions:', e)
-            setError('Failed to connect to API. Is the server running?')
+            setError('We couldn’t load the leaderboard right now. Please try again.')
         } finally {
             setLoading(false)
         }
