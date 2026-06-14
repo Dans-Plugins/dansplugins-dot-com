@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.13.0] – 2026-06-14
+
 ### Changed
 
 - Authentication is now provided by the shared UserAuth service instead of dpc-api's own accounts (epic #167, phase 1). dpc-api proxies registration/login/logout to UserAuth and validates its tokens; a local profile mirror owns each user's API keys. The Account page now signs in via UserAuth and supports a profile (display name, avatar, bio). API paths moved from `/api/v1/accounts/*` to `/api/v1/auth/*` and `/api/v1/profile/*`. The Docker Compose stack now bundles the UserAuth service (and its database) so `docker compose up` runs end-to-end; `JWT_SECRET` (used by UserAuth to sign tokens) is now required when starting the stack.
@@ -20,6 +22,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Custom, MUI-styled **404 and 500 error pages** (a shared `components/ErrorPage`), so a missing or failed route keeps the site's theme and navigation and offers a link home, instead of Next.js's unstyled default page.
+- The plugin catalogue gains a **"Most Liked"** sort option alongside "By Popularity" (server count) and "Alphabetical", ranking plugins by their like count (#201, epic #167 phase 2). The sort logic was extracted into a unit-tested `utils/sortPlugins.ts`.
+- Earned **badges now also appear on the signed-in user's own Account page** (not just the public profile), and the badge-label map is shared between the two pages (`utils/badges.ts`). The authenticated `GET /api/v1/profile/me` response gains a `badges` array (#194, epic #167 phase 3).
+- **Profile badges** (#194, epic #167 phase 3). Public profiles now show earned badges, starting with **Server Owner** (awarded to any user who owns at least one API key — i.e. runs a server that syncs with DPC). Badges are *derived* from existing state rather than stored, so they stay accurate automatically; the public `GET /api/v1/profile/{username}` response gains a `badges` array.
+- **Public profile pages** (#181, epic #167 phase 3). A new public `GET /api/v1/profile/{username}` returns a user's public profile — display name, avatar, bio, join date, and the plugins/guides they've liked — deliberately **excluding** the internal id and API keys (which stay on the authenticated `GET /api/v1/profile/me`). The website renders these at `/u/{username}`, and the Account page links to your own public profile. This is the foundation for the social layer (following, activity, comment author links).
+- The Account page now shows a **"My likes"** section listing the plugins and guides the signed-in user has liked — a personal toolbox linking to each item (#180, epic #167 phase 3). Frontend-only: it reads the existing `GET /api/v1/likes/me` and resolves ids against the plugin catalogue.
 - Plugin cards and guide pages now show a **like button with a count** (#169, frontend). Signed-in users can like/unlike (the count updates live); logged-out visitors see counts and are sent to the Account page to sign in. Backed by the likes API.
 - A likes API in `dpc-api` (#169, backend): authenticated `POST`/`DELETE /api/v1/likes` to like/unlike a plugin or guide (idempotent), public `GET /api/v1/likes/counts?type=...` for aggregate counts, and `GET /api/v1/likes/me` for the current user's liked set.
 - Plugin guides now render on-site at `/guides/[id]` (fetched from each plugin's `USER_GUIDE.md` and rendered with `markdown-to-jsx`) instead of linking out to raw GitHub markdown; the Guides page links to these in-site pages, and each guide keeps a "View on GitHub" link and falls back to GitHub if the content can't be loaded.

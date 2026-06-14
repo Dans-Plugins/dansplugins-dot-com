@@ -3,9 +3,12 @@ package com.dansplugins.api.controller;
 import com.dansplugins.api.dto.CreateApiKeyRequest;
 import com.dansplugins.api.dto.CreateApiKeyResponse;
 import com.dansplugins.api.dto.ProfileResponse;
+import com.dansplugins.api.dto.PublicProfileResponse;
 import com.dansplugins.api.dto.UpdateProfileRequest;
 import com.dansplugins.api.entity.User;
 import com.dansplugins.api.exception.ResourceNotFoundException;
+import com.dansplugins.api.service.BadgeService;
+import com.dansplugins.api.service.LikeService;
 import com.dansplugins.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -40,12 +43,27 @@ import java.util.UUID;
 public class ProfileController {
 
     private final UserService userService;
+    private final LikeService likeService;
+    private final BadgeService badgeService;
 
     @GetMapping("/me")
     @Operation(summary = "Get the current user's profile", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<ProfileResponse> getProfile(Principal principal) {
         User user = currentUser(principal);
-        return ResponseEntity.ok(ProfileResponse.from(user, userService.getApiKeys(user)));
+        return ResponseEntity.ok(ProfileResponse.from(
+                user, badgeService.badgesFor(user), userService.getApiKeys(user)));
+    }
+
+    @GetMapping("/{username}")
+    @Operation(summary = "Get a user's public profile (no authentication required)")
+    public ResponseEntity<PublicProfileResponse> getPublicProfile(@PathVariable String username) {
+        // Public, read-only: resolve an existing mirror but never create one (unlike
+        // /me), and return only the public projection — no internal id, no API keys.
+        // The literal /me mapping above takes precedence, so it is never reachable here.
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return ResponseEntity.ok(PublicProfileResponse.from(
+                user, badgeService.badgesFor(user), likeService.likedByUser(user)));
     }
 
     @PatchMapping("/me")
@@ -54,7 +72,8 @@ public class ProfileController {
                                                          @Valid @RequestBody UpdateProfileRequest request) {
         User user = currentUser(principal);
         userService.updateProfile(user, request.displayName(), request.avatarUrl(), request.bio());
-        return ResponseEntity.ok(ProfileResponse.from(user, userService.getApiKeys(user)));
+        return ResponseEntity.ok(ProfileResponse.from(
+                user, badgeService.badgesFor(user), userService.getApiKeys(user)));
     }
 
     @PostMapping("/me/api-keys")

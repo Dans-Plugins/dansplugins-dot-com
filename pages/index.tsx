@@ -10,6 +10,7 @@ import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
+import { sortPlugins, type SortOption } from '../utils/sortPlugins';
 
 interface PluginData {
     mostPopular: string[];
@@ -77,8 +78,6 @@ const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, like
     </Grid>
 )
 
-type SortOption = 'popularity' | 'alphabetical';
-
 interface PluginsSectionProps {
     initialPlugins: PluginWithServerCount[];
 }
@@ -109,35 +108,14 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
         }
     };
 
-    const getSortedPlugins = (): PluginWithServerCount[] => {
-        if (sortBy === 'popularity') {
-            // Sort by server count (descending), with plugins without counts at the end
-            return [...initialPlugins].sort((a, b) => {
-                const hasCountA = a.serverCount != null;
-                const hasCountB = b.serverCount != null;
-                
-                // If both have counts, sort by count descending
-                if (hasCountA && hasCountB) {
-                    return (b.serverCount as number) - (a.serverCount as number);
-                }
-                // If only one has a count, prioritize it
-                if (hasCountA) return -1;
-                if (hasCountB) return 1;
-                // If neither has a count, sort alphabetically
-                return a.title.localeCompare(b.title);
-            });
-        } else {
-            // Sort all plugins alphabetically
-            return [...initialPlugins].sort((a, b) => a.title.localeCompare(b.title));
-        }
-    };
+    const sortedPlugins = sortPlugins(initialPlugins, sortBy, likeCounts);
 
     const normalizedQuery = query.trim().toLowerCase();
     const visiblePlugins = normalizedQuery
-        ? getSortedPlugins().filter((plugin) =>
+        ? sortedPlugins.filter((plugin) =>
             plugin.title.toLowerCase().includes(normalizedQuery) ||
             plugin.description.toLowerCase().includes(normalizedQuery))
-        : getSortedPlugins();
+        : sortedPlugins;
 
     return (
         <Box id="plugins" sx={pluginsBoxStyle}>
@@ -170,6 +148,9 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                 >
                     <ToggleButton value="popularity" aria-label="sort by popularity">
                         By Popularity
+                    </ToggleButton>
+                    <ToggleButton value="most-liked" aria-label="sort by most liked">
+                        Most Liked
                     </ToggleButton>
                     <ToggleButton value="alphabetical" aria-label="sort alphabetically">
                         Alphabetical

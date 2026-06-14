@@ -97,6 +97,7 @@ keeps a local profile mirror that owns each user's API keys.
 | `POST` | `/api/v1/auth/login` | Public | Login (proxied to UserAuth) and return a token |
 | `POST` | `/api/v1/auth/logout` | Bearer | Revoke the current token |
 | `GET` | `/api/v1/profile/me` | Bearer | Get the current user's profile and API keys |
+| `GET` | `/api/v1/profile/{username}` | Public | Get a user's public profile (display name, avatar, bio, join date, badges, liked plugins/guides; no id or API keys) |
 | `PATCH` | `/api/v1/profile/me` | Bearer | Update display name / avatar / bio |
 | `POST` | `/api/v1/profile/me/api-keys` | Bearer | Create a new API key |
 | `DELETE` | `/api/v1/profile/me/api-keys/{id}` | Bearer | Delete an API key |
@@ -148,6 +149,21 @@ Response:
 
 Save the returned `apiKey` — it is shown only once and stored as a SHA-256 hash.
 The `keyPrefix` (first 8 characters) can be used to identify the key later.
+
+### Likes
+
+Likes on plugins and guides. A target is keyed by the plugin `id` from the
+website's `plugins.json` (a guide's id is its plugin's id). Liking is
+idempotent; counts are public.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/likes` | Bearer | Like a plugin or guide (idempotent); returns the new count |
+| `DELETE` | `/api/v1/likes` | Bearer | Unlike a plugin or guide; returns the new count |
+| `GET` | `/api/v1/likes/counts?type=plugin\|guide` | Public | Aggregate like counts for a target type (`targetId` → count) |
+| `GET` | `/api/v1/likes/me` | Bearer | The current user's liked targets |
+
+The `POST`/`DELETE` body is `{ "targetType": "plugin" | "guide", "targetId": "<id>" }`.
 
 ### Factions
 

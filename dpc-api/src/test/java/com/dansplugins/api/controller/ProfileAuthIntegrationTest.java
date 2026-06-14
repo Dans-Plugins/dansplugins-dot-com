@@ -1,6 +1,7 @@
 package com.dansplugins.api.controller;
 
 import com.dansplugins.api.repository.ApiKeyRepository;
+import com.dansplugins.api.repository.LikeRepository;
 import com.dansplugins.api.repository.UserRepository;
 import com.dansplugins.api.service.UserAuthClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,12 +48,17 @@ class ProfileAuthIntegrationTest {
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
+    @Autowired
+    private LikeRepository likeRepository;
+
     @MockBean
     private UserAuthClient userAuthClient;
 
     @BeforeEach
     void setUp() {
+        // Delete children (api keys, likes) before users — both FK to users.
         apiKeyRepository.deleteAll();
+        likeRepository.deleteAll();
         userRepository.deleteAll();
         when(userAuthClient.validate("good-token")).thenReturn(Optional.of("alice"));
     }
@@ -68,7 +74,9 @@ class ProfileAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/profile/me").header("Authorization", BEARER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("alice"))
-                .andExpect(jsonPath("$.apiKeys").isArray());
+                .andExpect(jsonPath("$.apiKeys").isArray())
+                .andExpect(jsonPath("$.badges").isArray())
+                .andExpect(jsonPath("$.badges").isEmpty());
     }
 
     @Test
@@ -83,7 +91,8 @@ class ProfileAuthIntegrationTest {
 
         mockMvc.perform(get("/api/v1/profile/me").header("Authorization", BEARER))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.apiKeys.length()").value(1));
+                .andExpect(jsonPath("$.apiKeys.length()").value(1))
+                .andExpect(jsonPath("$.badges[0]").value("SERVER_OWNER"));
     }
 
     @Test
@@ -133,5 +142,69 @@ class ProfileAuthIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.registered").value(true))
                 .andExpect(jsonPath("$.tokenIssued").value(false));
+    }
+
+    @Test
+    void publicProfile_isReadableWithoutToken_andOmitsApiKeys() throws Exception {
+        // Create alice's mirror and set public fields via the authenticated route.
+        mockMvc.perform(patch("/api/v1/profile/me")
+                        .header("Authorization", BEARER)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"displayName\":\"Alice the Brave\",\"bio\":\"hi\"}"))
+                .andExpect(status().isOk());
+
+        // Anyone — no token — can read the public projection, but it must not leak API keys.
+        mockMvc.perform(get("/api/v1/profile/alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("alice"))
+                .andExpect(jsonPath("$.displayName").value("Alice the Brave"))
+                .andExpect(jsonPath("$.bio").value("hi"))
+                .andExpect(jsonPath("$.likes").isArray())
+                .andExpect(jsonPath("$.badges").isArray())
+                .andExpect(jsonPath("$.badges").isEmpty())
+                .andExpect(jsonPath("$.apiKeys").doesNotExist())
+                .andExpect(jsonPath("$.id").doesNotExist());
+    }
+
+    @Test
+    void publicProfile_showsServerOwnerBadge_onceTheUserHasAnApiKey() throws Exception {
+        // No key yet → no badge.
+        mockMvc.perform(get("/api/v1/profile/me").header("Authorization", BEARER))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/profile/alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.badges").isEmpty());
+
+        // Creating an API key makes alice a server owner.
+        mockMvc.perform(post("/api/v1/profile/me/api-keys")
+                        .header("Authorization", BEARER)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"serverName\":\"survival-1\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/profile/alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.badges[0]").value("SERVER_OWNER"));
+    }
+
+    @Test
+    void publicProfile_unknownUser_returns404() throws Exception {
+        mockMvc.perform(get("/api/v1/profile/nobody"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void publicProfile_includesTheUsersLikedTargets() throws Exception {
+        // Liking creates alice's mirror and a like in one authenticated call.
+        mockMvc.perform(post("/api/v1/likes")
+                        .header("Authorization", BEARER)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"targetType\":\"plugin\",\"targetId\":\"mf\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/profile/alice"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.likes[0].targetType").value("plugin"))
+                .andExpect(jsonPath("$.likes[0].targetId").value("mf"));
     }
 }
