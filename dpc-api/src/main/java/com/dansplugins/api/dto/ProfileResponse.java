@@ -28,6 +28,9 @@ public record ProfileResponse(
         @Schema(description = "Profile creation timestamp")
         Instant createdAt,
 
+        @Schema(description = "Badges this user has earned")
+        List<Badge> badges,
+
         @Schema(description = "API keys owned by this user")
         List<ApiKeyInfo> apiKeys
 ) {
@@ -41,7 +44,7 @@ public record ProfileResponse(
     ) {
     }
 
-    public static ProfileResponse from(User user, List<ApiKey> keys) {
+    public static ProfileResponse from(User user, List<Badge> badges, List<ApiKey> keys) {
         return new ProfileResponse(
                 user.getId(),
                 user.getUserauthUsername(),
@@ -49,6 +52,7 @@ public record ProfileResponse(
                 user.getAvatarUrl(),
                 user.getBio(),
                 user.getCreatedAt(),
+                badges,
                 keys.stream()
                         .map(k -> new ApiKeyInfo(k.getId(), k.getKeyPrefix(), k.getServerName(), k.getCreatedAt()))
                         .toList()
