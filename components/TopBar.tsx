@@ -1,10 +1,11 @@
-import {AppBar, Box, Button, Toolbar, Typography, useTheme} from '@mui/material';
+import {AppBar, Box, Button, Link, Toolbar, Typography, useTheme} from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {useRouter} from 'next/router';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {ColorModeToggleSwitch} from './ColorModeToggleSwitch';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {isActiveNavLink} from '../utils/nav';
+import {usernameFromToken} from '../utils/authToken';
 
 import {
     appBarStyle,
@@ -45,20 +46,36 @@ const NavButton: React.FC<{ href: string; active?: boolean; children: React.Reac
 };
 
 const BrandName: React.FC = () => (
-    <Typography
-        variant="h6"
+    // The wordmark links home — the near-universal "click the logo to return to
+    // the home page" convention.
+    <Link
+        href="/"
+        underline="none"
         color="inherit"
-        component="div"
-        sx={(theme) => brandNameStyle(theme)}
+        sx={(theme) => ({...brandNameStyle(theme), display: 'inline-block'})}
     >
-        Dan&apos;s Plugins Community
-    </Typography>
+        <Typography variant="h6" color="inherit" component="span">
+            Dan&apos;s Plugins Community
+        </Typography>
+    </Link>
 );
 
 const TopBar: React.FC = () => {
     const colorMode = useContext(ColorModeContext);
     const theme = useTheme();
     const {pathname} = useRouter();
+
+    // Reflect the signed-in state in the nav. Read on the client only (after
+    // mount) so the server-rendered markup and the first client paint match —
+    // until then we show the neutral "Account" default (no hydration mismatch).
+    const [signedIn, setSignedIn] = useState<boolean | null>(null);
+    const [username, setUsername] = useState<string | null>(null);
+    useEffect(() => {
+        const token = window.localStorage.getItem('dpc-token');
+        setSignedIn(!!token);
+        setUsername(usernameFromToken(token));
+    }, []);
+    const accountLabel = signedIn === false ? 'Sign in' : (username ?? 'Account');
 
     return (
         <AppBar
@@ -77,7 +94,7 @@ const TopBar: React.FC = () => {
                         <NavButton href="/about" active={isActiveNavLink(pathname, '/about')}>About</NavButton>
                         <NavButton href="/roadmap" active={isActiveNavLink(pathname, '/roadmap')}>Road Map</NavButton>
                         <NavButton href="/commissions" active={isActiveNavLink(pathname, '/commissions')}>Commissions</NavButton>
-                        <NavButton href="/account" active={isActiveNavLink(pathname, '/account')}>Account</NavButton>
+                        <NavButton href="/account" active={isActiveNavLink(pathname, '/account')}>{accountLabel}</NavButton>
                         <NavButton href="https://discord.gg/xXtuAQ2">Discord</NavButton>
                         <NavButton href="https://www.patreon.com/danspluginscommunity">Patreon</NavButton>
                         <NavButton href="https://www.linkedin.com/company/dansplugins">LinkedIn</NavButton>
