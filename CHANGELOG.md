@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- The site wordmark in the top bar now links to the home page, matching the universal "click the logo to go home" convention (#209).
+- The top navigation now reflects your signed-in state: it shows your username when you're logged in and "Sign in" when you're not, instead of an always-identical "Account" link (#210).
 - Sign-in, registration, and leaderboard error messages now use plain, user-facing language instead of developer-speak like "Is the API running?" (#207, #211). A failed registration no longer speculatively blames the username; it points at both the username and the password requirements (#208).
 
 ### Fixed
