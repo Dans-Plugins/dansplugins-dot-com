@@ -49,6 +49,15 @@ class LikeServiceTest {
     }
 
     @Test
+    void like_issueTargetType_isAllowed_forDevPortalInterest() {
+        when(likeRepository.existsByUserAndTargetTypeAndTargetId(user, "issue", "Fiefs#136")).thenReturn(false);
+        when(likeRepository.countByTargetTypeAndTargetId("issue", "Fiefs#136")).thenReturn(1L);
+
+        assertThat(likeService.like(user, "issue", "Fiefs#136")).isEqualTo(1L);
+        verify(likeRepository).save(any(Like.class));
+    }
+
+    @Test
     void like_invalidType_throws() {
         assertThatThrownBy(() -> likeService.like(user, "bogus", "mf"))
                 .isInstanceOf(IllegalArgumentException.class);
