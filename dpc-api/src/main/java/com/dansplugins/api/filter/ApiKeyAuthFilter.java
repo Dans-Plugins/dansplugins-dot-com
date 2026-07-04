@@ -37,7 +37,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             // UserAuth bearer token, not an X-API-Key, so they are exempt from this filter.
             "/api/v1/auth/",
             "/api/v1/profile/",
-            "/api/v1/likes"
+            "/api/v1/likes",
+            "/api/v1/claims"
     );
 
     private final ApiKeyService apiKeyService;

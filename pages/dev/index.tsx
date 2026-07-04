@@ -24,10 +24,12 @@ import TopBar from '../../components/TopBar'
 import Seo from '../../components/Seo'
 import BottomBar from '../../components/BottomBar'
 import LikeButton from '../../components/LikeButton'
+import ClaimButton from '../../components/ClaimButton'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles'
 import {relativeTimeFrom} from '../../utils/relativeTime'
 import {getBacklogItems, getBacklogSummary, BacklogItem, RepoSummary} from '../../services/backlogService'
 import {getLikeCounts, getMyLikes} from '../../services/likeService'
+import {getActiveClaims} from '../../services/claimService'
 
 const version = require('../../package.json').version
 
@@ -59,6 +61,7 @@ const DevPortalPage: NextPage = () => {
     const [error, setError] = useState<string | null>(null)
     const [interestCounts, setInterestCounts] = useState<Record<string, number>>({})
     const [interestedSet, setInterestedSet] = useState<Set<string>>(new Set())
+    const [claimants, setClaimants] = useState<Record<string, string>>({})
     const [token, setToken] = useState<string | null>(null)
 
     const load = useCallback(async () => {
@@ -91,7 +94,21 @@ const DevPortalPage: NextPage = () => {
             getMyLikes(saved).then((likes) =>
                 setInterestedSet(new Set(likes.filter((l) => l.targetType === 'issue').map((l) => l.targetId))))
         }
+        getActiveClaims().then((claims) =>
+            setClaimants(Object.fromEntries(claims.map((c) => [c.targetId, c.claimantUsername]))))
     }, [])
+
+    const setClaimant = (targetId: string, claimantUsername: string | null) => {
+        setClaimants((prev) => {
+            const next = {...prev}
+            if (claimantUsername) {
+                next[targetId] = claimantUsername
+            } else {
+                delete next[targetId]
+            }
+            return next
+        })
+    }
 
     const visibleItems = useMemo(
         () => (repoFilter ? items.filter((item) => item.repo === repoFilter) : items),
@@ -241,6 +258,7 @@ const DevPortalPage: NextPage = () => {
                                         <TableCell>Type</TableCell>
                                         <TableCell>Opened</TableCell>
                                         <TableCell align="center">Interested</TableCell>
+                                        <TableCell>Claimed</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -251,11 +269,12 @@ const DevPortalPage: NextPage = () => {
                                                 <TableCell><Skeleton width={80}/></TableCell>
                                                 <TableCell><Skeleton width={90}/></TableCell>
                                                 <TableCell><Skeleton width={50}/></TableCell>
+                                                <TableCell><Skeleton width={100}/></TableCell>
                                             </TableRow>
                                         ))
                                     ) : visibleItems.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} align="center" sx={{py: 4}}>
+                                            <TableCell colSpan={5} align="center" sx={{py: 4}}>
                                                 <Typography color="text.secondary">
                                                     Nothing open here right now.
                                                 </Typography>
@@ -298,6 +317,15 @@ const DevPortalPage: NextPage = () => {
                                                         count={interestCounts[item.targetId] || 0}
                                                         liked={interestedSet.has(item.targetId)}
                                                         token={token}
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <ClaimButton
+                                                        repo={item.repo}
+                                                        number={item.number}
+                                                        claimantUsername={claimants[item.targetId] ?? null}
+                                                        token={token}
+                                                        onChange={(claimantUsername) => setClaimant(item.targetId, claimantUsername)}
                                                     />
                                                 </TableCell>
                                             </TableRow>
