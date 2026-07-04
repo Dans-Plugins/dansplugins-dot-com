@@ -22,3 +22,8 @@ dpc:
       minimum-incoming-factions: 1
       max-deactivation-ratio: 0.5
       max-deactivations-per-sync: 1000
+  backlog:
+    org: Dans-Plugins
+    # Tests exercise BacklogSyncService directly; the scheduled trigger must not
+    # also fire and make real calls out to the GitHub API.
+    sync-enabled: false

@@ -40,3 +40,14 @@ dpc:
       max-deactivation-ratio: ${DPC_SYNC_MAX_DEACTIVATION_RATIO:0.5}
       # Hard absolute cap on factions that one sync may deactivate. 0 disables.
       max-deactivations-per-sync: ${DPC_SYNC_MAX_DEACTIVATIONS:1000}
+  backlog:
+    # GitHub org the dev-portal backlog console mirrors open issues/PRs from.
+    org: ${DPC_BACKLOG_ORG:Dans-Plugins}
+    # Optional classic PAT (no scopes needed — search only reads public data).
+    # Raises the GitHub Search API rate limit from 10/min to 30/min.
+    github-token: ${DPC_BACKLOG_GITHUB_TOKEN:}
+    # How often the sync re-pulls GitHub, in milliseconds. Kept well above the
+    # search API's per-minute rate limit floor.
+    sync-interval-ms: ${DPC_BACKLOG_SYNC_INTERVAL_MS:900000}
+    # Disable in tests/local runs that shouldn't call out to the real GitHub API.
+    sync-enabled: ${DPC_BACKLOG_SYNC_ENABLED:true}

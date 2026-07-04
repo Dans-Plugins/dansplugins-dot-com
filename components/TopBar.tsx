@@ -94,6 +94,7 @@ const TopBar: React.FC = () => {
                         <NavButton href="/about" active={isActiveNavLink(pathname, '/about')}>About</NavButton>
                         <NavButton href="/roadmap" active={isActiveNavLink(pathname, '/roadmap')}>Road Map</NavButton>
                         <NavButton href="/commissions" active={isActiveNavLink(pathname, '/commissions')}>Commissions</NavButton>
+                        <NavButton href="/dev" active={isActiveNavLink(pathname, '/dev')}>Dev Portal</NavButton>
                         <NavButton href="/account" active={isActiveNavLink(pathname, '/account')}>{accountLabel}</NavButton>
                         <NavButton href="https://discord.gg/xXtuAQ2">Discord</NavButton>
                         <NavButton href="https://www.patreon.com/danspluginscommunity">Patreon</NavButton>

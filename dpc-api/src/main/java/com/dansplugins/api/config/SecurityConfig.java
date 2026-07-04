@@ -74,6 +74,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/factions/**").permitAll()
                         // Public like counts (must precede the authenticated /likes rule below)
                         .requestMatchers(HttpMethod.GET, "/api/v1/likes/counts").permitAll()
+                        // Backlog console data is a public aggregation of already-public GitHub data
+                        .requestMatchers(HttpMethod.GET, "/api/v1/backlog", "/api/v1/backlog/**").permitAll()
                         // Public single-user profile (GET /api/v1/profile/{username}). The /me rule
                         // is listed first so the authenticated self-profile (which exposes API keys)
                         // is never served by the public path; the single-segment glob then permits
