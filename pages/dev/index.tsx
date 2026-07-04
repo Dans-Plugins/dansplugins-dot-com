@@ -15,6 +15,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TableSortLabel,
     TextField,
     ToggleButton,
     ToggleButtonGroup,
@@ -56,6 +57,15 @@ const SIGNALS: Record<SignalKey, Omit<Signal, 'key'>> = {
     quiet: {label: 'Quiet', color: 'default', description: 'Nothing open right now.'},
 }
 
+// Higher = more urgent; drives the default "Signal" column sort (most urgent first).
+const SIGNAL_SEVERITY: Record<SignalKey, number> = {
+    stale: 4,
+    'automation-backlog': 3,
+    'needs-triage': 3,
+    active: 1,
+    quiet: 0,
+}
+
 const signalFor = (summary: RepoSummary): Signal => {
     const total = summary.openIssueCount + summary.openPrCount
     const ageDays = summary.oldestOpenItemAt
@@ -77,7 +87,68 @@ const signalFor = (summary: RepoSummary): Signal => {
 }
 
 type ItemTypeFilter = 'all' | 'issue' | 'pr' | 'draft'
-type SortOrder = 'oldest' | 'newest' | 'most-interested'
+type SortDirection = 'asc' | 'desc'
+type RepoSortColumn = 'repo' | 'issues' | 'prs' | 'oldest' | 'signal'
+type ItemSortColumn = 'item' | 'type' | 'opened' | 'interested'
+
+interface SortState<C extends string> {
+    column: C | null
+    direction: SortDirection
+}
+
+// First click on a column sorts in the direction that's usually most useful for
+// it (e.g. "Oldest" ascending puts the oldest item on top; "Interested"
+// descending puts the most-wanted item on top). A second click on the same
+// column flips it.
+const REPO_DEFAULT_DIRECTION: Record<RepoSortColumn, SortDirection> = {
+    repo: 'asc', issues: 'desc', prs: 'desc', oldest: 'asc', signal: 'desc',
+}
+const ITEM_DEFAULT_DIRECTION: Record<ItemSortColumn, SortDirection> = {
+    item: 'asc', type: 'asc', opened: 'asc', interested: 'desc',
+}
+
+function toggleSort<C extends string>(
+    current: SortState<C>,
+    column: C,
+    defaultDirections: Record<C, SortDirection>
+): SortState<C> {
+    if (current.column !== column) {
+        return {column, direction: defaultDirections[column]}
+    }
+    return {column, direction: current.direction === 'asc' ? 'desc' : 'asc'}
+}
+
+const compareRepoRows = (a: RepoSummary, b: RepoSummary, column: RepoSortColumn, signalByRepo: Record<string, Signal>): number => {
+    switch (column) {
+        case 'repo':
+            return a.repo.localeCompare(b.repo)
+        case 'issues':
+            return a.openIssueCount - b.openIssueCount
+        case 'prs':
+            return a.openPrCount - b.openPrCount
+        case 'oldest':
+            return (a.oldestOpenItemAt ?? '9999').localeCompare(b.oldestOpenItemAt ?? '9999')
+        case 'signal':
+            return SIGNAL_SEVERITY[signalByRepo[a.repo]?.key ?? 'quiet'] - SIGNAL_SEVERITY[signalByRepo[b.repo]?.key ?? 'quiet']
+        default:
+            return 0
+    }
+}
+
+const compareItemRows = (a: BacklogItem, b: BacklogItem, column: ItemSortColumn, interestCounts: Record<string, number>): number => {
+    switch (column) {
+        case 'item':
+            return a.targetId.localeCompare(b.targetId)
+        case 'type':
+            return a.itemType.localeCompare(b.itemType) || Number(a.draft) - Number(b.draft)
+        case 'opened':
+            return a.githubCreatedAt.localeCompare(b.githubCreatedAt)
+        case 'interested':
+            return (interestCounts[a.targetId] || 0) - (interestCounts[b.targetId] || 0)
+        default:
+            return 0
+    }
+}
 
 const StatTile: React.FC<{value: React.ReactNode; label: string; tone?: 'warn' | 'crit'}> = ({value, label, tone}) => (
     <Card variant="outlined" sx={{flex: '1 1 160px', textAlign: 'center', py: 1.5}}>
@@ -95,13 +166,36 @@ const StatTile: React.FC<{value: React.ReactNode; label: string; tone?: 'warn' |
     </Card>
 )
 
+interface SortableHeaderProps<C extends string> {
+    label: string
+    column: C
+    align?: 'left' | 'right' | 'center'
+    sort: SortState<C>
+    onSort: (column: C) => void
+}
+
+function SortableHeader<C extends string>({label, column, align, sort, onSort}: SortableHeaderProps<C>) {
+    return (
+        <TableCell align={align}>
+            <TableSortLabel
+                active={sort.column === column}
+                direction={sort.column === column ? sort.direction : 'asc'}
+                onClick={() => onSort(column)}
+            >
+                {label}
+            </TableSortLabel>
+        </TableCell>
+    )
+}
+
 const DevPortalPage: NextPage = () => {
     const [summary, setSummary] = useState<RepoSummary[]>([])
     const [items, setItems] = useState<BacklogItem[]>([])
     const [repoFilter, setRepoFilter] = useState('')
     const [signalFilter, setSignalFilter] = useState<SignalKey | 'all'>('all')
     const [typeFilter, setTypeFilter] = useState<ItemTypeFilter>('all')
-    const [sortOrder, setSortOrder] = useState<SortOrder>('oldest')
+    const [repoSort, setRepoSort] = useState<SortState<RepoSortColumn>>({column: null, direction: 'desc'})
+    const [itemSort, setItemSort] = useState<SortState<ItemSortColumn>>({column: null, direction: 'asc'})
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [interestCounts, setInterestCounts] = useState<Record<string, number>>({})
@@ -176,10 +270,17 @@ const DevPortalPage: NextPage = () => {
         [summary]
     )
 
-    const visibleSummary = useMemo(
-        () => (signalFilter === 'all' ? summary : summary.filter((row) => signalByRepo[row.repo]?.key === signalFilter)),
-        [summary, signalFilter, signalByRepo]
-    )
+    const visibleSummary = useMemo(() => {
+        const filtered = signalFilter === 'all' ? summary : summary.filter((row) => signalByRepo[row.repo]?.key === signalFilter)
+        if (!repoSort.column) {
+            return filtered
+        }
+        const column = repoSort.column
+        return [...filtered].sort((a, b) => {
+            const result = compareRepoRows(a, b, column, signalByRepo)
+            return repoSort.direction === 'asc' ? result : -result
+        })
+    }, [summary, signalFilter, signalByRepo, repoSort])
 
     const totals = useMemo(() => {
         const openIssues = summary.reduce((sum, r) => sum + r.openIssueCount, 0)
@@ -207,16 +308,15 @@ const DevPortalPage: NextPage = () => {
         } else if (typeFilter === 'draft') {
             list = list.filter((item) => item.itemType === 'PULL_REQUEST' && item.draft)
         }
-        const sorted = [...list]
-        if (sortOrder === 'newest') {
-            sorted.sort((a, b) => b.githubCreatedAt.localeCompare(a.githubCreatedAt))
-        } else if (sortOrder === 'most-interested') {
-            sorted.sort((a, b) => (interestCounts[b.targetId] || 0) - (interestCounts[a.targetId] || 0))
-        } else {
-            sorted.sort((a, b) => a.githubCreatedAt.localeCompare(b.githubCreatedAt))
+        if (!itemSort.column) {
+            return list
         }
-        return sorted
-    }, [items, repoFilter, signalFilter, typeFilter, sortOrder, signalByRepo, interestCounts])
+        const column = itemSort.column
+        return [...list].sort((a, b) => {
+            const result = compareItemRows(a, b, column, interestCounts)
+            return itemSort.direction === 'asc' ? result : -result
+        })
+    }, [items, repoFilter, signalFilter, typeFilter, signalByRepo, itemSort, interestCounts])
 
     const jumpToRepo = (repo: string) => {
         setRepoFilter(repoFilter === repo ? '' : repo)
@@ -318,11 +418,16 @@ const DevPortalPage: NextPage = () => {
                                             },
                                         }}
                                     >
-                                        <TableCell>Repo</TableCell>
-                                        <TableCell align="right">Issues</TableCell>
-                                        <TableCell align="right">PRs (draft)</TableCell>
-                                        <TableCell>Oldest open item</TableCell>
-                                        <TableCell>Signal</TableCell>
+                                        <SortableHeader label="Repo" column="repo" sort={repoSort}
+                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="Issues" column="issues" align="right" sort={repoSort}
+                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="PRs (draft)" column="prs" align="right" sort={repoSort}
+                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="Oldest open item" column="oldest" sort={repoSort}
+                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="Signal" column="signal" sort={repoSort}
+                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
                                         <TableCell align="right">Ideas</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -434,18 +539,6 @@ const DevPortalPage: NextPage = () => {
                             <MenuItem value="pr">PRs only</MenuItem>
                             <MenuItem value="draft">Draft PRs only</MenuItem>
                         </TextField>
-                        <TextField
-                            select
-                            size="small"
-                            label="Sort by"
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-                            sx={{minWidth: 170}}
-                        >
-                            <MenuItem value="oldest">Oldest first</MenuItem>
-                            <MenuItem value="newest">Newest first</MenuItem>
-                            <MenuItem value="most-interested">Most interested</MenuItem>
-                        </TextField>
                     </Stack>
                 </Stack>
 
@@ -482,10 +575,14 @@ const DevPortalPage: NextPage = () => {
                                             },
                                         }}
                                     >
-                                        <TableCell>Item</TableCell>
-                                        <TableCell>Type</TableCell>
-                                        <TableCell>Opened</TableCell>
-                                        <TableCell align="center">Interested</TableCell>
+                                        <SortableHeader label="Item" column="item" sort={itemSort}
+                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="Type" column="type" sort={itemSort}
+                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="Opened" column="opened" sort={itemSort}
+                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                        <SortableHeader label="Interested" column="interested" align="center" sort={itemSort}
+                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
                                         <TableCell>Claimed</TableCell>
                                     </TableRow>
                                 </TableHead>
