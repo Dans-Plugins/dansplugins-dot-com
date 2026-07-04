@@ -14,15 +14,16 @@ import java.util.stream.Collectors;
 
 /**
  * Likes on plugins, guides, and — for the dev portal — backlog issues/PRs
- * ("interested", keyed by {@code repo#number}). A like is idempotent (the
- * unique constraint on {@code (user, target_type, target_id)} means liking
- * twice is a no-op), and counts are public.
+ * ("interested", keyed by {@code repo#number}) and feature-request upvotes
+ * (keyed by the feature request's id). A like is idempotent (the unique
+ * constraint on {@code (user, target_type, target_id)} means liking twice is a
+ * no-op), and counts are public.
  */
 @Service
 @RequiredArgsConstructor
 public class LikeService {
 
-    static final Set<String> ALLOWED_TYPES = Set.of("plugin", "guide", "issue");
+    static final Set<String> ALLOWED_TYPES = Set.of("plugin", "guide", "issue", "feature_request");
 
     private final LikeRepository likeRepository;
 
