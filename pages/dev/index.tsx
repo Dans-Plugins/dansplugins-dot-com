@@ -25,6 +25,7 @@ import Seo from '../../components/Seo'
 import BottomBar from '../../components/BottomBar'
 import LikeButton from '../../components/LikeButton'
 import ClaimButton from '../../components/ClaimButton'
+import FeatureRequestSection from '../../components/FeatureRequestSection'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles'
 import {relativeTimeFrom} from '../../utils/relativeTime'
 import {getBacklogItems, getBacklogSummary, BacklogItem, RepoSummary} from '../../services/backlogService'
@@ -336,6 +337,12 @@ const DevPortalPage: NextPage = () => {
                         </TableContainer>
                     </CardContent>
                 </Card>
+
+                <FeatureRequestSection
+                    repos={summary.map((row) => row.repo)}
+                    repoFilter={repoFilter}
+                    token={token}
+                />
             </Container>
             <BottomBar version={version}/>
         </Box>
