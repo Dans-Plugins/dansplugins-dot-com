@@ -2,16 +2,19 @@ import {Box, Container, Grid, IconButton, InputAdornment, TextField, Typography,
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import type {NextPage} from 'next'
+import {useRouter} from 'next/router'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
 import Blurb from '../components/Blurb'
 import PluginCard from '../components/PluginCard'
+import ExperienceSplash from '../components/ExperienceSplash'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
+import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience';
 
 interface PluginData {
     mostPopular: string[];
@@ -227,10 +230,33 @@ export const getServerSideProps = async () => {
 };
 
 const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => {
+    const router = useRouter();
+    // Starts closed on both server and first client render (no hydration
+    // mismatch — same pattern TopBar uses for its signed-in state), then opens
+    // after mount if this visitor hasn't made a choice yet.
+    const [showSplash, setShowSplash] = React.useState(false);
+
+    React.useEffect(() => {
+        const stored = window.localStorage.getItem(EXPERIENCE_CHOSEN_KEY);
+        setShowSplash(!hasChosenExperience(stored));
+    }, []);
+
+    const dismissSplash = () => {
+        window.localStorage.setItem(EXPERIENCE_CHOSEN_KEY, 'true');
+        setShowSplash(false);
+    };
+
+    const chooseDeveloper = () => {
+        window.localStorage.setItem(EXPERIENCE_CHOSEN_KEY, 'true');
+        setShowSplash(false);
+        router.push('/dev');
+    };
+
     return (
         <Box sx={pageStyle}>
             <Seo/>
             <TopBar/>
+            <ExperienceSplash open={showSplash} onChoosePlayer={dismissSplash} onChooseDeveloper={chooseDeveloper}/>
             <Container component="main" id="main" maxWidth="xl" sx={{py: 4}}>
                 <Blurb/>
                 <SectionDivider/>

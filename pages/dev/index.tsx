@@ -23,9 +23,11 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react'
 import TopBar from '../../components/TopBar'
 import Seo from '../../components/Seo'
 import BottomBar from '../../components/BottomBar'
+import LikeButton from '../../components/LikeButton'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles'
 import {relativeTimeFrom} from '../../utils/relativeTime'
 import {getBacklogItems, getBacklogSummary, BacklogItem, RepoSummary} from '../../services/backlogService'
+import {getLikeCounts, getMyLikes} from '../../services/likeService'
 
 const version = require('../../package.json').version
 
@@ -55,6 +57,9 @@ const DevPortalPage: NextPage = () => {
     const [repoFilter, setRepoFilter] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [interestCounts, setInterestCounts] = useState<Record<string, number>>({})
+    const [interestedSet, setInterestedSet] = useState<Set<string>>(new Set())
+    const [token, setToken] = useState<string | null>(null)
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -77,6 +82,16 @@ const DevPortalPage: NextPage = () => {
     useEffect(() => {
         load()
     }, [load])
+
+    useEffect(() => {
+        getLikeCounts('issue').then(setInterestCounts)
+        const saved = window.localStorage.getItem('dpc-token')
+        setToken(saved)
+        if (saved) {
+            getMyLikes(saved).then((likes) =>
+                setInterestedSet(new Set(likes.filter((l) => l.targetType === 'issue').map((l) => l.targetId))))
+        }
+    }, [])
 
     const visibleItems = useMemo(
         () => (repoFilter ? items.filter((item) => item.repo === repoFilter) : items),
@@ -225,6 +240,7 @@ const DevPortalPage: NextPage = () => {
                                         <TableCell>Item</TableCell>
                                         <TableCell>Type</TableCell>
                                         <TableCell>Opened</TableCell>
+                                        <TableCell align="center">Interested</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -234,11 +250,12 @@ const DevPortalPage: NextPage = () => {
                                                 <TableCell><Skeleton width={320}/></TableCell>
                                                 <TableCell><Skeleton width={80}/></TableCell>
                                                 <TableCell><Skeleton width={90}/></TableCell>
+                                                <TableCell><Skeleton width={50}/></TableCell>
                                             </TableRow>
                                         ))
                                     ) : visibleItems.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={3} align="center" sx={{py: 4}}>
+                                            <TableCell colSpan={4} align="center" sx={{py: 4}}>
                                                 <Typography color="text.secondary">
                                                     Nothing open here right now.
                                                 </Typography>
@@ -273,6 +290,15 @@ const DevPortalPage: NextPage = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     {relativeTimeFrom(item.githubCreatedAt, Date.now())}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <LikeButton
+                                                        targetType="issue"
+                                                        targetId={item.targetId}
+                                                        count={interestCounts[item.targetId] || 0}
+                                                        liked={interestedSet.has(item.targetId)}
+                                                        token={token}
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         ))
