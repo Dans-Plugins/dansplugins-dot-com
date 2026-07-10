@@ -13,15 +13,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Likes on plugins and guides. A like is idempotent (the unique constraint on
- * {@code (user, target_type, target_id)} means liking twice is a no-op), and
- * counts are public. Targets are keyed by the plugin id from plugins.json.
+ * Likes on plugins, guides, and — for the dev portal — backlog issues/PRs
+ * ("interested", keyed by {@code repo#number}). A like is idempotent (the
+ * unique constraint on {@code (user, target_type, target_id)} means liking
+ * twice is a no-op), and counts are public.
  */
 @Service
 @RequiredArgsConstructor
 public class LikeService {
 
-    static final Set<String> ALLOWED_TYPES = Set.of("plugin", "guide");
+    static final Set<String> ALLOWED_TYPES = Set.of("plugin", "guide", "issue");
 
     private final LikeRepository likeRepository;
 

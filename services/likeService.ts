@@ -2,7 +2,7 @@
 // public API the leaderboard/account pages use.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345';
 
-export type LikeTargetType = 'plugin' | 'guide';
+export type LikeTargetType = 'plugin' | 'guide' | 'issue';
 
 export interface LikedTarget {
     targetType: LikeTargetType;
