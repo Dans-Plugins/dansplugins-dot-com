@@ -76,6 +76,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/likes/counts").permitAll()
                         // Backlog console data is a public aggregation of already-public GitHub data
                         .requestMatchers(HttpMethod.GET, "/api/v1/backlog", "/api/v1/backlog/**").permitAll()
+                        // Who's claimed what is shown to every visitor; claiming/releasing requires auth
+                        .requestMatchers(HttpMethod.GET, "/api/v1/claims/active").permitAll()
                         // Public single-user profile (GET /api/v1/profile/{username}). The /me rule
                         // is listed first so the authenticated self-profile (which exposes API keys)
                         // is never served by the public path; the single-segment glob then permits
@@ -88,6 +90,7 @@ public class SecurityConfig {
                         // Profile, likes, and logout require a valid UserAuth token
                         .requestMatchers("/api/v1/profile/**").authenticated()
                         .requestMatchers("/api/v1/likes", "/api/v1/likes/**").authenticated()
+                        .requestMatchers("/api/v1/claims", "/api/v1/claims/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").authenticated()
                         // API key auth for faction writes is enforced by ApiKeyAuthFilter (returns 401
                         // before this authorization layer runs); permitAll here avoids a double-reject.
