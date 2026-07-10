@@ -38,7 +38,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             "/api/v1/auth/",
             "/api/v1/profile/",
             "/api/v1/likes",
-            "/api/v1/claims"
+            "/api/v1/claims",
+            "/api/v1/feature-requests"
     );
 
     private final ApiKeyService apiKeyService;
