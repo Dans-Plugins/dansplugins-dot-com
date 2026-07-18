@@ -48,6 +48,7 @@ interface Plugin {
     githubLink: string;
     spigotmcLink?: string;
     bStatsId?: string;
+    icon?: string;
 }
 
 interface PluginWithServerCount extends Plugin {
@@ -72,6 +73,7 @@ const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, like
                     githubLink={plugin.githubLink}
                     spigotmcLink={plugin.spigotmcLink}
                     bStatsId={plugin.bStatsId}
+                    icon={plugin.icon}
                     serverCount={plugin.serverCount}
                     likeCount={likeCounts[plugin.id] || 0}
                     liked={likedSet.has(plugin.id)}

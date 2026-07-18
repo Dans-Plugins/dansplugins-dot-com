@@ -6,7 +6,8 @@
       "description": "Tracks the activity of players.",
       "githubLink": "https://github.com/Dans-Plugins/Activity-Tracker",
       "spigotmcLink": "https://www.spigotmc.org/resources/activity-tracker.96724/",
-      "bStatsId": "12983"
+      "bStatsId": "12983",
+      "icon": "/icons/at.png"
     },
     {
       "id": "alternate-account-finder",
@@ -14,7 +15,8 @@
       "description": "Identifies accounts that have used the same IP address.",
       "githubLink": "https://github.com/Dans-Plugins/AlternateAccountFinder",
       "spigotmcLink": "https://www.spigotmc.org/resources/alternate-account-finder.83290/",
-      "bStatsId": "9834"
+      "bStatsId": "9834",
+      "icon": "/icons/aaf.png"
     },
     {
       "id": "currencies",
@@ -22,7 +24,8 @@
       "description": "An expansion for Medieval Factions that allows faction owners to create and mint local currencies.",
       "githubLink": "https://github.com/Dans-Plugins/Currencies",
       "spigotmcLink": "https://www.spigotmc.org/resources/currencies.96381/",
-      "bStatsId": "12810"
+      "bStatsId": "12810",
+      "icon": "/icons/c.png"
     },
     {
       "id": "dans-essentials",
@@ -30,7 +33,8 @@
       "description": "Provides miscellaneous commands.",
       "githubLink": "https://github.com/Dans-Plugins/Dans-Essentials",
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-essentials.80513/",
-      "bStatsId": "9527"
+      "bStatsId": "9527",
+      "icon": "/icons/de.png"
     },
     {
       "id": "dans-spawn-system",
@@ -38,7 +42,8 @@
       "description": "Allows players to use signs to select a custom spawn in their world.",
       "githubLink": "https://github.com/Dans-Plugins/Dans-Spawn-System",
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-spawn-system.82697/",
-      "bStatsId": "12161"
+      "bStatsId": "12161",
+      "icon": "/icons/dss.png"
     },
     {
       "id": "fiefs",
@@ -46,7 +51,8 @@
       "description": "Allows players to create fiefs and manage them.",
       "githubLink": "https://github.com/Dans-Plugins/Fiefs",
       "spigotmcLink": "https://www.spigotmc.org/resources/fiefs-early-access.98559/",
-      "bStatsId": "12743"
+      "bStatsId": "12743",
+      "icon": "/icons/f.png"
     },
     {
       "id": "food-spoilage",
@@ -54,7 +60,8 @@
       "description": "Makes food items turn into rotten flesh after a certain period of time.",
       "githubLink": "https://github.com/Dans-Plugins/FoodSpoilage",
       "spigotmcLink": "https://www.spigotmc.org/resources/food-spoilage.81507/",
-      "bStatsId": "8992"
+      "bStatsId": "8992",
+      "icon": "/icons/fs.png"
     },
     {
       "id": "mailboxes",
@@ -62,7 +69,8 @@
       "description": "Allows players and plugins to send persistent messages to players.",
       "githubLink": "https://github.com/Dans-Plugins/Mailboxes",
       "spigotmcLink": "https://www.spigotmc.org/resources/mailboxes.96611/",
-      "bStatsId": "12902"
+      "bStatsId": "12902",
+      "icon": "/icons/m.png"
     },
     {
       "id": "medieval-cookery",
@@ -78,7 +86,8 @@
       "description": "Allows players to organize themselves into feudal, diplomatic, lawful groups akin to nations.",
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Factions",
       "spigotmcLink": "https://www.spigotmc.org/resources/medieval-factions.79941/",
-      "bStatsId": "8929"
+      "bStatsId": "8929",
+      "icon": "/icons/mf.png"
     },
     {
       "id": "medieval-roleplay-engine",
@@ -86,7 +95,8 @@
       "description": "Facilitates roleplay between players.",
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Roleplay-Engine",
       "spigotmcLink": "https://www.spigotmc.org/resources/medieval-roleplay-engine.79993/",
-      "bStatsId": "8996"
+      "bStatsId": "8996",
+      "icon": "/icons/mre.png"
     },
     {
       "id": "more-recipes",
@@ -94,7 +104,8 @@
       "description": "Adds static recipes for items that are not craftable in vanilla.",
       "githubLink": "https://github.com/Dans-Plugins/More-Recipes",
       "spigotmcLink": "https://www.spigotmc.org/resources/more-recipes.81832/",
-      "bStatsId": "12140"
+      "bStatsId": "12140",
+      "icon": "/icons/mr.png"
     },
     {
       "id": "nether-access-controller",
@@ -102,7 +113,8 @@
       "description": "Allows operators to control who has access to the nether.",
       "githubLink": "https://github.com/Dans-Plugins/Nether-Access-Controller",
       "spigotmcLink": "https://www.spigotmc.org/resources/nether-access-controller.95905/",
-      "bStatsId": "12673"
+      "bStatsId": "12673",
+      "icon": "/icons/nac.png"
     },
     {
       "id": "no-more-creepers",
@@ -110,7 +122,8 @@
       "description": "Prevents creepers from spawning.",
       "githubLink": "https://github.com/Dans-Plugins/NoMoreCreepers",
       "spigotmcLink": "https://www.spigotmc.org/resources/nomorecreepers.97946/",
-      "bStatsId": "13432"
+      "bStatsId": "13432",
+      "icon": "/icons/nmc.png"
     },
     {
       "id": "simple-skills",
@@ -118,7 +131,8 @@
       "description": "Introduces skills into the game in a systematic, easy to use, expandable way.",
       "githubLink": "https://github.com/Dans-Plugins/SimpleSkills",
       "spigotmcLink": "https://www.spigotmc.org/resources/simpleskills.98039/",
-      "bStatsId": "13470"
+      "bStatsId": "13470",
+      "icon": "/icons/ss.png"
     },
     {
       "id": "wild-pets",
@@ -126,7 +140,8 @@
       "description": "Allows players to tame any entity and keep them as a pet.",
       "githubLink": "https://github.com/Dans-Plugins/Wild-Pets",
       "spigotmcLink": "https://www.spigotmc.org/resources/wild-pets.95800/",
-      "bStatsId": "12332"
+      "bStatsId": "12332",
+      "icon": "/icons/wp.png"
     }
   ],
   "mostPopular": [
