@@ -57,18 +57,22 @@ class ProfileAuthIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Delete children (api keys, likes) before users — both FK to users.
-        apiKeyRepository.deleteAll();
-        likeRepository.deleteAll();
-        userRepository.deleteAll();
+        clearDatabase();
         when(userAuthClient.validate("good-token")).thenReturn(Optional.of("alice"));
     }
 
     @AfterEach
     void tearDown() {
-        // The test H2 DB is shared across @SpringBootTest classes; clean up the rows
-        // (children before users, FK order) so a leftover row can't block another
-        // class's userRepository.deleteAll().
+        clearDatabase();
+    }
+
+    /**
+     * Delete children (api keys, likes) before users — both FK to users. The
+     * test H2 DB is shared across @SpringBootTest classes, so this runs both
+     * before and after each test to keep a leftover row from this class from
+     * blocking another class's userRepository.deleteAll().
+     */
+    private void clearDatabase() {
         apiKeyRepository.deleteAll();
         likeRepository.deleteAll();
         userRepository.deleteAll();

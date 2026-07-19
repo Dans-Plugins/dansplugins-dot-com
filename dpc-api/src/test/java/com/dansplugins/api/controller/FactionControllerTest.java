@@ -51,18 +51,23 @@ class FactionControllerTest {
 
     @BeforeEach
     void setUp() {
-        factionRepository.deleteAll();
-        apiKeyRepository.deleteAll();
-        userRepository.deleteAll();
+        clearDatabase();
         User user = userService.getOrCreate("test-user");
         apiKey = userService.createApiKey(user, "test-server").getRawKey();
     }
 
     @AfterEach
     void tearDown() {
-        // The test H2 DB is shared across @SpringBootTest classes; clean up the rows
-        // (children before users, FK order) so a leftover row can't block another
-        // class's userRepository.deleteAll().
+        clearDatabase();
+    }
+
+    /**
+     * Delete children (factions, api keys) before users — FK order. The test
+     * H2 DB is shared across @SpringBootTest classes, so this runs both before
+     * and after each test to keep a leftover row from this class from blocking
+     * another class's userRepository.deleteAll().
+     */
+    private void clearDatabase() {
         factionRepository.deleteAll();
         apiKeyRepository.deleteAll();
         userRepository.deleteAll();
