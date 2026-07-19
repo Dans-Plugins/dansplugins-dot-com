@@ -6,6 +6,7 @@ import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.repository.FactionRepository;
 import com.dansplugins.api.repository.UserRepository;
 import com.dansplugins.api.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,11 +51,26 @@ class FactionControllerTest {
 
     @BeforeEach
     void setUp() {
+        clearDatabase();
+        User user = userService.getOrCreate("test-user");
+        apiKey = userService.createApiKey(user, "test-server").getRawKey();
+    }
+
+    @AfterEach
+    void tearDown() {
+        clearDatabase();
+    }
+
+    /**
+     * Delete children (factions, api keys) before users — FK order. The test
+     * H2 DB is shared across @SpringBootTest classes, so this runs both before
+     * and after each test to keep a leftover row from this class from blocking
+     * another class's userRepository.deleteAll().
+     */
+    private void clearDatabase() {
         factionRepository.deleteAll();
         apiKeyRepository.deleteAll();
         userRepository.deleteAll();
-        User user = userService.getOrCreate("test-user");
-        apiKey = userService.createApiKey(user, "test-server").getRawKey();
     }
 
     @Test

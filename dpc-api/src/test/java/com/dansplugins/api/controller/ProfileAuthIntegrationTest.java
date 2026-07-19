@@ -4,6 +4,7 @@ import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.repository.LikeRepository;
 import com.dansplugins.api.repository.UserRepository;
 import com.dansplugins.api.service.UserAuthClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,11 +57,25 @@ class ProfileAuthIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Delete children (api keys, likes) before users — both FK to users.
+        clearDatabase();
+        when(userAuthClient.validate("good-token")).thenReturn(Optional.of("alice"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        clearDatabase();
+    }
+
+    /**
+     * Delete children (api keys, likes) before users — both FK to users. The
+     * test H2 DB is shared across @SpringBootTest classes, so this runs both
+     * before and after each test to keep a leftover row from this class from
+     * blocking another class's userRepository.deleteAll().
+     */
+    private void clearDatabase() {
         apiKeyRepository.deleteAll();
         likeRepository.deleteAll();
         userRepository.deleteAll();
-        when(userAuthClient.validate("good-token")).thenReturn(Optional.of("alice"));
     }
 
     @Test
