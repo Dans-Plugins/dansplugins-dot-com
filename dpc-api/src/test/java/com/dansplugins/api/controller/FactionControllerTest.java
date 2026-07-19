@@ -6,6 +6,7 @@ import com.dansplugins.api.repository.ApiKeyRepository;
 import com.dansplugins.api.repository.FactionRepository;
 import com.dansplugins.api.repository.UserRepository;
 import com.dansplugins.api.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,16 @@ class FactionControllerTest {
         userRepository.deleteAll();
         User user = userService.getOrCreate("test-user");
         apiKey = userService.createApiKey(user, "test-server").getRawKey();
+    }
+
+    @AfterEach
+    void tearDown() {
+        // The test H2 DB is shared across @SpringBootTest classes; clean up the rows
+        // (children before users, FK order) so a leftover row can't block another
+        // class's userRepository.deleteAll().
+        factionRepository.deleteAll();
+        apiKeyRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
