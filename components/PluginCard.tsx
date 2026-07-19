@@ -55,9 +55,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{mb: 1.5}}>
                     <Avatar
                         variant="rounded"
-                        src={icon}
-                        alt={icon ? `${title} icon` : undefined}
-                        aria-hidden={!icon}
+                        {...(icon ? {src: icon, alt: `${title} icon`} : {'aria-hidden': true})}
                         sx={{
                             bgcolor: colorForTitle(title),
                             width: 40,
