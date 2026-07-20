@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Plugin cards now show each plugin's real branded icon (from `public/icons/`) instead of a generated letter avatar where one is mapped in `plugins.json`; plugins without a mapped icon still fall back to the letter avatar (#214).
+
 ## [0.14.0] – 2026-06-14
 
 ### Added

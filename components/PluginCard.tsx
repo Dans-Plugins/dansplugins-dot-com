@@ -17,6 +17,7 @@ interface PluginCardProps {
     githubLink: string;
     spigotmcLink?: string;
     bStatsId?: string;
+    icon?: string;
     serverCount?: number | null;
     likeCount: number;
     liked: boolean;
@@ -42,6 +43,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
     description,
     githubLink,
     spigotmcLink,
+    icon,
     serverCount,
     likeCount,
     liked,
@@ -53,7 +55,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{mb: 1.5}}>
                     <Avatar
                         variant="rounded"
-                        aria-hidden
+                        {...(icon ? {src: icon, alt: `${title} icon`} : {'aria-hidden': true})}
                         sx={{
                             bgcolor: colorForTitle(title),
                             width: 40,
