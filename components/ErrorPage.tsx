@@ -4,6 +4,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import TopBar from './TopBar';
 import Seo from './Seo';
 import BottomBar from './BottomBar';
+import {NextLinkComposed} from './NextLinkComposed';
 import {pageStyle, sectionHeaderStyle} from '../styles/styles';
 
 const version = require('../package.json').version;
@@ -28,7 +29,7 @@ const ErrorPage: React.FC<{code: string; title: string; message: string}> = ({co
             <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
                 {message}
             </Typography>
-            <Button variant="contained" startIcon={<HomeIcon/>} href="/">
+            <Button variant="contained" startIcon={<HomeIcon/>} component={NextLinkComposed} to="/">
                 Back to home
             </Button>
         </Container>

@@ -25,6 +25,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
+import {NextLinkComposed} from '../components/NextLinkComposed'
 import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 import {getMyLikes, type LikedTarget} from '../services/likeService'
 import {resolveLikedItems} from '../utils/likedItems'
@@ -412,7 +413,7 @@ const AccountPage: NextPage = () => {
                                     <Typography variant="body2" color="text.secondary" gutterBottom>
                                         Member since {new Date(profile.createdAt).toLocaleDateString()}
                                         {' · '}
-                                        <Box component="a" href={`/u/${profile.username}`} sx={{color: 'primary.main'}}>
+                                        <Box component={NextLinkComposed} to={`/u/${profile.username}`} sx={{color: 'primary.main'}}>
                                             View your public profile
                                         </Box>
                                     </Typography>
@@ -470,7 +471,7 @@ const AccountPage: NextPage = () => {
                                     <List disablePadding>
                                         {likedItems.map((item) => (
                                             <ListItem key={item.key} disablePadding>
-                                                <ListItemButton component="a" href={item.href}>
+                                                <ListItemButton component={NextLinkComposed} to={item.href}>
                                                     <ListItemText primary={item.title}/>
                                                     <Chip
                                                         label={item.targetType}
@@ -485,9 +486,9 @@ const AccountPage: NextPage = () => {
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
                                         You haven&apos;t liked any plugins or guides yet. Browse the{' '}
-                                        <Box component="a" href="/#plugins" sx={{color: 'primary.main'}}>plugins</Box>
+                                        <Box component={NextLinkComposed} to="/#plugins" sx={{color: 'primary.main'}}>plugins</Box>
                                         {' '}or{' '}
-                                        <Box component="a" href="/guides" sx={{color: 'primary.main'}}>guides</Box>
+                                        <Box component={NextLinkComposed} to="/guides" sx={{color: 'primary.main'}}>guides</Box>
                                         {' '}and tap the like button.
                                     </Typography>
                                 )}
