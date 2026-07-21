@@ -262,6 +262,27 @@ export const infoCardIconSizeStyle = {
 };
 
 /**
+ * Mobile navigation drawer surface, matching the app bar's colour.
+ */
+export const navDrawerPaperStyle = (theme: Theme) => ({
+    width: 260,
+    backgroundColor: theme.palette.mode === 'dark' ? '#161b22' : theme.palette.primary.main,
+    color: theme.palette.primary.contrastText,
+});
+
+/**
+ * Section label inside the mobile navigation drawer (e.g. "Community").
+ */
+export const navDrawerSectionLabelStyle = (theme: Theme) => ({
+    paddingX: theme.spacing(2),
+    paddingTop: theme.spacing(2),
+    opacity: 0.7,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    fontSize: '0.75rem',
+});
+
+/**
  * Plugin card layout with fixed height
  */
 export const pluginCardStyle = {
