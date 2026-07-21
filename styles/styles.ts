@@ -283,6 +283,16 @@ export const navDrawerSectionLabelStyle = (theme: Theme) => ({
 });
 
 /**
+ * Divider between the primary links and the Community section in the mobile
+ * navigation drawer. Always a light line since the drawer surface is the
+ * app bar colour (dark enough in both palette modes) rather than the
+ * default paper background.
+ */
+export const navDrawerDividerStyle = {
+    borderColor: 'rgba(255,255,255,0.12)',
+};
+
+/**
  * Plugin card layout with fixed height
  */
 export const pluginCardStyle = {

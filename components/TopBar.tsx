@@ -34,7 +34,8 @@ import {
     toggleSwitchBoxStyle,
     flexContainerStyle,
     navDrawerPaperStyle,
-    navDrawerSectionLabelStyle
+    navDrawerSectionLabelStyle,
+    navDrawerDividerStyle
 } from '../styles/styles';
 
 interface NavLink {
@@ -166,7 +167,7 @@ const NavDrawer: React.FC<{
             <ListItemButton component={NextLinkComposed} to="/account" selected={isActiveNavLink(pathname, '/account')}>
                 <ListItemText primary={accountLabel}/>
             </ListItemButton>
-            <Divider sx={{borderColor: 'rgba(255,255,255,0.12)'}}/>
+            <Divider sx={navDrawerDividerStyle}/>
             <Typography variant="overline" sx={(theme) => navDrawerSectionLabelStyle(theme)} component="div">
                 Community
             </Typography>
