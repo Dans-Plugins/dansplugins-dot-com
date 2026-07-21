@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar';
 import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
+import {NextLinkComposed} from '../components/NextLinkComposed';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -41,8 +42,8 @@ const Guides: NextPage = () => (
                     {guides.map((plugin, index) => (
                         <ListItem key={plugin.id} disablePadding divider={index < guides.length - 1}>
                             <ListItemButton
-                                component="a"
-                                href={`/guides/${plugin.id}`}
+                                component={NextLinkComposed}
+                                to={`/guides/${plugin.id}`}
                             >
                                 <ListItemText primary={`${plugin.title} Guide`}/>
                                 <ChevronRightIcon fontSize="small" color="action"/>

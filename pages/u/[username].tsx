@@ -19,6 +19,7 @@ import React, {useEffect, useState} from 'react'
 import TopBar from '../../components/TopBar'
 import Seo from '../../components/Seo'
 import BottomBar from '../../components/BottomBar'
+import {NextLinkComposed} from '../../components/NextLinkComposed'
 import {pageStyle, sectionHeaderStyle} from '../../styles/styles'
 import {getPublicProfile, type PublicProfile} from '../../services/profileService'
 import {resolveLikedItems} from '../../utils/likedItems'
@@ -113,7 +114,7 @@ const PublicProfilePage: NextPage = () => {
                                     <List disablePadding>
                                         {likedItems.map((item) => (
                                             <ListItem key={item.key} disablePadding>
-                                                <ListItemButton component="a" href={item.href}>
+                                                <ListItemButton component={NextLinkComposed} to={item.href}>
                                                     <ListItemText primary={item.title}/>
                                                     <Chip
                                                         label={item.targetType}

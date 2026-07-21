@@ -3,6 +3,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {useRouter} from 'next/router';
 import React, {useContext, useEffect, useState} from 'react';
 import {ColorModeToggleSwitch} from './ColorModeToggleSwitch';
+import {NextLinkComposed} from './NextLinkComposed';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {isActiveNavLink} from '../utils/nav';
 import {usernameFromToken} from '../utils/authToken';
@@ -24,9 +25,9 @@ const NavButton: React.FC<{ href: string; active?: boolean; children: React.Reac
     return (
         <Button
             color="inherit"
-            href={href}
-            target={isExternal ? '_blank' : undefined}
-            rel={isExternal ? 'noopener noreferrer' : undefined}
+            {...(isExternal
+                ? {href, target: '_blank', rel: 'noopener noreferrer'}
+                : {component: NextLinkComposed, to: href})}
             endIcon={isExternal ? <OpenInNewIcon fontSize="small"/> : undefined}
             aria-current={active ? 'page' : undefined}
             sx={(theme) => ({
@@ -49,7 +50,8 @@ const BrandName: React.FC = () => (
     // The wordmark links home — the near-universal "click the logo to return to
     // the home page" convention.
     <Link
-        href="/"
+        component={NextLinkComposed}
+        to="/"
         underline="none"
         color="inherit"
         sx={(theme) => ({...brandNameStyle(theme), display: 'inline-block'})}

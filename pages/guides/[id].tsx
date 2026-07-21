@@ -8,6 +8,7 @@ import TopBar from '../../components/TopBar';
 import Seo from '../../components/Seo';
 import GuideLikeButton from '../../components/GuideLikeButton';
 import BottomBar from '../../components/BottomBar';
+import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {userGuideUrl, userGuideRawUrl} from '../../utils/guides';
 
@@ -87,7 +88,7 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
         <Seo title={`${title} Guide`} description={`User guide for the ${title} plugin from Dan's Plugins Community.`}/>
         <TopBar/>
         <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
-            <Button href="/guides" startIcon={<ArrowBackIcon/>} sx={{mb: 2}}>
+            <Button component={NextLinkComposed} to="/guides" startIcon={<ArrowBackIcon/>} sx={{mb: 2}}>
                 All guides
             </Button>
             <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>

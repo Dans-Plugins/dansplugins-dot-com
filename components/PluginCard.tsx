@@ -4,6 +4,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import DnsIcon from '@mui/icons-material/Dns';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LikeButton from './LikeButton';
+import {NextLinkComposed} from './NextLinkComposed';
 import {
     pluginCardStyle,
     pluginCardContentStyle,
@@ -103,8 +104,8 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 <Button
                     size="small"
                     startIcon={<MenuBookIcon/>}
-                    component={Link}
-                    href={`/guides/${id}`}
+                    component={NextLinkComposed}
+                    to={`/guides/${id}`}
                 >
                     Guide
                 </Button>

@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Plugin cards now show each plugin's real branded icon (from `public/icons/`) instead of a generated letter avatar where one is mapped in `plugins.json`; plugins without a mapped icon still fall back to the letter avatar (#214).
 
+### Changed
+
+- Internal navigation (top nav, the wordmark, plugin/guide links, the account and public-profile pages) now routes through `next/link` instead of plain `<a href>`/`<Button href>`, so moving between pages is an instant client-side transition instead of a full page reload. External links (Discord, GitHub, SpigotMC, etc.) and same-page hash anchors are unchanged (#222).
+
 ## [0.14.0] – 2026-06-14
 
 ### Added
