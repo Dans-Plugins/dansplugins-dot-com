@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - Internal navigation (top nav, the wordmark, plugin/guide links, the account and public-profile pages) now routes through `next/link` instead of plain `<a href>`/`<Button href>`, so moving between pages is an instant client-side transition instead of a full page reload. External links (Discord, GitHub, SpigotMC, etc.) and same-page hash anchors are unchanged (#222).
+- The top navigation now collapses into a hamburger menu (a right-hand `Drawer`) below the `md` breakpoint instead of wrapping twelve links into a ragged multi-line block, and the four off-site community links (Discord, Patreon, LinkedIn, RPKit) are grouped behind a "Community" menu/section on both desktop and mobile so the primary in-site nav stays to eight destinations plus Account (#216).
 
 ## [0.14.0] – 2026-06-14
 
