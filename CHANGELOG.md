@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Plugin cards now show each plugin's real branded icon (from `public/icons/`) instead of a generated letter avatar where one is mapped in `plugins.json`; plugins without a mapped icon still fall back to the letter avatar (#214).
+- Pages now emit a canonical URL (`<link rel="canonical">` and `og:url`), built from `NEXT_PUBLIC_BASE_URL`, so query-string and trailing-slash variants of a page are no longer treated as separate resources. The dynamic guide and public-profile routes report their concrete path rather than the bracketed template (#244).
 
 ### Changed
 
