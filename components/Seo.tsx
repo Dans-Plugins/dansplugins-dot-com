@@ -10,7 +10,10 @@ import {absoluteUrl, canonicalPath} from '../utils/seo';
 const SITE_NAME = "Dan's Plugins Community";
 const DEFAULT_DESCRIPTION =
     "Free, open-source plugins for Minecraft servers — Medieval Factions and a catalogue of complementary plugins, all developed in the open and free to use.";
-// The site's own origin, shared with services/visitService.ts. Documented in CONFIG.md.
+// The site's own origin, shared with services/visitService.ts. Documented in
+// CONFIG.md. Read once at module scope rather than through a getter (as
+// visitService does for stubbing in tests): Next.js inlines NEXT_PUBLIC_* at
+// build time, and the canonical URL never varies within a running build.
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 interface SeoProps {

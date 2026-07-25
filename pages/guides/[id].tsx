@@ -88,6 +88,9 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
         <Seo
             title={`${title} Guide`}
             description={`User guide for the ${title} plugin from Dan's Plugins Community.`}
+            // Unlike /u/[username], the id needs no encoding: getServerSideProps
+            // only serves ids that match an entry in the plugins.json catalogue,
+            // and those are plain slugs.
             path={`/guides/${id}`}
         />
         <TopBar/>
