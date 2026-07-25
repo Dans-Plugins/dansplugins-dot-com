@@ -85,7 +85,11 @@ const guideBodyStyle = {
 
 const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) => (
     <Box sx={(theme) => pageStyle(theme)}>
-        <Seo title={`${title} Guide`} description={`User guide for the ${title} plugin from Dan's Plugins Community.`}/>
+        <Seo
+            title={`${title} Guide`}
+            description={`User guide for the ${title} plugin from Dan's Plugins Community.`}
+            path={`/guides/${id}`}
+        />
         <TopBar/>
         <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Button component={NextLinkComposed} to="/guides" startIcon={<ArrowBackIcon/>} sx={{mb: 2}}>

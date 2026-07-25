@@ -17,7 +17,8 @@ const version = require('../package.json').version;
  */
 const ErrorPage: React.FC<{code: string; title: string; message: string}> = ({code, title, message}) => (
     <Box sx={(theme) => pageStyle(theme)}>
-        <Seo title={`${code} — ${title}`} description={message}/>
+        {/* No canonical URL: an error page stands in for a URL that is not a real page. */}
+        <Seo title={`${code} — ${title}`} description={message} path={null}/>
         <TopBar/>
         <Container component="main" id="main" maxWidth="sm" sx={{py: 8, textAlign: 'center'}}>
             <Typography variant="h1" color="primary" sx={{fontWeight: 700}}>

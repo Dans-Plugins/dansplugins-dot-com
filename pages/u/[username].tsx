@@ -54,7 +54,14 @@ const PublicProfilePage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
-            <Seo title={`${heading} — Profile`} description={`The public DPC community profile for ${heading}.`}/>
+            <Seo
+                title={`${heading} — Profile`}
+                description={`The public DPC community profile for ${heading}.`}
+                // The username comes from the router on the client (already
+                // decoded), so the canonical URL is only emitted once it is known,
+                // and the segment is re-encoded to keep the URL well-formed.
+                path={username ? `/u/${encodeURIComponent(username)}` : undefined}
+            />
             <TopBar/>
             <Container component="main" id="main" maxWidth="md" sx={{py: 4}}>
                 {loading ? (
