@@ -13,8 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- The "View the issue" link on a converted feature request now uses MUI's `Link` instead of a bare `<a>`, so it takes the theme's link colour like every other link on the site rather than the browser default (#246).
 - Internal navigation (top nav, the wordmark, plugin/guide links, the account and public-profile pages) now routes through `next/link` instead of plain `<a href>`/`<Button href>`, so moving between pages is an instant client-side transition instead of a full page reload. External links (Discord, GitHub, SpigotMC, etc.) and same-page hash anchors are unchanged (#222).
 - The top navigation now collapses into a hamburger menu (a right-hand `Drawer`) below the `md` breakpoint instead of wrapping twelve links into a ragged multi-line block, and the four off-site community links (Discord, Patreon, LinkedIn, RPKit) are grouped behind a "Community" menu/section on both desktop and mobile so the primary in-site nav stays to eight destinations plus Account (#216).
+
+### Fixed
+
+- The lint instructions in `README.md` and `CONTRIBUTING.md` no longer list `npm run lint` twice under separate "Linux:" and "Windows:" headings, which implied a platform difference that does not exist (#247).
 
 ## [0.14.0] – 2026-06-14
 

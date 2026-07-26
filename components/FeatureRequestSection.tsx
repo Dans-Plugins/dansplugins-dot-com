@@ -5,6 +5,7 @@ import {
     Card,
     CardContent,
     Chip,
+    Link,
     MenuItem,
     Snackbar,
     Stack,
@@ -171,9 +172,9 @@ const FeatureRequestSection: React.FC<FeatureRequestSectionProps> = ({repos, rep
                                         {request.convertedIssueUrl && (
                                             <>
                                                 {' · '}
-                                                <a href={request.convertedIssueUrl} target="_blank" rel="noopener noreferrer">
+                                                <Link href={request.convertedIssueUrl} target="_blank" rel="noopener noreferrer">
                                                     View the issue
-                                                </a>
+                                                </Link>
                                             </>
                                         )}
                                     </Typography>
