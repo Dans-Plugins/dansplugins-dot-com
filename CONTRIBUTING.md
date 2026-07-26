@@ -53,8 +53,7 @@ Issues are grouped into [milestones](https://github.com/Dans-Plugins/dansplugins
 
 Run the linter with:
 
-Linux: `npm run lint`
-Windows: `npm run lint`
+`npm run lint`
 
 For manual testing, start the development server:
 

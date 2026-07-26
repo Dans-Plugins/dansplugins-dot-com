@@ -60,12 +60,6 @@ Please fill out a bug report [here](https://github.com/Dans-Plugins/dansplugins-
 
 ### Lint
 
-Linux:
-
-    npm run lint
-
-Windows:
-
     npm run lint
 
 If you see no errors, the lint check has passed.
