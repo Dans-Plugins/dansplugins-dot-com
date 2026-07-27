@@ -28,7 +28,7 @@ No special software is required to use the website. Simply visit [https://danspl
 ### Browsing Plugin Guides
 
 1. Click **Guides** in the top navigation bar (or visit `/guides`).
-2. Select a plugin from the list to open that plugin's user guide in a new tab.
+2. Select a plugin from the list to open that plugin's user guide on-site (with a "View on GitHub" link if you want the raw source).
 
 ### Viewing the Faction Leaderboard
 

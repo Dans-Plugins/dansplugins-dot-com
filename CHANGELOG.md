@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - The lint instructions in `README.md` and `CONTRIBUTING.md` no longer list `npm run lint` twice under separate "Linux:" and "Windows:" headings, which implied a platform difference that does not exist (#247).
+- `USER_GUIDE.md` no longer claims the Guides page opens a plugin's guide "in a new tab" — guides have rendered on-site at `/guides/[id]` since #163; the doc now describes that behavior and the "View on GitHub" fallback link.
 
 ## [0.14.0] – 2026-06-14
 
