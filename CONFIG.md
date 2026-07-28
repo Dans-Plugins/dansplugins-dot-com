@@ -22,7 +22,7 @@ NEXT_PUBLIC_API_URL=https://api.dansplugins.com
 
 **Type:** string  
 **Default:** `http://localhost:3000`  
-**Description:** The site's own base URL. It is used for two things: calls the frontend makes to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`), and the absolute canonical URL each page advertises to search engines and link scrapers (`<link rel="canonical">` and `og:url`). Set this to the site's public origin when deploying — otherwise server-side rendering cannot reach its own API routes, and shared links will advertise `localhost` URLs. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend.
+**Description:** The site's own base URL. It is used for two things: calls the frontend makes to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`), and the absolute canonical URL each page advertises to search engines and link scrapers (`<link rel="canonical">` and `og:url`). Set this to the site's public origin when deploying — otherwise server-side rendering cannot reach its own API routes, and shared links will advertise `localhost` URLs. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend. Like all `NEXT_PUBLIC_*` variables, it is inlined at **build time**, not read at runtime — with Docker Compose it must be set when running `docker compose up --build` (see [Docker Compose Configuration](#docker-compose-configuration)), not just on the running container.
 
 **Example:**
 
