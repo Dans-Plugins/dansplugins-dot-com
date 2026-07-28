@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - The lint instructions in `README.md` and `CONTRIBUTING.md` no longer list `npm run lint` twice under separate "Linux:" and "Windows:" headings, which implied a platform difference that does not exist (#247).
 - `USER_GUIDE.md` no longer claims the Guides page opens a plugin's guide "in a new tab" — guides have rendered on-site at `/guides/[id]` since #163; the doc now describes that behavior and the "View on GitHub" fallback link.
+- `NEXT_PUBLIC_BASE_URL` is now passed as a Docker build arg and environment variable in `compose.yml` (matching `NEXT_PUBLIC_API_URL`), so it can actually be set when deploying via `docker compose up --build` as `CONFIG.md` already documented. Previously it had no `Dockerfile`/`compose.yml` wiring at all, so the production build always inlined the `http://localhost:3000` default regardless of what was set, and canonical URLs / `og:url` / shared-link previews would always advertise `localhost` (#251).
 
 ## [0.14.0] – 2026-06-14
 
