@@ -59,7 +59,7 @@ API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-
 
 Every page advertises a preview image for shared links (`og:image`, `twitter:image`, with `twitter:card` set to `summary_large_image`), so a dansplugins.com link posted in Discord or on social media renders as a branded card rather than plain text.
 
-- The site-wide card is `public/social-card.png` (1200×630, the size Open Graph consumers expect). Replace that file to rebrand it; keep the dimensions, since `components/Seo.tsx` declares them as `og:image:width`/`og:image:height`.
+- The site-wide card is `public/social-card.png` (1200×630, the size Open Graph consumers expect). Replace that file to rebrand it; keep the dimensions, since `components/Seo.tsx` declares them as `og:image:width`/`og:image:height`. If the new artwork says something different, update `DEFAULT_SOCIAL_IMAGE_ALT` in `components/Seo.tsx` too — it is the `og:image:alt` text describing the card.
 - The URL is made absolute using `NEXT_PUBLIC_BASE_URL`, so that variable must be set to the site's public origin for previews to work anywhere but your own machine.
 - A page can override the image by passing an `image` prop to `Seo` — either a path under `public/` or an absolute URL — or suppress it entirely with `image={null}`. Overrides omit the width/height hints, since only the site card's dimensions are known.
 
