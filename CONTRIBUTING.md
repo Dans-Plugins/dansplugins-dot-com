@@ -51,9 +51,21 @@ Issues are grouped into [milestones](https://github.com/Dans-Plugins/dansplugins
 
 ## Testing
 
+CI runs these checks on every pull request, so run them locally before pushing.
+
+### Frontend
+
 Run the linter with:
 
     npm run lint
+
+Run the unit test suite (test files live in `__tests__/`):
+
+    npm test
+
+Make sure the site builds:
+
+    npm run build
 
 For manual testing, start the development server:
 
@@ -62,6 +74,14 @@ For manual testing, start the development server:
 Or use Docker Compose:
 
     docker compose up
+
+### Backend (`dpc-api/`)
+
+If your change touches the Spring Boot backend in `dpc-api/`, run:
+
+    cd dpc-api && ./mvnw verify
+
+See [`dpc-api/README.md`](dpc-api/README.md) for more details.
 
 ## Questions
 

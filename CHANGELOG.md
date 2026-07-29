@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `USER_GUIDE.md` no longer tells visitors to "click a plugin card" — plugin cards have never been clickable as a whole; the guide now names the actual controls on a card (Guide, GitHub, SpigotMC, and the like button) and documents the home page's search box and sort toggle, which had gone unmentioned since 0.14.0 (#253).
 - `USER_GUIDE.md` no longer claims the Guides page opens a plugin's guide "in a new tab" — guides have rendered on-site at `/guides/[id]` since #163; the doc now describes that behavior and the "View on GitHub" fallback link.
 - `NEXT_PUBLIC_BASE_URL` is now passed as a Docker build arg and environment variable in `compose.yml` (matching `NEXT_PUBLIC_API_URL`), so it can actually be set when deploying via `docker compose up --build` as `CONFIG.md` already documented. Previously it had no `Dockerfile`/`compose.yml` wiring at all, so the production build always inlined the `http://localhost:3000` default regardless of what was set, and canonical URLs / `og:url` / shared-link previews would always advertise `localhost` (#251).
+- `CONTRIBUTING.md`'s Testing section now lists `npm test` and `npm run build` alongside `npm run lint`, and adds a backend (`dpc-api/`) testing step — previously it named only `npm run lint`, so a contributor following it exactly could open a PR that fails CI on the `npm test` and `./mvnw verify` gates the guide never mentioned (#254).
 
 ## [0.14.0] – 2026-06-14
 
