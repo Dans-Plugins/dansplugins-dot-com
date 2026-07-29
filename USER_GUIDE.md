@@ -10,15 +10,21 @@ No special software is required to use the website. Simply visit [https://danspl
 
 1. Open your web browser and navigate to [https://dansplugins.com](https://dansplugins.com).
 2. Browse the list of available DPC plugins on the home page.
-3. Click on any plugin card to learn more about that plugin.
+3. Each plugin has its own card. Use the buttons at the bottom of a card to learn more: **Guide** opens that plugin's user guide on this site, and **GitHub** takes you to its source code and releases.
 
 ## Common Scenarios
 
 ### Finding a Plugin
 
 1. Visit the [home page](https://dansplugins.com).
-2. Browse the plugin cards displayed on the page.
-3. Click a plugin card to open its details or external page.
+2. Browse the plugin cards displayed on the page, or narrow them down:
+   - Type in the **Search plugins…** box to filter by plugin name or description. A "Showing N of M plugins" count appears while a search is active, and the ✕ clears it.
+   - Use the **By Popularity** / **Most Liked** / **Alphabetical** buttons to reorder the catalogue.
+3. Once you have found a plugin, use the buttons on its card:
+   - **Guide** — that plugin's user guide, on this site.
+   - **GitHub** — the plugin's source code and releases.
+   - **SpigotMC** — the plugin's SpigotMC resource page, shown for plugins that have one.
+   - The heart records the plugin in your **My likes** list; you will be prompted to sign in first if you are not already.
 
 ### Reading the Latest News
 
