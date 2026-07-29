@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { absoluteUrl, canonicalPath } from '../utils/seo';
+import { absoluteUrl, canonicalPath, socialImageUrl } from '../utils/seo';
 
 describe('canonicalPath', () => {
     it('returns a plain path unchanged', () => {
@@ -58,5 +58,48 @@ describe('absoluteUrl', () => {
 
     it('works with the local development default', () => {
         expect(absoluteUrl('http://localhost:3000', '/guides')).toBe('http://localhost:3000/guides');
+    });
+});
+
+describe('socialImageUrl', () => {
+    it('resolves a public/ path against the site origin', () => {
+        expect(socialImageUrl('https://dansplugins.com', '/social-card.png'))
+            .toBe('https://dansplugins.com/social-card.png');
+    });
+
+    it('adds a missing leading slash', () => {
+        expect(socialImageUrl('https://dansplugins.com', 'social-card.png'))
+            .toBe('https://dansplugins.com/social-card.png');
+    });
+
+    it('does not double up slashes when the base URL has a trailing slash', () => {
+        expect(socialImageUrl('https://dansplugins.com/', '/social-card.png'))
+            .toBe('https://dansplugins.com/social-card.png');
+    });
+
+    it('passes an already-absolute URL through unchanged', () => {
+        expect(socialImageUrl('https://dansplugins.com', 'https://cdn.example.com/a.png'))
+            .toBe('https://cdn.example.com/a.png');
+        expect(socialImageUrl('https://dansplugins.com', 'http://cdn.example.com/a.png'))
+            .toBe('http://cdn.example.com/a.png');
+        expect(socialImageUrl('https://dansplugins.com', 'HTTPS://cdn.example.com/a.png'))
+            .toBe('HTTPS://cdn.example.com/a.png');
+    });
+
+    it('trims surrounding whitespace', () => {
+        expect(socialImageUrl('https://dansplugins.com', '  /social-card.png  '))
+            .toBe('https://dansplugins.com/social-card.png');
+    });
+
+    it('returns null when there is no image to advertise', () => {
+        expect(socialImageUrl('https://dansplugins.com', null)).toBeNull();
+        expect(socialImageUrl('https://dansplugins.com', undefined)).toBeNull();
+        expect(socialImageUrl('https://dansplugins.com', '')).toBeNull();
+        expect(socialImageUrl('https://dansplugins.com', '   ')).toBeNull();
+    });
+
+    it('works with the local development default', () => {
+        expect(socialImageUrl('http://localhost:3000', '/social-card.png'))
+            .toBe('http://localhost:3000/social-card.png');
     });
 });

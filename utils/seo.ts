@@ -1,6 +1,7 @@
-// Helpers for the canonical URL a page advertises to search engines and link
-// scrapers (`<link rel="canonical">` and `og:url`). Kept pure and separate from
-// components/Seo.tsx so the URL-normalisation rules can be unit-tested.
+// Helpers for the URLs a page advertises to search engines and link scrapers —
+// the canonical URL (`<link rel="canonical">` and `og:url`) and the social
+// preview image (`og:image`). Kept pure and separate from components/Seo.tsx so
+// the URL-normalisation rules can be unit-tested.
 
 // Normalise a route into the single path a page should claim as canonical:
 // query string and fragment removed (so `?utm_source=discord` is not a separate
@@ -25,4 +26,25 @@ export const canonicalPath = (path: string): string | null => {
 export const absoluteUrl = (baseUrl: string, path: string): string => {
     const origin = baseUrl.replace(/\/+$/, '');
     return path === '/' ? `${origin}/` : `${origin}${path}`;
+};
+
+// Resolve the social preview image (`og:image`) to the absolute URL scrapers
+// require — Discord, Twitter/X and friends will not follow a site-relative
+// path. Accepts either a path under `public/` ("/social-card.png", the usual
+// case, resolved against NEXT_PUBLIC_BASE_URL) or an already-absolute URL,
+// which is passed through so a page can point at an externally hosted image.
+// Returns null when there is no image to advertise, so the caller can omit the
+// tag rather than emit an empty one.
+export const socialImageUrl = (baseUrl: string, image: string | null | undefined): string | null => {
+    if (!image) {
+        return null;
+    }
+    const trimmed = image.trim();
+    if (trimmed === '') {
+        return null;
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed;
+    }
+    return absoluteUrl(baseUrl, trimmed.startsWith('/') ? trimmed : `/${trimmed}`);
 };

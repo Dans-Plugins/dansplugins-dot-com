@@ -22,7 +22,7 @@ NEXT_PUBLIC_API_URL=https://api.dansplugins.com
 
 **Type:** string  
 **Default:** `http://localhost:3000`  
-**Description:** The site's own base URL. It is used for two things: calls the frontend makes to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`), and the absolute canonical URL each page advertises to search engines and link scrapers (`<link rel="canonical">` and `og:url`). Set this to the site's public origin when deploying — otherwise server-side rendering cannot reach its own API routes, and shared links will advertise `localhost` URLs. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend. Like all `NEXT_PUBLIC_*` variables, it is inlined at **build time**, not read at runtime — with Docker Compose it must be set when running `docker compose up --build` (see [Docker Compose Configuration](#docker-compose-configuration)), not just on the running container.
+**Description:** The site's own base URL. It is used for two things: calls the frontend makes to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`), and the absolute URLs each page advertises to search engines and link scrapers — the canonical URL (`<link rel="canonical">` and `og:url`) and the social preview image (`og:image`/`twitter:image`, served from `public/social-card.png`). Set this to the site's public origin when deploying — otherwise server-side rendering cannot reach its own API routes, and shared links will advertise `localhost` URLs whose preview image no one outside your machine can load. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend. Like all `NEXT_PUBLIC_*` variables, it is inlined at **build time**, not read at runtime — with Docker Compose it must be set when running `docker compose up --build` (see [Docker Compose Configuration](#docker-compose-configuration)), not just on the running container.
 
 **Example:**
 
@@ -54,6 +54,14 @@ When changing the API port, set `NEXT_PUBLIC_API_URL` to match. This is passed t
 ```bash
 API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
+
+## Social Preview Image
+
+Every page advertises a preview image for shared links (`og:image`, `twitter:image`, with `twitter:card` set to `summary_large_image`), so a dansplugins.com link posted in Discord or on social media renders as a branded card rather than plain text.
+
+- The site-wide card is `public/social-card.png` (1200×630, the size Open Graph consumers expect). Replace that file to rebrand it; keep the dimensions, since `components/Seo.tsx` declares them as `og:image:width`/`og:image:height`.
+- The URL is made absolute using `NEXT_PUBLIC_BASE_URL`, so that variable must be set to the site's public origin for previews to work anywhere but your own machine.
+- A page can override the image by passing an `image` prop to `Seo` — either a path under `public/` or an absolute URL — or suppress it entirely with `image={null}`. Overrides omit the width/height hints, since only the site card's dimensions are known.
 
 ## Editing News Posts
 
