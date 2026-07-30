@@ -68,7 +68,7 @@ Every page advertises a preview image for shared links (`og:image`, `twitter:ima
 The site serves `/robots.txt` and `/sitemap.xml` so search engines know which pages exist and which routes to leave alone. Both are **routes** (`pages/robots.txt.ts` and `pages/sitemap.xml.ts`), not static files under `public/`, because both need absolute URLs built from `NEXT_PUBLIC_BASE_URL` — a static file would have to hard-code an origin.
 
 - **Set `NEXT_PUBLIC_BASE_URL` before deploying.** Otherwise the sitemap advertises `http://localhost:3000` pages and `robots.txt` points at a `localhost` sitemap, both of which are useless to a crawler.
-- The page list lives in `STATIC_SITEMAP_PATHS` in `utils/sitemap.ts`. Add a new top-level page there when you add one; the per-plugin guide pages (`/guides/[id]`) are generated from `pages/data/plugins.json` and need no maintenance.
+- The page list lives in `STATIC_SITEMAP_PATHS` in `utils/sitemap.ts`. Add a new top-level page there when you add one — a test in `__tests__/sitemap.test.ts` walks `pages/` and fails if an addressable page is neither listed in the sitemap nor disallowed below. The per-plugin guide pages (`/guides/[id]`) are generated from `pages/data/plugins.json` and need no maintenance.
 - `robots.txt` disallows `/account` (signed-in only), `/dev` (the developer console), and `/api/` (JSON, not pages) — the `DISALLOWED_CRAWL_PATHS` list in the same file. Public profiles (`/u/[username]`) stay crawlable but are not listed in the sitemap.
 - Neither document is a substitute for indexing controls on individual pages; `robots.txt` is a request, not an access control. Do not rely on it to keep anything private.
 
