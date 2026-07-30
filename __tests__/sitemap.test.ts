@@ -1,3 +1,5 @@
+import {readdirSync} from 'node:fs';
+import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {
     DISALLOWED_CRAWL_PATHS,
@@ -9,6 +11,34 @@ import {
 } from '../utils/sitemap';
 
 const BASE_URL = 'https://dansplugins.com';
+
+// The routes under pages/ that a crawler could ask for, ignoring everything that
+// is not an addressable page: API handlers, Next.js special files (_app,
+// _document), the error pages, dynamic templates (no single URL to list), and the
+// two crawler documents themselves. Used only by the drift guard below, so the
+// path list cannot silently fall behind the pages/ directory.
+const crawlableRoutes = (dir = 'pages', prefix = ''): string[] =>
+    readdirSync(join(process.cwd(), dir), {withFileTypes: true}).flatMap((entry) => {
+        if (entry.isDirectory()) {
+            return entry.name === 'api' ? [] : crawlableRoutes(join(dir, entry.name), `${prefix}/${entry.name}`);
+        }
+        const match = entry.name.match(/^(.*)\.tsx?$/);
+        if (!match) {
+            return [];
+        }
+        const name = match[1];
+        if (
+            name.startsWith('_') ||
+            name === '404' ||
+            name === '500' ||
+            name.includes('[') ||
+            name === 'robots.txt' ||
+            name === 'sitemap.xml'
+        ) {
+            return [];
+        }
+        return [name === 'index' ? prefix || '/' : `${prefix}/${name}`];
+    });
 
 describe('STATIC_SITEMAP_PATHS', () => {
     it('lists only site-relative paths', () => {
@@ -26,6 +56,27 @@ describe('STATIC_SITEMAP_PATHS', () => {
             DISALLOWED_CRAWL_PATHS.some((disallowed) => path.startsWith(disallowed))
         );
         expect(contradictions).toEqual([]);
+    });
+
+    // Drift guard: adding a page under pages/ without deciding what crawlers
+    // should do with it is the failure mode this list has. Every addressable
+    // page must be either offered in the sitemap or explicitly disallowed —
+    // if this fails, add the new route to one of the two lists.
+    it('accounts for every addressable page under pages/', () => {
+        const unaccountedFor = crawlableRoutes().filter(
+            (route) =>
+                !STATIC_SITEMAP_PATHS.includes(route) &&
+                !DISALLOWED_CRAWL_PATHS.some((disallowed) => route.startsWith(disallowed))
+        );
+        expect(unaccountedFor).toEqual([]);
+    });
+
+    it('the drift guard actually finds the site\'s pages', () => {
+        // Guards the guard: a broken directory walk would make the check above
+        // pass vacuously.
+        expect(crawlableRoutes()).toContain('/');
+        expect(crawlableRoutes()).toContain('/news');
+        expect(crawlableRoutes()).toContain('/dev');
     });
 });
 
@@ -76,6 +127,10 @@ describe('guideSitemapPaths', () => {
 
     it('returns nothing when there are no plugins', () => {
         expect(guideSitemapPaths([])).toEqual([]);
+    });
+
+    it('percent-encodes an id so the advertised URL still resolves to the route', () => {
+        expect(guideSitemapPaths(['a b', 'a/b'])).toEqual(['/guides/a%20b', '/guides/a%2Fb']);
     });
 });
 

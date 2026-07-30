@@ -65,9 +65,12 @@ export const sitemapXml = (baseUrl: string, paths: readonly string[]): string =>
 
 // The on-site guide pages (`/guides/[id]`), one per plugin in
 // pages/data/plugins.json. They are reachable from the Guides page, but listing
-// them saves a crawler from having to follow that page's links to find them.
+// them saves a crawler from having to follow that page's links to find them. Ids
+// are percent-encoded as a single path segment — every id today is a plain slug,
+// but Next.js hands `params.id` back decoded, so encoding here is what keeps the
+// advertised URL and the route in agreement whatever an id contains.
 export const guideSitemapPaths = (pluginIds: readonly string[]): string[] =>
-    pluginIds.map((id) => `/guides/${id}`);
+    pluginIds.map((id) => `/guides/${encodeURIComponent(id)}`);
 
 // Render robots.txt: everything is crawlable except the routes above, and the
 // sitemap is advertised as the absolute URL the standard requires.
