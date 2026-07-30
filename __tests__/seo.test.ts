@@ -1,5 +1,21 @@
-import { describe, expect, it } from 'vitest';
-import { absoluteUrl, canonicalPath, socialImageUrl } from '../utils/seo';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { absoluteUrl, canonicalPath, siteBaseUrl, socialImageUrl } from '../utils/seo';
+
+describe('siteBaseUrl', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
+
+    it('uses NEXT_PUBLIC_BASE_URL when it is set', () => {
+        vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://dansplugins.com');
+        expect(siteBaseUrl()).toBe('https://dansplugins.com');
+    });
+
+    it('falls back to the local development origin when it is unset or empty', () => {
+        vi.stubEnv('NEXT_PUBLIC_BASE_URL', '');
+        expect(siteBaseUrl()).toBe('http://localhost:3000');
+    });
+});
 
 describe('canonicalPath', () => {
     it('returns a plain path unchanged', () => {
