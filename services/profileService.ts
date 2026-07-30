@@ -1,8 +1,9 @@
 // Client-side calls to the dpc-api public profile endpoint. Same public API the
 // account/leaderboard pages use.
 import type {LikedTarget} from './likeService'
+import {getApiBaseUrl} from '../utils/apiBase'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345'
+const API_BASE = getApiBaseUrl()
 
 /** A user's public profile — no internal id and no API keys (see dpc-api PublicProfileResponse). */
 export interface PublicProfile {

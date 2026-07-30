@@ -1,6 +1,8 @@
 // Client-side calls to the dpc-api claim endpoints — "I'm working on this" on a
 // backlog issue/PR. A claim is a dpc-api record, not a GitHub assignee.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345';
+import {getApiBaseUrl} from '../utils/apiBase';
+
+const API_BASE = getApiBaseUrl();
 
 export interface Claim {
     repo: string;

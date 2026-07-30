@@ -1,7 +1,9 @@
 // Client-side calls to the dpc-api feature-request endpoints — community
 // plugin ideas, upvoted via the existing like mechanism and (admin-only)
 // convertible into a real GitHub issue.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345';
+import {getApiBaseUrl} from '../utils/apiBase';
+
+const API_BASE = getApiBaseUrl();
 
 export interface FeatureRequest {
     id: string;
