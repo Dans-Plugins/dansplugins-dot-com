@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Plugin cards now show each plugin's real branded icon (from `public/icons/`) instead of a generated letter avatar where one is mapped in `plugins.json`; plugins without a mapped icon still fall back to the letter avatar (#214).
 - Pages now emit a canonical URL (`<link rel="canonical">` and `og:url`), built from `NEXT_PUBLIC_BASE_URL`, so query-string and trailing-slash variants of a page are no longer treated as separate resources. The dynamic guide and public-profile routes report their concrete path rather than the bracketed template (#244).
+- The site now serves `/robots.txt` and `/sitemap.xml`, so search engines are told which pages exist instead of discovering them only by following links. The sitemap lists the top-level pages plus every on-site plugin guide (`/guides/[id]`, generated from `pages/data/plugins.json`); `robots.txt` asks crawlers to skip `/account`, `/dev` and `/api/`, and points at the sitemap. Both are routes built from `NEXT_PUBLIC_BASE_URL` rather than hard-coded static files, backed by a tested `utils/sitemap.ts` helper (#257).
 - Shared links now show a branded preview image instead of a text-only card: a 1200×630 social card (`public/social-card.png`) is advertised as `og:image`/`twitter:image`, and `twitter:card` is now `summary_large_image`. Pages can override the image — or opt out of it — via a new `image` prop on `Seo`, backed by a tested `socialImageUrl` helper (#215).
 
 ### Changed
@@ -25,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `USER_GUIDE.md` no longer claims the Guides page opens a plugin's guide "in a new tab" — guides have rendered on-site at `/guides/[id]` since #163; the doc now describes that behavior and the "View on GitHub" fallback link.
 - `NEXT_PUBLIC_BASE_URL` is now passed as a Docker build arg and environment variable in `compose.yml` (matching `NEXT_PUBLIC_API_URL`), so it can actually be set when deploying via `docker compose up --build` as `CONFIG.md` already documented. Previously it had no `Dockerfile`/`compose.yml` wiring at all, so the production build always inlined the `http://localhost:3000` default regardless of what was set, and canonical URLs / `og:url` / shared-link previews would always advertise `localhost` (#251).
 - `CONTRIBUTING.md`'s Testing section now lists `npm test` and `npm run build` alongside `npm run lint`, and adds a backend (`dpc-api/`) testing step — previously it named only `npm run lint`, so a contributor following it exactly could open a PR that fails CI on the `npm test` and `./mvnw verify` gates the guide never mentioned (#254).
+- `CONTRIBUTING.md` and `.github/copilot-instructions.md` now tell contributors to branch from and target `main`, which is where every pull request has actually gone for months. They previously described a `develop`-based workflow, so a contributor following them exactly would branch from a `develop` that has not moved since 0.13.0 and then have to retarget or rebase the pull request (#249).
 
 ## [0.14.0] – 2026-06-14
 

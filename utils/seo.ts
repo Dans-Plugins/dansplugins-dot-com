@@ -20,6 +20,14 @@ export const canonicalPath = (path: string): string | null => {
     return withoutTrailingSlash === '' ? '/' : withoutTrailingSlash;
 };
 
+// The site's own public origin. Every absolute URL the site advertises — the
+// canonical URL, og:url, og:image, and the crawler documents in utils/sitemap.ts
+// — is built from this. Documented in CONFIG.md. Read through a function so each
+// caller decides when to read it: components/Seo.tsx reads once at module scope
+// (the canonical URL never varies within a running build), while the sitemap and
+// robots.txt routes read per request.
+export const siteBaseUrl = (): string => process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
 // Join the site's own origin to a canonical path. `baseUrl` comes from
 // NEXT_PUBLIC_BASE_URL (documented in CONFIG.md) and may or may not carry a
 // trailing slash; `path` is the output of canonicalPath.

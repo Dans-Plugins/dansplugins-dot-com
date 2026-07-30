@@ -22,7 +22,7 @@ NEXT_PUBLIC_API_URL=https://api.dansplugins.com
 
 **Type:** string  
 **Default:** `http://localhost:3000`  
-**Description:** The site's own base URL. It is used for two things: calls the frontend makes to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`), and the absolute URLs each page advertises to search engines and link scrapers — the canonical URL (`<link rel="canonical">` and `og:url`) and the social preview image (`og:image`/`twitter:image`, served from `public/social-card.png`). Set this to the site's public origin when deploying — otherwise server-side rendering cannot reach its own API routes, and shared links will advertise `localhost` URLs whose preview image no one outside your machine can load. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend. Like all `NEXT_PUBLIC_*` variables, it is inlined at **build time**, not read at runtime — with Docker Compose it must be set when running `docker compose up --build` (see [Docker Compose Configuration](#docker-compose-configuration)), not just on the running container.
+**Description:** The site's own base URL. It is used for three things: calls the frontend makes to its internal Next.js API routes (for example, the visit-counter endpoint at `/api/visits`); the absolute URLs each page advertises to search engines and link scrapers — the canonical URL (`<link rel="canonical">` and `og:url`) and the social preview image (`og:image`/`twitter:image`, served from `public/social-card.png`); and the URLs listed in `/sitemap.xml` and `/robots.txt` (see [Crawler Documents](#crawler-documents)). Set this to the site's public origin when deploying — otherwise server-side rendering cannot reach its own API routes, shared links will advertise `localhost` URLs whose preview image no one outside your machine can load, and the sitemap will hand search engines a list of `localhost` pages. Distinct from `NEXT_PUBLIC_API_URL`, which points at the separate DPC API backend. Like all `NEXT_PUBLIC_*` variables, it is inlined at **build time**, not read at runtime — with Docker Compose it must be set when running `docker compose up --build` (see [Docker Compose Configuration](#docker-compose-configuration)), not just on the running container.
 
 **Example:**
 
@@ -62,6 +62,15 @@ Every page advertises a preview image for shared links (`og:image`, `twitter:ima
 - The site-wide card is `public/social-card.png` (1200×630, the size Open Graph consumers expect). Replace that file to rebrand it; keep the dimensions, since `components/Seo.tsx` declares them as `og:image:width`/`og:image:height`. If the new artwork says something different, update `DEFAULT_SOCIAL_IMAGE_ALT` in `components/Seo.tsx` too — it is the `og:image:alt` text describing the card.
 - The URL is made absolute using `NEXT_PUBLIC_BASE_URL`, so that variable must be set to the site's public origin for previews to work anywhere but your own machine.
 - A page can override the image by passing an `image` prop to `Seo` — either a path under `public/` or an absolute URL — or suppress it entirely with `image={null}`. Overrides omit the width/height hints, since only the site card's dimensions are known.
+
+## Crawler Documents
+
+The site serves `/robots.txt` and `/sitemap.xml` so search engines know which pages exist and which routes to leave alone. Both are **routes** (`pages/robots.txt.ts` and `pages/sitemap.xml.ts`), not static files under `public/`, because both need absolute URLs built from `NEXT_PUBLIC_BASE_URL` — a static file would have to hard-code an origin.
+
+- **Set `NEXT_PUBLIC_BASE_URL` before deploying.** Otherwise the sitemap advertises `http://localhost:3000` pages and `robots.txt` points at a `localhost` sitemap, both of which are useless to a crawler.
+- The page list lives in `STATIC_SITEMAP_PATHS` in `utils/sitemap.ts`. Add a new top-level page there when you add one — a test in `__tests__/sitemap.test.ts` walks `pages/` and fails if an addressable page is neither listed in the sitemap nor disallowed below. The per-plugin guide pages (`/guides/[id]`) are generated from `pages/data/plugins.json` and need no maintenance.
+- `robots.txt` disallows `/account` (signed-in only), `/dev` (the developer console), and `/api/` (JSON, not pages) — the `DISALLOWED_CRAWL_PATHS` list in the same file. Public profiles (`/u/[username]`) stay crawlable but are not listed in the sitemap.
+- Neither document is a substitute for indexing controls on individual pages; `robots.txt` is a request, not an access control. Do not rely on it to keep anything private.
 
 ## Editing News Posts
 

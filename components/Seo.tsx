@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import {useRouter} from 'next/router';
 import React from 'react';
-import {absoluteUrl, canonicalPath, socialImageUrl} from '../utils/seo';
+import {absoluteUrl, canonicalPath, siteBaseUrl, socialImageUrl} from '../utils/seo';
 
 // Shared per-page document metadata: title, description, canonical URL, and
 // Open Graph / Twitter card tags so browser tabs, search engines, and shared
@@ -10,11 +10,12 @@ import {absoluteUrl, canonicalPath, socialImageUrl} from '../utils/seo';
 const SITE_NAME = "Dan's Plugins Community";
 const DEFAULT_DESCRIPTION =
     "Free, open-source plugins for Minecraft servers — Medieval Factions and a catalogue of complementary plugins, all developed in the open and free to use.";
-// The site's own origin, shared with services/visitService.ts. Documented in
-// CONFIG.md. Read once at module scope rather than through a getter (as
-// visitService does for stubbing in tests): Next.js inlines NEXT_PUBLIC_* at
-// build time, and the canonical URL never varies within a running build.
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+// The site's own origin, shared with services/visitService.ts and the crawler
+// routes (pages/sitemap.xml.ts, pages/robots.txt.ts). Documented in CONFIG.md.
+// Read once at module scope rather than per render: Next.js inlines
+// NEXT_PUBLIC_* at build time, and the canonical URL never varies within a
+// running build.
+const BASE_URL = siteBaseUrl();
 // Branded 1200x630 card served from public/. Shown as the preview image
 // whenever a dansplugins.com link is shared (Discord above all, which is where
 // the community lives). The dimensions are the size Open Graph consumers
