@@ -1,6 +1,8 @@
 // Client-side calls to the dpc-api likes endpoints. The base URL is the same
 // public API the leaderboard/account pages use.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345';
+import {getApiBaseUrl} from '../utils/apiBase';
+
+const API_BASE = getApiBaseUrl();
 
 export type LikeTargetType = 'plugin' | 'guide' | 'issue' | 'feature_request';
 

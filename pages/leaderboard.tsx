@@ -29,10 +29,11 @@ import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles'
 import {relativeTimeFrom} from '../utils/relativeTime'
+import {getApiBaseUrl} from '../utils/apiBase'
 
 const version = require('../package.json').version
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345'
+const API_BASE = getApiBaseUrl()
 
 interface Faction {
     id: string

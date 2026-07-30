@@ -30,11 +30,12 @@ import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 import {getMyLikes, type LikedTarget} from '../services/likeService'
 import {resolveLikedItems} from '../utils/likedItems'
 import {badgeLabel} from '../utils/badges'
+import {getApiBaseUrl} from '../utils/apiBase'
 import pluginData from './data/plugins.json'
 
 const version = require('../package.json').version
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345'
+const API_BASE = getApiBaseUrl()
 
 interface ApiKeyInfo {
     id: string

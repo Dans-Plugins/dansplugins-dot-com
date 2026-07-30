@@ -1,6 +1,8 @@
 // Client-side calls to the dpc-api dev-portal backlog endpoints — a read-only
 // mirror of open GitHub issues/PRs across the Dans-Plugins org.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:45345';
+import {getApiBaseUrl} from '../utils/apiBase';
+
+const API_BASE = getApiBaseUrl();
 
 export interface BacklogItem {
     repo: string;
