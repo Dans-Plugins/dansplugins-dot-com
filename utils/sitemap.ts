@@ -12,9 +12,11 @@ export const SITEMAP_ROUTE = '/sitemap.xml';
 
 // The static pages worth offering to a search engine. Deliberately not derived
 // from the contents of pages/ — that directory also holds error pages, API
-// routes, dynamic templates, and the two signed-in-only pages below, none of
-// which belong in a sitemap. Keep this list in step with the top navigation
-// (components/TopBar.tsx) when a page is added or removed.
+// routes, dynamic templates, and the routes listed as off-limits below, none of
+// which belong in a sitemap. Add a new top-level page here when you add one.
+// This is the top navigation (components/TopBar.tsx) minus `/dev`: the Dev
+// Portal is linked for humans but renders nothing until its client-side API
+// calls resolve, so there is nothing there for a crawler to index.
 export const STATIC_SITEMAP_PATHS: readonly string[] = [
     '/',
     '/about',
@@ -26,7 +28,8 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
 ];
 
 // Routes a crawler is asked to skip: `/account` is signed-in-only, `/dev` is the
-// developer console, and `/api/` serves JSON rather than pages. Public profiles
+// developer console (see above), and `/api/` serves JSON rather than pages. This
+// is a request, not access control — nothing here is private. Public profiles
 // (`/u/[username]`) stay crawlable — they are public — but are left out of the
 // sitemap, since the set of usernames is not ours to enumerate.
 export const DISALLOWED_CRAWL_PATHS: readonly string[] = ['/account', '/dev', '/api/'];
