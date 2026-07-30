@@ -63,6 +63,7 @@ All code:
 
 ## Contribution Workflow
 
-- Branch from `develop` for all changes.
-- Open a pull request against `develop`, not `main`.
+- `main` is the trunk. Branch from `main` for all changes.
+- Open a pull request against `main`. The `develop` branch still exists in the
+  repository's history but is no longer used.
 - Reference the related GitHub issue in every pull request description.
