@@ -92,7 +92,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
 
             {(serverCount && serverCount > 0) || latestVersion ? (
                 <Box sx={{px: 2, pb: 1}}>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1}}>
                         {serverCount && serverCount > 0 ? (
                             <Chip
                                 size="small"
