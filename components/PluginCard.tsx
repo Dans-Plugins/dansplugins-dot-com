@@ -3,6 +3,7 @@ import {Avatar, Box, Button, Card, CardActions, CardContent, Chip, Link, Stack, 
 import GitHubIcon from '@mui/icons-material/GitHub';
 import DnsIcon from '@mui/icons-material/Dns';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import LikeButton from './LikeButton';
 import {NextLinkComposed} from './NextLinkComposed';
 import {
@@ -20,6 +21,7 @@ interface PluginCardProps {
     bStatsId?: string;
     icon?: string;
     serverCount?: number | null;
+    latestVersion?: string | null;
     likeCount: number;
     liked: boolean;
     token: string | null;
@@ -46,6 +48,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
     spigotmcLink,
     icon,
     serverCount,
+    latestVersion,
     likeCount,
     liked,
     token
@@ -87,14 +90,26 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 </Typography>
             </CardContent>
 
-            {serverCount && serverCount > 0 ? (
+            {(serverCount && serverCount > 0) || latestVersion ? (
                 <Box sx={{px: 2, pb: 1}}>
-                    <Chip
-                        size="small"
-                        variant="outlined"
-                        icon={<DnsIcon/>}
-                        label={`${serverCount.toLocaleString()} servers`}
-                    />
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {serverCount && serverCount > 0 ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<DnsIcon/>}
+                                label={`${serverCount.toLocaleString()} servers`}
+                            />
+                        ) : null}
+                        {latestVersion ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<NewReleasesIcon/>}
+                                label={`Latest: ${latestVersion}`}
+                            />
+                        ) : null}
+                    </Stack>
                 </Box>
             ) : null}
 

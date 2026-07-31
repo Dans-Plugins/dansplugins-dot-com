@@ -12,6 +12,7 @@ import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
+import { getLatestReleasesWithRateLimit } from '../utils/github';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
 import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience';
@@ -53,6 +54,7 @@ interface Plugin {
 
 interface PluginWithServerCount extends Plugin {
     serverCount?: number | null;
+    latestVersion?: string | null;
 }
 
 interface PluginSectionProps {
@@ -75,6 +77,7 @@ const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, like
                     bStatsId={plugin.bStatsId}
                     icon={plugin.icon}
                     serverCount={plugin.serverCount}
+                    latestVersion={plugin.latestVersion}
                     likeCount={likeCounts[plugin.id] || 0}
                     liked={likedSet.has(plugin.id)}
                     token={token}
@@ -215,11 +218,16 @@ export const getServerSideProps = async () => {
         .map(plugin => plugin.bStatsId as string);
     
     const serverCountsMap = await getServerCountsWithRateLimit(bStatsIds, 5);
-    
-    // Create plugins with server counts
+
+    // Fetch latest release tags for all plugins with rate limiting
+    const githubLinks = pluginData.plugins.map(plugin => plugin.githubLink);
+    const latestReleasesMap = await getLatestReleasesWithRateLimit(githubLinks, 5);
+
+    // Create plugins with server counts and latest release versions
     const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
         ...plugin,
-        serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null
+        serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null,
+        latestVersion: latestReleasesMap.get(plugin.githubLink) ?? null
     }));
 
     return {
