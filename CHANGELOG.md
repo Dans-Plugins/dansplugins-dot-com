@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Pages now emit a canonical URL (`<link rel="canonical">` and `og:url`), built from `NEXT_PUBLIC_BASE_URL`, so query-string and trailing-slash variants of a page are no longer treated as separate resources. The dynamic guide and public-profile routes report their concrete path rather than the bracketed template (#244).
 - The site now serves `/robots.txt` and `/sitemap.xml`, so search engines are told which pages exist instead of discovering them only by following links. The sitemap lists the top-level pages plus every on-site plugin guide (`/guides/[id]`, generated from `pages/data/plugins.json`); `robots.txt` asks crawlers to skip `/account`, `/dev` and `/api/`, and points at the sitemap. Both are routes built from `NEXT_PUBLIC_BASE_URL` rather than hard-coded static files, backed by a tested `utils/sitemap.ts` helper (#257).
 - Shared links now show a branded preview image instead of a text-only card: a 1200×630 social card (`public/social-card.png`) is advertised as `og:image`/`twitter:image`, and `twitter:card` is now `summary_large_image`. Pages can override the image — or opt out of it — via a new `image` prop on `Seo`, backed by a tested `socialImageUrl` helper (#215).
+- The guide page's (`pages/guides/[id].tsx`) `getServerSideProps` — the not-found, successful-fetch, non-ok-response, and network-failure branches — now has unit test coverage, matching the pattern already used for the home page's `getServerSideProps`. No behaviour change.
 
 ### Changed
 
