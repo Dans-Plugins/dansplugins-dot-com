@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `CONTRIBUTING.md`'s Testing section now lists `npm test` and `npm run build` alongside `npm run lint`, and adds a backend (`dpc-api/`) testing step — previously it named only `npm run lint`, so a contributor following it exactly could open a PR that fails CI on the `npm test` and `./mvnw verify` gates the guide never mentioned (#254).
 - `CONTRIBUTING.md` and `.github/copilot-instructions.md` now tell contributors to branch from and target `main`, which is where every pull request has actually gone for months. They previously described a `develop`-based workflow, so a contributor following them exactly would branch from a `develop` that has not moved since 0.13.0 and then have to retarget or rebase the pull request (#249).
 - `.github/workflows/build.yml`'s push trigger no longer lists `develop` alongside `main` — #249 already retired the `develop`-based workflow in the contributor docs, but the CI trigger was missed, so it still fired on pushes to a branch every doc says is unused. `pull_request` triggers (which run on real PRs regardless of target) are unchanged.
+- `CONFIG.md`'s `next.config.js` section now names the two options actually set (`reactStrictMode`, `swcMinify`) with their values and rationale, instead of only linking to the upstream Next.js docs. `swcMinify: false` is noted as a restatement of the default under the pinned `next@12.2.2` (not an active opt-out), which should be revisited on a future Next.js major upgrade (#265).
 
 ## [0.14.0] – 2026-06-14
 
