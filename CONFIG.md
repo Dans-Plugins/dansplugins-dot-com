@@ -118,4 +118,9 @@ Each entry in the `posts` array supports these fields:
 
 ## next.config.js
 
-Additional Next.js configuration is found in `next.config.js` in the project root. Refer to the [Next.js documentation](https://nextjs.org/docs/api-reference/next.config.js/introduction) for all available options.
+Additional Next.js configuration is found in `next.config.js` in the project root. The options actually set there are documented below; refer to the [Next.js documentation](https://nextjs.org/docs/api-reference/next.config.js/introduction) for everything else.
+
+| Option | Value | Why |
+| --- | --- | --- |
+| `reactStrictMode` | `true` | Opts into React's additional development-mode checks (double-invoked effects, deprecated API warnings) to catch issues early. |
+| `swcMinify` | `false` | `next` is pinned at `12.2.2`, where the SWC minifier defaults to `false`; this line restates that default rather than actively opting out of it. Next.js made `swcMinify` default to `true` starting in v13, so this line should be revisited (and can likely be removed) if/when the `next` dependency is upgraded past v12. |
