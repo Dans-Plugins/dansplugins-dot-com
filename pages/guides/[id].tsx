@@ -94,12 +94,12 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
             path={`/guides/${id}`}
         />
         <TopBar/>
-        <Container maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
+        <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Button component={NextLinkComposed} to="/guides" startIcon={<ArrowBackIcon/>} sx={{mb: 2}}>
                 All guides
             </Button>
             <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
-                <Typography variant="h3" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+                <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                     {title} Guide
                 </Typography>
                 <GuideLikeButton guideId={id}/>
