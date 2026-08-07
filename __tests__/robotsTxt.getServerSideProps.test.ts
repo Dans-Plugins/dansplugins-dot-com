@@ -1,14 +1,17 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import type {Mock} from 'vitest';
 import type {GetServerSidePropsContext} from 'next';
 
 import {getServerSideProps} from '../pages/robots.txt';
 
 // The route only touches context.res, so a spy with the three methods it calls
-// covers every branch without constructing a real ServerResponse.
+// covers every branch without constructing a real ServerResponse. The mocks are
+// typed to the arguments the route passes, so a wrong-arity call is a type error
+// rather than something the assertions have to catch.
 interface ResponseSpy {
-    setHeader: ReturnType<typeof vi.fn>;
-    write: ReturnType<typeof vi.fn>;
-    end: ReturnType<typeof vi.fn>;
+    setHeader: Mock<[string, string], void>;
+    write: Mock<[string], boolean>;
+    end: Mock<[], void>;
 }
 
 const createResponseSpy = (): ResponseSpy => ({
@@ -20,7 +23,7 @@ const createResponseSpy = (): ResponseSpy => ({
 const contextWith = (res: ResponseSpy): GetServerSidePropsContext =>
     ({res} as unknown as GetServerSidePropsContext);
 
-const bodyWrittenTo = (res: ResponseSpy): string => String(res.write.mock.calls[0][0]);
+const bodyWrittenTo = (res: ResponseSpy): string => res.write.mock.calls[0][0];
 
 beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://example.test');
