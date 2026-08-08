@@ -124,9 +124,10 @@ path and the editing UI at once. Instead:
    current catalogue. `dpc-api` serves it read-only. The site keeps rendering
    from `plugins.json`, so the switchover carries no risk of a blank home page.
    `__tests__/pluginCatalogue.test.ts` fails if the table and the file disagree
-   on which plugins exist or what they are called — the two fields that break
-   links and lookups if they drift. Descriptions and icons are not compared;
-   they are cosmetic, and the whole comparison is deleted in step 2.
+   on which plugins exist, what they are called, or which repository they point
+   at — the three fields that break links and lookups if they drift.
+   Descriptions and icons are not compared; they are cosmetic, and the whole
+   comparison is deleted in step 2.
 2. The "Editable Plugin Catalogue" phase flips rendering to the API, adds the
    admin editing UI, and deletes `plugins.json` along with its drift guard.
 

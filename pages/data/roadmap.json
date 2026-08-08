@@ -58,7 +58,7 @@
     },
     {
       "title": "Plugin Reviews",
-      "description": "Star ratings and written reviews on each plugin, with reviews from people whose servers actually run the plugin marked as verified, and a reply from the author.",
+      "description": "Star ratings and written reviews on each plugin, each with a reply from the author, kept separate from bug reports so that a rating is never a support ticket in disguise.",
       "status": "Planned"
     },
     {
