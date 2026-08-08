@@ -6,6 +6,7 @@ import {
     SITEMAP_ROUTE,
     STATIC_SITEMAP_PATHS,
     guideSitemapPaths,
+    resourceSitemapPaths,
     robotsTxt,
     sitemapXml
 } from '../utils/sitemap';
@@ -131,6 +132,27 @@ describe('guideSitemapPaths', () => {
 
     it('percent-encodes an id so the advertised URL still resolves to the route', () => {
         expect(guideSitemapPaths(['a b', 'a/b'])).toEqual(['/guides/a%20b', '/guides/a%2Fb']);
+    });
+});
+
+describe('resourceSitemapPaths', () => {
+    it('maps plugin ids onto their on-site resource routes', () => {
+        expect(resourceSitemapPaths(['medieval-factions', 'fiefs']))
+            .toEqual(['/resources/medieval-factions', '/resources/fiefs']);
+    });
+
+    it('returns nothing when there are no plugins', () => {
+        expect(resourceSitemapPaths([])).toEqual([]);
+    });
+
+    it('percent-encodes an id so the advertised URL still resolves to the route', () => {
+        expect(resourceSitemapPaths(['a b', 'a/b'])).toEqual(['/resources/a%20b', '/resources/a%2Fb']);
+    });
+
+    it('advertises a resource page separately from that plugin\'s guide page', () => {
+        // The two are different documents about the same plugin; listing only one
+        // would leave the other findable solely by following links.
+        expect(resourceSitemapPaths(['fiefs'])).not.toEqual(guideSitemapPaths(['fiefs']));
     });
 });
 

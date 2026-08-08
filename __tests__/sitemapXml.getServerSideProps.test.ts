@@ -80,6 +80,17 @@ describe('sitemap.xml getServerSideProps', () => {
         });
     });
 
+    // Same reasoning as the guide URLs above: sourced from the catalogue, so this
+    // fails if the route stops feeding it through resourceSitemapPaths.
+    it('lists a resource URL for every plugin in the catalogue', async () => {
+        const body = await renderSitemap();
+
+        expect(pluginData.plugins.length).toBeGreaterThan(0);
+        pluginData.plugins.forEach((plugin) => {
+            expect(body).toContain(`<loc>https://example.test/resources/${plugin.id}</loc>`);
+        });
+    });
+
     it('reads NEXT_PUBLIC_BASE_URL per request rather than caching it at import time', async () => {
         const first = await renderSitemap();
 

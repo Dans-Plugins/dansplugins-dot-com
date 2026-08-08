@@ -12,6 +12,22 @@ export function parseGithubRepo(githubLink: string): string | undefined {
 }
 
 /**
+ * The repository's releases page, where its downloadable builds live.
+ *
+ * DPC deliberately does not host plugin files: every plugin publishes its
+ * builds as GitHub release assets, so the download path points there rather
+ * than at a mirror this site would have to store, scan and defend. See
+ * RESOURCE_HUB.md.
+ *
+ * @param githubLink The repository's GitHub URL
+ * @returns The releases URL, or undefined if the link isn't a repository URL
+ */
+export function releasesUrl(githubLink: string): string | undefined {
+    const repo = parseGithubRepo(githubLink);
+    return repo ? `https://github.com/${repo}/releases` : undefined;
+}
+
+/**
  * Fetches the latest release tag for a GitHub repository.
  * @param githubLink The repository's GitHub URL
  * @returns The latest release tag name, or undefined if unavailable/error
