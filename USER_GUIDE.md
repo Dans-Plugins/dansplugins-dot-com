@@ -10,7 +10,7 @@ No special software is required to use the website. Simply visit [https://danspl
 
 1. Open your web browser and navigate to [https://dansplugins.com](https://dansplugins.com).
 2. Browse the list of available DPC plugins on the home page.
-3. Each plugin has its own card. Use the buttons at the bottom of a card to learn more: **Guide** opens that plugin's user guide on this site, and **GitHub** takes you to its source code and releases.
+3. Each plugin has its own card. Use the buttons at the bottom of a card to learn more: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases.
 
 ## Common Scenarios
 
@@ -21,10 +21,22 @@ No special software is required to use the website. Simply visit [https://danspl
    - Type in the **Search plugins…** box to filter by plugin name or description. A "Showing N of M plugins" count appears while a search is active, and the ✕ clears it.
    - Use the **By Popularity** / **Most Liked** / **Alphabetical** buttons to reorder the catalogue.
 3. Once you have found a plugin, use the buttons on its card:
+   - **Details** — that plugin's own page on this site (see below). Its name is a link to the same place.
    - **Guide** — that plugin's user guide, on this site.
    - **GitHub** — the plugin's source code and releases.
    - **SpigotMC** — the plugin's SpigotMC resource page, shown for plugins that have one.
    - The heart records the plugin in your **My likes** list; you will be prompted to sign in first if you are not already.
+
+### Viewing a Plugin's Page
+
+1. From the home page, click a plugin's name or its **Details** button (or visit `/resources/<plugin>` directly — for example `/resources/medieval-factions`).
+2. The page shows the plugin's description, how many servers are running it, and its latest release version, along with the heart to like it.
+3. Use the buttons to act on it:
+   - **Download** — the plugin's releases on GitHub, where its builds are published. The website does not host plugin files itself.
+   - **User guide** — the same guide reachable from the Guides page.
+   - **Source** — the plugin's source code.
+   - **SpigotMC** — its SpigotMC page, for plugins that have one.
+4. At the bottom, **Report a bug** opens a new issue on that plugin's issue tracker, and **Suggest a feature** goes to the Dev Portal, where ideas can be submitted and upvoted.
 
 ### Reading the Latest News
 

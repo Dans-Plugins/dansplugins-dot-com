@@ -6,7 +6,7 @@ import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import Seo from '../../components/Seo';
-import GuideLikeButton from '../../components/GuideLikeButton';
+import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import BottomBar from '../../components/BottomBar';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
@@ -102,7 +102,7 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
                 <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                     {title} Guide
                 </Typography>
-                <GuideLikeButton guideId={id}/>
+                <SelfLoadingLikeButton targetType="guide" targetId={id}/>
             </Box>
 
             {markdown ? (

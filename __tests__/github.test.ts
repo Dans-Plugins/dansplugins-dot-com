@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getLatestRelease, getLatestReleasesWithRateLimit, parseGithubRepo } from '../utils/github';
+import { getLatestRelease, getLatestReleasesWithRateLimit, parseGithubRepo, releasesUrl } from '../utils/github';
 
 const stubFetch = (response: Partial<Response>) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response as Response));
@@ -26,6 +26,22 @@ describe('parseGithubRepo', () => {
 
     it('returns undefined for a non-GitHub URL', () => {
         expect(parseGithubRepo('https://example.com/Dans-Plugins/Activity-Tracker')).toBeUndefined();
+    });
+});
+
+describe('releasesUrl', () => {
+    it('points at the repository\'s releases page', () => {
+        expect(releasesUrl('https://github.com/Dans-Plugins/Activity-Tracker'))
+            .toBe('https://github.com/Dans-Plugins/Activity-Tracker/releases');
+    });
+
+    it('normalises a trailing slash rather than doubling it', () => {
+        expect(releasesUrl('https://github.com/Dans-Plugins/Fiefs/'))
+            .toBe('https://github.com/Dans-Plugins/Fiefs/releases');
+    });
+
+    it('returns undefined for a non-GitHub URL, so callers can omit the download link', () => {
+        expect(releasesUrl('https://example.com/not/a/repo')).toBeUndefined();
     });
 });
 

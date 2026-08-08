@@ -5,6 +5,7 @@
 // path list and the generated text can be unit-tested without a request.
 
 import {absoluteUrl} from './seo';
+import {resourcePath} from './resources';
 
 // The route the sitemap is served from, referenced by both the sitemap route
 // itself and the `Sitemap:` line in robots.txt.
@@ -71,6 +72,14 @@ export const sitemapXml = (baseUrl: string, paths: readonly string[]): string =>
 // advertised URL and the route in agreement whatever an id contains.
 export const guideSitemapPaths = (pluginIds: readonly string[]): string[] =>
     pluginIds.map((id) => `/guides/${encodeURIComponent(id)}`);
+
+// The on-site resource pages (`/resources/[slug]`), one per plugin. These are
+// the pages a search engine should rank for a plugin's name — the home page
+// carries the whole catalogue at once, so it can rank for none of them
+// individually. The path shape comes from utils/resources.ts rather than being
+// spelled again here, so a link on the site and its sitemap entry cannot differ.
+export const resourceSitemapPaths = (pluginIds: readonly string[]): string[] =>
+    pluginIds.map(resourcePath);
 
 // Render robots.txt: everything is crawlable except the routes above, and the
 // sitemap is advertised as the absolute URL the standard requires.

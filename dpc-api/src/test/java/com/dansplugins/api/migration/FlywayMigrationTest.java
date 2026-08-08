@@ -1,7 +1,9 @@
 package com.dansplugins.api.migration;
 
 import com.dansplugins.api.entity.Faction;
+import com.dansplugins.api.entity.Plugin;
 import com.dansplugins.api.repository.FactionRepository;
+import com.dansplugins.api.repository.PluginRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +80,9 @@ class FlywayMigrationTest {
     @Autowired
     private FactionRepository factionRepository;
 
+    @Autowired
+    private PluginRepository pluginRepository;
+
     @Test
     void migrationsApplyAndEntityShapeMatches() {
         // Reaching this assertion proves Flyway applied every V*.sql against
@@ -96,5 +101,28 @@ class FlywayMigrationTest {
         assertThat(loaded.getName()).isEqualTo("Knights");
         assertThat(loaded.getServerId()).isEqualTo("server-1");
         assertThat(loaded.getMemberCount()).isEqualTo(5);
+    }
+
+    @Test
+    void pluginCatalogueSeedApplies() {
+        // V15 seeds the catalogue inline rather than leaving the table empty, so
+        // this is where that SQL is actually executed — including the escaped
+        // apostrophes in "Dan's Essentials", which a plain syntax check wouldn't
+        // catch. The count is asserted loosely: the seed grows whenever a plugin
+        // is added, and this test shouldn't have to be edited each time.
+        assertThat(pluginRepository.count()).isGreaterThanOrEqualTo(16);
+
+        Plugin flagship = pluginRepository.findBySlug("medieval-factions").orElseThrow();
+        assertThat(flagship.getTitle()).isEqualTo("Medieval Factions");
+        assertThat(flagship.getGithubUrl()).isEqualTo("https://github.com/Dans-Plugins/Medieval-Factions");
+        assertThat(flagship.getCreatedAt()).isNotNull();
+
+        assertThat(pluginRepository.findBySlug("dans-essentials").orElseThrow().getTitle())
+                .isEqualTo("Dan's Essentials");
+
+        // The catalogue file spells "no SpigotMC page" as ""; the table stores NULL.
+        Plugin unpublished = pluginRepository.findBySlug("medieval-cookery").orElseThrow();
+        assertThat(unpublished.getSpigotmcUrl()).isNull();
+        assertThat(unpublished.getBstatsId()).isNull();
     }
 }

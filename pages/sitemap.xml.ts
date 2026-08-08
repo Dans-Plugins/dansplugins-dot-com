@@ -1,6 +1,6 @@
 import type {GetServerSideProps} from 'next';
 import {siteBaseUrl} from '../utils/seo';
-import {STATIC_SITEMAP_PATHS, guideSitemapPaths, sitemapXml} from '../utils/sitemap';
+import {STATIC_SITEMAP_PATHS, guideSitemapPaths, resourceSitemapPaths, sitemapXml} from '../utils/sitemap';
 
 // Serves /sitemap.xml. A route rather than a static file under public/ because
 // the URLs must be absolute and the origin is environment-specific
@@ -14,9 +14,11 @@ interface GuidePlugin {
 const pluginData = require('./data/plugins.json') as { plugins: GuidePlugin[] };
 
 export const getServerSideProps: GetServerSideProps = async ({res}) => {
+    const pluginIds = pluginData.plugins.map((plugin) => plugin.id);
     const paths = [
         ...STATIC_SITEMAP_PATHS,
-        ...guideSitemapPaths(pluginData.plugins.map((plugin) => plugin.id))
+        ...resourceSitemapPaths(pluginIds),
+        ...guideSitemapPaths(pluginIds)
     ];
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.write(sitemapXml(siteBaseUrl(), paths));

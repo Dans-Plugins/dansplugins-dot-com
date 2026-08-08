@@ -313,4 +313,8 @@ export const pluginCardContentStyle = {
  */
 export const pluginCardActionsStyle = {
     flexGrow: 0,
+    // The actions row grew a link to the plugin's resource page; wrap rather
+    // than overflow it on a narrow card.
+    flexWrap: 'wrap',
+    rowGap: 1,
 };

@@ -11,6 +11,8 @@ import {
     pluginCardContentStyle,
     pluginCardActionsStyle,
 } from '../styles/styles';
+import {colorForTitle} from '../utils/pluginAvatar';
+import {resourcePath} from '../utils/resources';
 
 interface PluginCardProps {
     id: string;
@@ -26,19 +28,6 @@ interface PluginCardProps {
     liked: boolean;
     token: string | null;
 }
-
-// A small, fixed palette of muted brand-ish colours. Each plugin gets a stable
-// colour derived from its title so cards have a bit of visual identity without
-// being random on every render.
-const AVATAR_COLORS = ['#4263eb', '#7048e8', '#1098ad', '#f59f00', '#e8590c', '#0ca678'];
-
-const colorForTitle = (title: string): string => {
-    let hash = 0;
-    for (let i = 0; i < title.length; i++) {
-        hash = (hash * 31 + title.charCodeAt(i)) >>> 0;
-    }
-    return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-};
 
 const PluginCard: React.FC<PluginCardProps> = ({
     id,
@@ -71,7 +60,15 @@ const PluginCard: React.FC<PluginCardProps> = ({
                         {title.charAt(0).toUpperCase()}
                     </Avatar>
                     <Typography variant="h6" component="div" sx={{fontWeight: 600, lineHeight: 1.2}}>
-                        {title}
+                        {/* The plugin's name is the obvious thing to click for more about it. */}
+                        <Link
+                            component={NextLinkComposed}
+                            to={resourcePath(id)}
+                            underline="hover"
+                            color="inherit"
+                        >
+                            {title}
+                        </Link>
                     </Typography>
                 </Stack>
                 <Typography
@@ -117,6 +114,14 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 <LikeButton targetType="plugin" targetId={id} count={likeCount} liked={liked} token={token}/>
                 <Box sx={{flexGrow: 1}}/>
                 <Button
+                    variant="contained"
+                    size="small"
+                    component={NextLinkComposed}
+                    to={resourcePath(id)}
+                >
+                    Details
+                </Button>
+                <Button
                     size="small"
                     startIcon={<MenuBookIcon/>}
                     component={NextLinkComposed}
@@ -125,7 +130,6 @@ const PluginCard: React.FC<PluginCardProps> = ({
                     Guide
                 </Button>
                 <Button
-                    variant="contained"
                     size="small"
                     startIcon={<GitHubIcon/>}
                     component={Link}
