@@ -324,4 +324,4 @@ cd dpc-api
 ./mvnw clean package -DskipTests
 ```
 
-The runnable JAR is produced at `target/dpc-api-0.1.0-SNAPSHOT.jar`.
+The runnable JAR is produced at `target/dpc-api-0.2.0-SNAPSHOT-8-8-2026.jar`.
