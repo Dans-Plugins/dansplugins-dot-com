@@ -8,12 +8,32 @@
     },
     {
       "title": "Factions Leaderboard",
-      "description": "A public leaderboard on the website showing community factions synced from participating servers.",
+      "description": "A public leaderboard on the website showing community factions synced from participating servers, each row carrying the server's IP, its Discord, and how recently it last synced.",
       "status": "Completed"
     },
     {
       "title": "Account Management & API Keys",
       "description": "Register an account and manage API keys used by plugins to sync data.",
+      "status": "Completed"
+    },
+    {
+      "title": "Community Profiles & Likes",
+      "description": "One identity for the whole site, provided by the shared UserAuth service: sign in, keep a profile with a display name, avatar and bio, and like plugins and guides. Every profile is public at /u/{username}, likes drive a \"Most Liked\" sort in the catalogue, and a Server Owner badge is derived for anyone whose server syncs with DPC.",
+      "status": "Completed"
+    },
+    {
+      "title": "On-Site Plugin Guides",
+      "description": "Every plugin's user guide rendered on the site at /guides/{plugin}, read from the plugin's own repository, instead of linking visitors out to raw GitHub markdown.",
+      "status": "Completed"
+    },
+    {
+      "title": "Resource Pages",
+      "description": "A page of its own for every plugin at /resources/{plugin}, gathering its description, install count, latest release, guide and links in one place instead of a card on the home page. Bug reports route to the plugin's issue tracker and feature ideas to the Dev Portal, so a resource page never becomes a support queue.",
+      "status": "Completed"
+    },
+    {
+      "title": "Dev Portal",
+      "description": "A public backlog console at /dev mirroring the open issues and pull requests across DPC repositories, where visitors can register interest in an item, claim one to work on, and submit a feature request for a maintainer to convert into a GitHub issue.",
       "status": "Completed"
     },
     {
@@ -23,7 +43,7 @@
     },
     {
       "title": "Automated Test Harness",
-      "description": "A Vitest test suite, run in CI, covering the site's highest-value logic.",
+      "description": "A Vitest test suite, run in CI, covering the site's highest-value logic, alongside the dpc-api backend's own test suite.",
       "status": "Completed"
     },
     {
@@ -38,17 +58,22 @@
     },
     {
       "title": "UX & Accessibility Improvements",
-      "description": "A dark/light theme that persists and follows the operating-system preference, current-page navigation highlighting, consistent new-tab external links, keyboard-accessible cards, and in-place error retry on the leaderboard.",
+      "description": "A dark/light theme that persists and follows the operating-system preference, current-page navigation highlighting, a navigation bar that collapses into a menu on small screens, instant client-side page transitions, consistent new-tab external links, keyboard-accessible cards, per-page headings and landmarks with a skip-to-content link, and in-place error retry on the leaderboard.",
       "status": "Completed"
     },
     {
-      "title": "Discord Announcements in News",
-      "description": "Automatically pull announcements from the community Discord server into the News feed alongside hand-written posts.",
+      "title": "Search Visibility & Link Previews",
+      "description": "Page titles, descriptions and canonical URLs, a robots.txt and a sitemap listing every guide and resource page, and a branded preview image so a shared link shows more than a line of text.",
+      "status": "Completed"
+    },
+    {
+      "title": "Minecraft-Version Compatibility",
+      "description": "Answering a server owner's first question — will this run on my server? — on the card itself. The latest release is now shown per plugin; the supported Minecraft versions still are not, and that half remains open.",
       "status": "In Progress"
     },
     {
-      "title": "Resource Pages",
-      "description": "A page of its own for every plugin, gathering its description, install count, latest release, guide and links in one place instead of a card on the home page.",
+      "title": "Badges & Roles on Profiles",
+      "description": "Recognition on a profile for what someone has done in the community. Server Owner is awarded already, derived from owning an API key; contributor, plugin author and early adopter still need a way to be granted.",
       "status": "In Progress"
     },
     {
@@ -59,6 +84,11 @@
     {
       "title": "Plugin Reviews",
       "description": "Star ratings and written reviews on each plugin, each with a reply from the author, kept separate from bug reports so that a rating is never a support ticket in disguise.",
+      "status": "Planned"
+    },
+    {
+      "title": "Verified Reviews",
+      "description": "A mark on a review showing it comes from someone whose server actually runs the plugin. Nothing reported to the API today identifies which plugins a server runs, so this needs a per-plugin install report from the plugins themselves before the mark can mean anything — which is why reviews ship without it.",
       "status": "Planned"
     },
     {
@@ -78,7 +108,37 @@
     },
     {
       "title": "Editable Plugin Catalogue",
-      "description": "Allow the plugin cards data to be edited from the website instead of by hand, replacing the checked-in catalogue file with the database table the resource pages are built on.",
+      "description": "Allow the plugin cards data to be edited from the website instead of by hand, replacing the checked-in catalogue file with the database table that now holds the same plugins.",
+      "status": "Planned"
+    },
+    {
+      "title": "Following & Activity Feed",
+      "description": "Follow the people whose work you want to keep up with, and a simple feed of what they have been doing.",
+      "status": "Planned"
+    },
+    {
+      "title": "Notifications",
+      "description": "On-site notifications when someone replies to you or likes something you wrote, with an optional Discord webhook and no email.",
+      "status": "Planned"
+    },
+    {
+      "title": "Profiles Linked to Factions",
+      "description": "Connect a profile to the factions its owner belongs to on participating servers, tying the community layer to the faction data the leaderboard already carries.",
+      "status": "Planned"
+    },
+    {
+      "title": "Discord Announcements in News",
+      "description": "Automatically pull announcements from the community Discord server into the News feed alongside hand-written posts. The ingestion has been written but not merged: it never removes a post, so an announcement retracted on Discord would stay on the site forever, and that has to be answered before it lands.",
+      "status": "Planned"
+    },
+    {
+      "title": "MCP Access Tokens",
+      "description": "Long-lived, individually revocable tokens issued from your account for connecting an AI assistant to the DPC MCP server, listed separately from Minecraft server API keys and handed over with a ready-to-paste connection snippet.",
+      "status": "Planned"
+    },
+    {
+      "title": "Knowledge Base",
+      "description": "A section of the site backed by the DPC Zettelkasten — the collection of notes explaining how the plugins work, with every claim traced to a commit — starting with an index of its maps of content and growing into a \"how it works\" block on each plugin's resource page.",
       "status": "Planned"
     },
     {
