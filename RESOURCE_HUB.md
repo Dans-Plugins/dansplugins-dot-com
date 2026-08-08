@@ -17,11 +17,12 @@ its resource pages are shallow, its ratings double as an unmoderated support
 channel, and nothing on it knows that the person writing a review actually
 runs the plugin.
 
-DPC already knows that. Servers authenticate to `dpc-api` with API keys and
-publish data through it, and bStats reports install counts. That makes one
-feature possible here that SpigotMC cannot offer at all — see
-[Verified reviews](#verified-reviews) — and it is the reason to build this
-rather than to keep pointing at SpigotMC.
+DPC is in a position to know that. Servers already authenticate to `dpc-api`
+with API keys and publish data through it, which is a relationship SpigotMC has
+no equivalent of — and it is what makes
+[verified reviews](#verified-reviews-need-a-signal-that-does-not-exist-yet)
+reachable here. Reaching them takes work on the plugin side first; the section
+below is honest about how much.
 
 ## What already exists
 
@@ -71,15 +72,44 @@ does better.
 * **Bugs** — not on this site. The button opens the plugin repository's GitHub
   issue template, where the backlog already lives.
 
-### Verified reviews
+### Verified reviews need a signal that does not exist yet
 
-A review is marked **verified** when the reviewer's account owns an API key
-belonging to a server that reports the plugin in question. This is derived at
-read time from state `dpc-api` already holds, exactly as `SERVER_OWNER` is
-derived in `BadgeService` — nothing new is stored and nothing can drift.
+The goal: a review is marked **verified** when the reviewer runs a server that
+actually has the plugin installed. "Sort by verified reviews" would then produce
+a trust signal no other Minecraft plugin site can produce.
 
-The point is not the badge. It is that "sort by verified reviews" produces a
-signal no other Minecraft plugin site can produce.
+The data to derive that is **not** in `dpc-api` today, and it is worth being
+precise about the gap rather than discovering it mid-implementation:
+
+* The only inbound server data is faction sync, from Medieval Factions. It
+  carries a faction name, a free-text `serverId`, a member count, and contact
+  details — no plugin identity at all. Fifteen of the sixteen plugins report
+  nothing.
+* `ApiKeyAuthFilter` only checks that *some* valid key was presented. It does
+  not resolve the key's owner, so even the faction rows that do arrive are not
+  attributable to a user.
+* `api_keys.server_name` is a label its owner typed; `factions.server_id` is an
+  id the plugin sends. Nothing joins them.
+* bStats gives aggregate server counts and nothing per-server, so it cannot
+  identify an individual reviewer either.
+
+So the one thing derivable today is the existing `SERVER_OWNER` badge — "owns an
+API key, therefore runs *a* server that syncs with DPC" — which is not the same
+claim and should not be dressed up as one.
+
+Closing the gap needs three things, in order:
+
+1. `ApiKeyAuthFilter` resolves the presented key to its owner and puts it in the
+   security context, so anything a server reports is attributable.
+2. An install report: plugins call `dpc-api` with their API key to say "this
+   server is running this plugin, at this version". This is work in the plugin
+   repositories, not only here, and it is the long pole.
+3. The verified mark itself, derived at read time from those reports the way
+   `BadgeService` derives badges — no new stored state, nothing to drift.
+
+Until step 2 has shipped in enough plugins to be meaningful, reviews ship
+**without** the verified mark. Building reviews around a badge that only ever
+appears on Medieval Factions would be worse than not having it.
 
 ### The catalogue moves into the database, in two steps
 
@@ -93,8 +123,10 @@ path and the editing UI at once. Instead:
 1. `V15__create_plugins_table.sql` creates `plugins` and seeds it from the
    current catalogue. `dpc-api` serves it read-only. The site keeps rendering
    from `plugins.json`, so the switchover carries no risk of a blank home page.
-   `__tests__/pluginCatalogue.test.ts` fails if the two ever disagree, so the
-   duplication cannot silently rot.
+   `__tests__/pluginCatalogue.test.ts` fails if the table and the file disagree
+   on which plugins exist or what they are called — the two fields that break
+   links and lookups if they drift. Descriptions and icons are not compared;
+   they are cosmetic, and the whole comparison is deleted in step 2.
 2. The "Editable Plugin Catalogue" phase flips rendering to the API, adds the
    admin editing UI, and deletes `plugins.json` along with its drift guard.
 
@@ -128,8 +160,8 @@ than it started.
    overview pages, cards link to them, sitemap covers them.
 2. **Version history** — release mirror, per-version changelogs, download
    counts, download button.
-3. **Reviews** — ratings, aggregates, verified marks, author responses,
-   sort-by-rating in the catalogue.
+3. **Reviews** — ratings, aggregates, author responses, sort-by-rating in the
+   catalogue. Not verified marks: those wait on the install signal above.
 4. **Discussion** — threaded comments, reporting, moderation queue.
 5. **Updates** — per-resource author posts, syndicated into `/news`; watching
    and notification.
