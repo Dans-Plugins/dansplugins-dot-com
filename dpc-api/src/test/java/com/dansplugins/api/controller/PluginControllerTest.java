@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,11 +76,15 @@ class PluginControllerTest {
 
     @Test
     void servesTheOptionalFieldsAsNullWhenAbsent() throws Exception {
+        // Asserted as an explicit JSON null rather than with doesNotExist(), which
+        // passes for an omitted key too and so would not notice the response
+        // dropping these fields entirely — a different shape from the one
+        // dpc-api/README.md documents.
         mockMvc.perform(get("/api/v1/plugins/medieval-cookery"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.spigotmcUrl").doesNotExist())
-                .andExpect(jsonPath("$.bstatsId").doesNotExist())
-                .andExpect(jsonPath("$.iconPath").doesNotExist());
+                .andExpect(jsonPath("$.spigotmcUrl").value(nullValue()))
+                .andExpect(jsonPath("$.bstatsId").value(nullValue()))
+                .andExpect(jsonPath("$.iconPath").value(nullValue()));
     }
 
     @Test

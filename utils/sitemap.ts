@@ -75,7 +75,7 @@ export const guideSitemapPaths = (pluginIds: readonly string[]): string[] =>
 
 // The on-site resource pages (`/resources/[slug]`), one per plugin. These are
 // the pages a search engine should rank for a plugin's name — the home page
-// carries all sixteen plugins at once, so it can rank for none of them
+// carries the whole catalogue at once, so it can rank for none of them
 // individually. The path shape comes from utils/resources.ts rather than being
 // spelled again here, so a link on the site and its sitemap entry cannot differ.
 export const resourceSitemapPaths = (pluginIds: readonly string[]): string[] =>
