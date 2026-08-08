@@ -35,6 +35,7 @@ See the [Development](#development) section below.
 
 - [User Guide](USER_GUIDE.md) – Getting started and common scenarios
 - [Configuration Guide](CONFIG.md) – Detailed configuration options
+- [Resource Hub Design](RESOURCE_HUB.md) – How the plugin catalogue grows into full resource pages
 - [Changelog](CHANGELOG.md) – Release history
 
 ### Website

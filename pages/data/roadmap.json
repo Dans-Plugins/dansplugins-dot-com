@@ -47,8 +47,38 @@
       "status": "In Progress"
     },
     {
+      "title": "Resource Pages",
+      "description": "A page of its own for every plugin, gathering its description, install count, latest release, guide and links in one place instead of a card on the home page.",
+      "status": "In Progress"
+    },
+    {
+      "title": "Version History & Downloads",
+      "description": "Every release of every plugin, with its changelog and download count, mirrored from GitHub so the site never has to host files itself.",
+      "status": "Planned"
+    },
+    {
+      "title": "Plugin Reviews",
+      "description": "Star ratings and written reviews on each plugin, with reviews from people whose servers actually run the plugin marked as verified, and a reply from the author.",
+      "status": "Planned"
+    },
+    {
+      "title": "Plugin Discussion",
+      "description": "Threaded comments on each plugin, kept separate from reviews and from bug reports, with reporting and moderation.",
+      "status": "Planned"
+    },
+    {
+      "title": "Update Posts & Watching",
+      "description": "Release announcements written per plugin and syndicated into the News feed, with the option to watch a plugin and be told when it changes.",
+      "status": "Planned"
+    },
+    {
+      "title": "Catalogue Discovery",
+      "description": "Tags, categories and Minecraft-version filters so the catalogue stays browsable as it grows.",
+      "status": "Planned"
+    },
+    {
       "title": "Editable Plugin Catalogue",
-      "description": "Allow the plugin cards data to be edited from the website instead of by hand.",
+      "description": "Allow the plugin cards data to be edited from the website instead of by hand, replacing the checked-in catalogue file with the database table the resource pages are built on.",
       "status": "Planned"
     },
     {
