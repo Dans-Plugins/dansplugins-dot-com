@@ -150,6 +150,42 @@ Response:
 Save the returned `apiKey` — it is shown only once and stored as a SHA-256 hash.
 The `keyPrefix` (first 8 characters) can be used to identify the key later.
 
+### Plugins
+
+The plugin catalogue: one row per plugin, keyed by the `slug` that the website's
+guide routes, resource routes and like targets all use. Public and, for now,
+read-only — the rows are seeded by `V15__create_plugins_table.sql` and changed by
+migration rather than over HTTP, so there is no write path to authenticate.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/plugins` | Public | The whole catalogue, alphabetically by title |
+| `GET` | `/api/v1/plugins/{slug}` | Public | One plugin, or `404` if the slug is unknown |
+
+```bash
+curl http://localhost:45345/api/v1/plugins/medieval-factions
+```
+
+```json
+{
+  "slug": "medieval-factions",
+  "title": "Medieval Factions",
+  "description": "Allows players to organize themselves into feudal, diplomatic, lawful groups akin to nations.",
+  "githubUrl": "https://github.com/Dans-Plugins/Medieval-Factions",
+  "spigotmcUrl": "https://www.spigotmc.org/resources/medieval-factions.79941/",
+  "bstatsId": "8929",
+  "iconPath": "/icons/mf.png"
+}
+```
+
+`spigotmcUrl`, `bstatsId` and `iconPath` are `null` for plugins that have no
+SpigotMC page, no bStats project, or no icon. The internal UUID is not exposed:
+the slug is the public identifier.
+
+The website still renders its catalogue from the checked-in
+`pages/data/plugins.json` and will switch to these endpoints when the catalogue
+becomes editable — see `RESOURCE_HUB.md` in the repository root.
+
 ### Likes
 
 Likes on plugins and guides. A target is keyed by the plugin `id` from the
