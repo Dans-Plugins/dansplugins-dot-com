@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Changed
+
+- The road map now reflects the state of the issue tracker. **Resource pages** move to Completed (#272, shipped in 0.15.0), and **on-site guides**, **community profiles and likes** (epic #167 phases 1–2), the **Dev Portal**, and the **search-visibility and link-preview work** (#244, #257, #215) are listed as completed work the page had never mentioned. **Discord announcements in News** (#24) moves from In Progress to Planned — its ingestion was never merged and the retraction problem (#142) is unanswered, so nothing is under way. New Planned items cover the open issues the page omitted: verified reviews and the install reporting they depend on (#278), following and an activity feed (#193), notifications (#196), profiles linked to factions (#195), MCP access tokens (#280, #281), and a knowledge-base section backed by the DPC Zettelkasten (#282). **Minecraft-version compatibility** (#162) and **badges and roles** (#194) are listed as In Progress, each naming the half that shipped and the half that has not.
+
 ## [0.15.0-SNAPSHOT-8-8-2026] – 2026-08-08
 
 ### Changed
