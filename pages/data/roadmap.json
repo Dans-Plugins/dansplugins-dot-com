@@ -78,8 +78,8 @@
     },
     {
       "title": "Version History & Downloads",
-      "description": "Every release of every plugin, with its changelog and download count, mirrored from GitHub so the site never has to host files itself.",
-      "status": "Planned"
+      "description": "A plugin's recent releases, each with its changelog and download count, mirrored from GitHub onto its resource page so the site never has to host files itself. Every download link points at the release asset on GitHub.",
+      "status": "Completed"
     },
     {
       "title": "Plugin Reviews",

@@ -75,6 +75,19 @@ Configuration is managed via environment variables:
 | `DPC_SYNC_MIN_INCOMING` | `2` | Minimum batch size eligible to deactivate factions (see [Sync safety guards](#sync-safety-guards)) |
 | `DPC_SYNC_MAX_DEACTIVATION_RATIO` | `0.5` | Fraction cap on factions one sync may deactivate |
 | `DPC_SYNC_MAX_DEACTIVATIONS` | `1000` | Absolute cap on factions one sync may deactivate (`0` disables) |
+| `DPC_BACKLOG_ORG` | `Dans-Plugins` | GitHub org whose open issues and pull requests the dev-portal backlog mirrors |
+| `DPC_BACKLOG_GITHUB_TOKEN` | *(empty)* | Optional classic PAT for the backlog sync. No scopes are needed — the GitHub Search API only reads public data — but an authenticated identity raises the rate limit from 10 to 30 requests/minute. |
+| `DPC_BACKLOG_SYNC_INTERVAL_MS` | `900000` | How often the backlog sync re-pulls GitHub (15 minutes) |
+| `DPC_BACKLOG_SYNC_INITIAL_DELAY_MS` | `5000` | How long after startup the first backlog sync runs |
+| `DPC_BACKLOG_SYNC_ENABLED` | `true` | Set to `false` for local runs that should not call the real GitHub API |
+| `DPC_RELEASE_SYNC_GITHUB_TOKEN` | *(falls back to `DPC_BACKLOG_GITHUB_TOKEN`)* | Optional classic PAT for the release mirror. Like the backlog token it needs no scopes; without one the sync runs at GitHub's unauthenticated 60 requests/hour. |
+| `DPC_RELEASE_SYNC_INTERVAL_MS` | `3600000` | How often the release mirror re-pulls GitHub (hourly). Each pass costs one request per plugin. |
+| `DPC_RELEASE_SYNC_INITIAL_DELAY_MS` | `15000` | How long after startup the first release sync runs. Staggered behind the backlog sync. |
+| `DPC_RELEASE_SYNC_ENABLED` | `true` | Set to `false` for local runs that should not call the real GitHub API |
+| `DPC_RELEASE_SYNC_MAX_RELEASES` | `20` | How many releases per plugin the mirror keeps, and the point past which the sync stops assuming it has seen a plugin's whole release history (see [Plugin versions](#plugin-versions)) |
+| `DPC_CLAIMS_AUTO_RELEASE_DAYS` | `30` | A dev-portal claim with no activity for this many days is released automatically |
+| `DPC_ADMIN_USERNAMES` | *(empty)* | Comma-separated UserAuth usernames allowed to convert a feature request into a real GitHub issue. Empty by default, which means **nobody** can convert until it is set. |
+| `DPC_FEATURE_REQUEST_GITHUB_TOKEN` | *(falls back to `DPC_BACKLOG_GITHUB_TOKEN`)* | Classic PAT used to create the GitHub issue a converted feature request becomes. Creating an issue is a write, so this one needs at least the `public_repo` scope — unlike the read-only backlog token it falls back to. |
 
 The Docker Compose file also supports the `API_PORT` variable (default `45345`) to control the published host port for the API.
 
@@ -185,6 +198,57 @@ the slug is the public identifier.
 The website still renders its catalogue from the checked-in
 `pages/data/plugins.json` and will switch to these endpoints when the catalogue
 becomes editable — see `RESOURCE_HUB.md` in the repository root.
+
+#### Plugin versions
+
+Each plugin's GitHub releases, mirrored into `plugin_versions` by a scheduled
+sync so a resource page can show version history without calling GitHub on every
+request. DPC hosts none of the files: every `downloadUrl` points at the asset on
+GitHub, and the rows are metadata about files that live there.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/plugins/{slug}/versions` | Public | One plugin's mirrored releases, newest first |
+
+```bash
+curl http://localhost:45345/api/v1/plugins/medieval-factions/versions
+```
+
+```json
+[
+  {
+    "tag": "v5.3.0",
+    "name": "Medieval Factions 5.3.0",
+    "changelog": "### Added\n- Something",
+    "htmlUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/tag/v5.3.0",
+    "prerelease": false,
+    "publishedAt": "2026-01-02T03:04:05Z",
+    "downloadCount": 412,
+    "assets": [
+      {
+        "name": "MedievalFactions-5.3.0.jar",
+        "sizeBytes": 2411724,
+        "downloadCount": 412,
+        "downloadUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/download/v5.3.0/MedievalFactions-5.3.0.jar"
+      }
+    ]
+  }
+]
+```
+
+A known plugin that publishes no releases answers `200` with `[]`; only an
+unknown slug is a `404`. `name` and `changelog` are `null` when the release was
+published without a title or without notes. A version's `downloadCount` is its
+assets' counts summed — GitHub's figures, copied at sync time, since the download
+itself never passes through this service.
+
+The sync (`ReleaseSyncService`) is deliberately conservative about deletion.
+GitHub is the system of record, so a release it no longer reports is deleted
+here — but a plugin whose fetch *failed* is skipped whole rather than emptied,
+and because only the newest `DPC_RELEASE_SYNC_MAX_RELEASES` releases are fetched,
+a full page of results limits pruning to versions at least as new as the oldest
+release in that page. An outage, a rate limit, or a long release history can
+therefore leave the mirror stale, but never wrongly empty.
 
 ### Likes
 

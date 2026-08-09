@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest'
-import {relativeTimeFrom} from '../utils/relativeTime'
+import {absoluteDateFrom, relativeTimeFrom} from '../utils/relativeTime'
 
 const NOW = 1_700_000_000_000
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -25,5 +25,23 @@ describe('relativeTimeFrom', () => {
 
     it('returns an empty string for an unparseable timestamp', () => {
         expect(relativeTimeFrom('not-a-date', NOW)).toBe('')
+    })
+})
+
+describe('absoluteDateFrom', () => {
+    it('formats an ISO timestamp as a calendar date', () => {
+        expect(absoluteDateFrom('2026-01-02T03:04:05Z')).toBe('2 January 2026')
+    })
+
+    it('reads the date in UTC, not the runtime time zone', () => {
+        // Late-evening UTC is already the next day east of it and still the same
+        // day west of it; pinning the zone is what stops the server and the
+        // browser rendering different dates for the same release.
+        expect(absoluteDateFrom('2026-03-15T23:30:00Z')).toBe('15 March 2026')
+        expect(absoluteDateFrom('2026-03-15T00:30:00Z')).toBe('15 March 2026')
+    })
+
+    it('returns an empty string for an unparseable timestamp', () => {
+        expect(absoluteDateFrom('not-a-date')).toBe('')
     })
 })

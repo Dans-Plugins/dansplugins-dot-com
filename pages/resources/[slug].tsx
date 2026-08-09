@@ -1,6 +1,7 @@
 import {Avatar, Box, Button, Chip, Container, Divider, Link, Paper, Stack, Typography} from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import DnsIcon from '@mui/icons-material/Dns';
 import DownloadIcon from '@mui/icons-material/Download';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -14,7 +15,14 @@ import TopBar from '../../components/TopBar';
 import Seo from '../../components/Seo';
 import BottomBar from '../../components/BottomBar';
 import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
+import PluginVersionList from '../../components/PluginVersionList';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
+import {
+    getPluginVersions,
+    latestStableTag,
+    totalDownloads,
+    PluginVersion
+} from '../../services/pluginVersionService';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {getServerCount} from '../../utils/bstats';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
@@ -50,6 +58,10 @@ interface ResourcePageProps {
     // which case the page simply omits that chip rather than showing a zero.
     serverCount: number | null;
     latestVersion: string | null;
+    // The release history dpc-api mirrors from GitHub. Empty for a plugin that
+    // publishes no releases, and also whenever the API can't be reached — the
+    // page hides the section either way rather than failing.
+    versions: PluginVersion[];
 }
 
 // Treat the catalogue's empty strings as the absences they are.
@@ -62,12 +74,19 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
         return {notFound: true};
     }
 
+    // The mirror first, because what it returns decides whether GitHub needs
+    // asking at all: a mirrored release list already names the latest tag, and
+    // the whole point of mirroring is that a page render doesn't spend a call
+    // on GitHub's rate limit to learn something dpc-api already knows.
+    const versions = await getPluginVersions(slug);
+    const mirroredLatest = latestStableTag(versions);
+
     // Neither figure is load-bearing: a bStats outage or a GitHub rate limit
     // must degrade the page, never fail it. Both helpers already swallow their
     // own errors and resolve to undefined.
-    const [serverCount, latestVersion] = await Promise.all([
+    const [serverCount, latestFromGithub] = await Promise.all([
         plugin.bStatsId ? getServerCount(plugin.bStatsId) : Promise.resolve(undefined),
-        getLatestRelease(plugin.githubLink)
+        mirroredLatest ? Promise.resolve(undefined) : getLatestRelease(plugin.githubLink)
     ]);
 
     return {
@@ -79,7 +98,8 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             spigotmcLink: orNull(plugin.spigotmcLink),
             icon: orNull(plugin.icon),
             serverCount: serverCount ?? null,
-            latestVersion: latestVersion ?? null
+            latestVersion: mirroredLatest ?? latestFromGithub ?? null,
+            versions
         }
     };
 };
@@ -92,9 +112,14 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     spigotmcLink,
     icon,
     serverCount,
-    latestVersion
+    latestVersion,
+    versions
 }) => {
     const downloads = releasesUrl(githubLink);
+    // Only what the mirror has seen, which is the newest releases rather than
+    // every release ever cut — the chip is labelled "downloads" without claiming
+    // to be the plugin's lifetime total.
+    const downloadCount = totalDownloads(versions);
     return (
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo
@@ -131,7 +156,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     <SelfLoadingLikeButton targetType="plugin" targetId={slug}/>
                 </Stack>
 
-                {serverCount || latestVersion ? (
+                {serverCount || latestVersion || downloadCount ? (
                     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: 3}}>
                         {serverCount ? (
                             <Chip
@@ -147,6 +172,14 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                                 variant="outlined"
                                 icon={<NewReleasesIcon/>}
                                 label={`Latest: ${latestVersion}`}
+                            />
+                        ) : null}
+                        {downloadCount ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<CloudDownloadIcon/>}
+                                label={`${downloadCount.toLocaleString()} downloads`}
                             />
                         ) : null}
                     </Stack>
@@ -204,6 +237,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                 </Stack>
 
                 <Divider sx={{mb: 3}}/>
+
+                <PluginVersionList versions={versions} releasesUrl={downloads}/>
 
                 <Paper elevation={0} sx={{p: 2.5, bgcolor: 'action.hover'}}>
                     <Typography variant="h6" component="h2" gutterBottom>

@@ -2,8 +2,11 @@ package com.dansplugins.api.migration;
 
 import com.dansplugins.api.entity.Faction;
 import com.dansplugins.api.entity.Plugin;
+import com.dansplugins.api.entity.PluginVersion;
+import com.dansplugins.api.entity.PluginVersionAsset;
 import com.dansplugins.api.repository.FactionRepository;
 import com.dansplugins.api.repository.PluginRepository;
+import com.dansplugins.api.repository.PluginVersionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,6 +80,12 @@ class FlywayMigrationTest {
         registry.add("dpc.sync.safety.minimum-incoming-factions", () -> "1");
         registry.add("dpc.sync.safety.max-deactivation-ratio", () -> "1.0");
         registry.add("dpc.sync.safety.max-deactivations-per-sync", () -> "0");
+        // This test does not use the "test" profile (see above), so both
+        // scheduled GitHub syncs would otherwise be enabled by their production
+        // defaults and could fire mid-test — calling the real API and writing
+        // rows the assertions below do not expect.
+        registry.add("dpc.backlog.sync-enabled", () -> "false");
+        registry.add("dpc.releases.sync-enabled", () -> "false");
     }
 
     @Autowired
@@ -82,6 +93,9 @@ class FlywayMigrationTest {
 
     @Autowired
     private PluginRepository pluginRepository;
+
+    @Autowired
+    private PluginVersionRepository pluginVersionRepository;
 
     @Test
     void migrationsApplyAndEntityShapeMatches() {
@@ -124,5 +138,37 @@ class FlywayMigrationTest {
         Plugin unpublished = pluginRepository.findBySlug("medieval-cookery").orElseThrow();
         assertThat(unpublished.getSpigotmcUrl()).isNull();
         assertThat(unpublished.getBstatsId()).isNull();
+    }
+
+    @Test
+    void pluginVersionsRoundTripWithTheirAssets() {
+        // V16's two tables are created empty, so this is the only place their
+        // shape is exercised against real Postgres: the foreign key to plugins,
+        // the (plugin, tag) uniqueness the sync upserts on, and the cascade from
+        // a version to the assets it owns.
+        Plugin plugin = pluginRepository.findBySlug("fiefs").orElseThrow();
+        PluginVersion version = new PluginVersion(plugin, "v1.4.0");
+        version.setName("Fiefs 1.4.0");
+        version.setChangelog("### Added\n- Something");
+        version.setHtmlUrl("https://github.com/Dans-Plugins/Fiefs/releases/tag/v1.4.0");
+        version.setPublishedAt(Instant.parse("2026-01-02T03:04:05Z"));
+        version.setLastSyncedAt(Instant.now());
+        version.replaceAssets(List.of(new PluginVersionAsset("Fiefs-1.4.0.jar", 204800, 37,
+                "https://github.com/Dans-Plugins/Fiefs/releases/download/v1.4.0/Fiefs-1.4.0.jar")));
+        pluginVersionRepository.save(version);
+
+        PluginVersion loaded = pluginVersionRepository.findByPluginAndTag(plugin, "v1.4.0").orElseThrow();
+        assertThat(loaded.getName()).isEqualTo("Fiefs 1.4.0");
+        assertThat(loaded.getPublishedAt()).isEqualTo(Instant.parse("2026-01-02T03:04:05Z"));
+        assertThat(loaded.isPrerelease()).isFalse();
+        assertThat(loaded.getAssets()).singleElement()
+                .satisfies(asset -> {
+                    assertThat(asset.getName()).isEqualTo("Fiefs-1.4.0.jar");
+                    assertThat(asset.getSizeBytes()).isEqualTo(204800);
+                    assertThat(asset.getDownloadCount()).isEqualTo(37);
+                });
+        assertThat(loaded.totalDownloadCount()).isEqualTo(37);
+
+        pluginVersionRepository.deleteAll();
     }
 }
