@@ -30,15 +30,20 @@ describe('relativeTimeFrom', () => {
 
 describe('absoluteDateFrom', () => {
     it('formats an ISO timestamp as a calendar date', () => {
-        expect(absoluteDateFrom('2026-01-02T03:04:05Z')).toBe('2 January 2026')
+        expect(absoluteDateFrom('2026-01-02T03:04:05Z')).toBe('January 2, 2026')
+    })
+
+    it('formats a date-only string the way the News page always has', () => {
+        // pages/news.tsx now shares this helper, so the two must agree.
+        expect(absoluteDateFrom('2026-07-04')).toBe('July 4, 2026')
     })
 
     it('reads the date in UTC, not the runtime time zone', () => {
         // Late-evening UTC is already the next day east of it and still the same
         // day west of it; pinning the zone is what stops the server and the
         // browser rendering different dates for the same release.
-        expect(absoluteDateFrom('2026-03-15T23:30:00Z')).toBe('15 March 2026')
-        expect(absoluteDateFrom('2026-03-15T00:30:00Z')).toBe('15 March 2026')
+        expect(absoluteDateFrom('2026-03-15T23:30:00Z')).toBe('March 15, 2026')
+        expect(absoluteDateFrom('2026-03-15T00:30:00Z')).toBe('March 15, 2026')
     })
 
     it('returns an empty string for an unparseable timestamp', () => {

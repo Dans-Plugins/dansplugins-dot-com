@@ -32,17 +32,19 @@ export const relativeTimeFrom = (iso: string, now: number): string => {
     return `${value} ${unit}${value === 1 ? '' : 's'} ago`
 }
 
-// Format an ISO timestamp as a fixed calendar date (e.g. "2 January 2026").
-// Pinned to en-GB and UTC rather than left to the runtime's locale and time
+// Format an ISO timestamp as a fixed calendar date (e.g. "January 2, 2026").
+// Pinned to en-US and UTC rather than left to the runtime's locale and time
 // zone: this renders inside server-rendered markup, and a date the server and
-// the browser disagree about is a hydration mismatch, not a nicety. Returns ''
-// for an unparseable timestamp, matching relativeTimeFrom above.
+// the browser disagree about is a hydration mismatch, not a nicety. The locale
+// matches the one the News page already prints its post dates in, so a release
+// date and a news date read the same way. Returns '' for an unparseable
+// timestamp, matching relativeTimeFrom above.
 export const absoluteDateFrom = (iso: string): string => {
     const date = new Date(iso)
     if (Number.isNaN(date.getTime())) {
         return ''
     }
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString('en-US', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
