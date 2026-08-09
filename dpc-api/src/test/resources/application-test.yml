@@ -27,3 +27,7 @@ dpc:
     # Tests exercise BacklogSyncService directly; the scheduled trigger must not
     # also fire and make real calls out to the GitHub API.
     sync-enabled: false
+  releases:
+    # Same reasoning as the backlog sync above: ReleaseSyncServiceTest drives the
+    # service directly, so the schedule must not also reach out to GitHub.
+    sync-enabled: false

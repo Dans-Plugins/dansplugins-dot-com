@@ -5,6 +5,11 @@ import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import {getNewsPosts, NewsPost, NewsSource} from '../utils/newsStorage';
+// A date-only string (YYYY-MM-DD) is parsed as UTC, and this formats in UTC too:
+// the displayed day matches the input regardless of timezone and is identical on
+// the server and client (no hydration mismatch). Shared with the release dates on
+// resource pages so the site prints a date one way.
+import {absoluteDateFrom} from '../utils/relativeTime';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -18,12 +23,6 @@ const SOURCE_BADGE: Record<NewsSource, { label: string; color: 'primary' | 'info
     discord: {label: 'From Discord', color: 'info'},
     external: {label: 'Reposted', color: 'default'}
 };
-
-// A date-only string (YYYY-MM-DD) is parsed as UTC, so format in UTC too: the
-// displayed day matches the input regardless of timezone and is identical on
-// the server and client (no hydration mismatch).
-const formatDate = (date: string): string =>
-    new Date(date).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'});
 
 interface NewsProps {
     posts: NewsPost[];
@@ -50,7 +49,7 @@ const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
                 <Chip label={badge.label} color={badge.color} size="small"/>
             </Box>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-                {formatDate(post.date)}{post.author ? ` · ${post.author}` : ''}
+                {absoluteDateFrom(post.date)}{post.author ? ` · ${post.author}` : ''}
             </Typography>
             <Typography variant="body1">{post.body}</Typography>
             {post.sourceUrl && (

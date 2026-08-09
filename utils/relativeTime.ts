@@ -1,3 +1,8 @@
+// Timestamp formatting for display. Both formatters here are pure functions of
+// their arguments, which is what makes them testable — and, for the absolute
+// one, what keeps server-rendered markup identical to what the browser produces
+// on hydration.
+
 // Format an ISO timestamp as a short relative time (e.g. "3 days ago"). `now`
 // is passed in (rather than read from the clock) so the function is pure and
 // testable; callers supply `Date.now()`.
@@ -25,4 +30,24 @@ export const relativeTimeFrom = (iso: string, now: number): string => {
         unit = name
     }
     return `${value} ${unit}${value === 1 ? '' : 's'} ago`
+}
+
+// Format an ISO timestamp as a fixed calendar date (e.g. "January 2, 2026").
+// Pinned to en-US and UTC rather than left to the runtime's locale and time
+// zone: this renders inside server-rendered markup, and a date the server and
+// the browser disagree about is a hydration mismatch, not a nicety. The locale
+// matches the one the News page already prints its post dates in, so a release
+// date and a news date read the same way. Returns '' for an unparseable
+// timestamp, matching relativeTimeFrom above.
+export const absoluteDateFrom = (iso: string): string => {
+    const date = new Date(iso)
+    if (Number.isNaN(date.getTime())) {
+        return ''
+    }
+    return date.toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    })
 }

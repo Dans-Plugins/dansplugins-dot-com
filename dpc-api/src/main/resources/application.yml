@@ -49,8 +49,32 @@ dpc:
     # How often the sync re-pulls GitHub, in milliseconds. Kept well above the
     # search API's per-minute rate limit floor.
     sync-interval-ms: ${DPC_BACKLOG_SYNC_INTERVAL_MS:900000}
+    # How long after startup the first sync runs, in milliseconds. Declared here
+    # rather than only in BacklogSyncService's @Scheduled annotation, so every
+    # knob of the sync is visible in one place.
+    sync-initial-delay-ms: ${DPC_BACKLOG_SYNC_INITIAL_DELAY_MS:5000}
     # Disable in tests/local runs that shouldn't call out to the real GitHub API.
     sync-enabled: ${DPC_BACKLOG_SYNC_ENABLED:true}
+  releases:
+    # Optional classic PAT for the release mirror. Falls back to the backlog
+    # token: both only read public data, so either needs an authenticated
+    # identity rather than any particular scope. Without one the sync runs at
+    # GitHub's unauthenticated 60 requests/hour, which one pass over the
+    # catalogue fits inside — but not with much room.
+    github-token: ${DPC_RELEASE_SYNC_GITHUB_TOKEN:${DPC_BACKLOG_GITHUB_TOKEN:}}
+    # How often the release mirror re-pulls GitHub, in milliseconds. Hourly:
+    # releases change far less often than issues do, and every pass costs one
+    # request per plugin.
+    sync-interval-ms: ${DPC_RELEASE_SYNC_INTERVAL_MS:3600000}
+    # How long after startup the first release sync runs, in milliseconds.
+    # Staggered behind the backlog sync so the two don't call GitHub at once.
+    sync-initial-delay-ms: ${DPC_RELEASE_SYNC_INITIAL_DELAY_MS:15000}
+    # Disable in tests/local runs that shouldn't call out to the real GitHub API.
+    sync-enabled: ${DPC_RELEASE_SYNC_ENABLED:true}
+    # How far back the mirror reaches, per plugin. Also the point at which the
+    # sync stops assuming it has seen a plugin's whole release history — see
+    # ReleaseSyncService for what that changes.
+    max-releases-per-plugin: ${DPC_RELEASE_SYNC_MAX_RELEASES:20}
   claims:
     # A claim with no activity for this many days is auto-released.
     auto-release-after-days: ${DPC_CLAIMS_AUTO_RELEASE_DAYS:30}
