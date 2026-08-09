@@ -2,6 +2,7 @@ import {AppBar, Box, Button, Toolbar, Typography, useTheme} from '@mui/material'
 import React, {useContext} from 'react';
 import {ColorModeToggleSwitch} from './ColorModeToggleSwitch';
 import {ColorModeContext} from '../utils/ColorModeContext';
+import {absoluteDateFrom} from '../utils/relativeTime';
 import CodeIcon from '@mui/icons-material/Code';
 import BugReportIcon from '@mui/icons-material/BugReport';
 
@@ -42,11 +43,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
     const colorMode = useContext(ColorModeContext);
     const theme = useTheme();
 
-    const formattedDate = startDate ? new Date(startDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    }) : null;
+    const formattedDate = startDate ? absoluteDateFrom(startDate) : null;
 
     return (
         <AppBar position="static" sx={(theme) => bottomAppBarStyle(theme)}>

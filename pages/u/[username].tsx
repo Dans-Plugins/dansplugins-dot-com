@@ -24,6 +24,7 @@ import {pageStyle, sectionHeaderStyle} from '../../styles/styles'
 import {getPublicProfile, type PublicProfile} from '../../services/profileService'
 import {resolveLikedItems} from '../../utils/likedItems'
 import {badgeLabel} from '../../utils/badges'
+import {absoluteDateFrom} from '../../utils/relativeTime'
 import pluginData from '../data/plugins.json'
 
 const version = require('../../package.json').version
@@ -90,7 +91,7 @@ const PublicProfilePage: NextPage = () => {
                                             </Typography>
                                         )}
                                         <Typography variant="body2" color="text.secondary">
-                                            Member since {new Date(profile.createdAt).toLocaleDateString()}
+                                            Member since {absoluteDateFrom(profile.createdAt)}
                                         </Typography>
                                         {profile.badges.length > 0 && (
                                             <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1}}>

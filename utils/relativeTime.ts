@@ -33,12 +33,17 @@ export const relativeTimeFrom = (iso: string, now: number): string => {
 }
 
 // Format an ISO timestamp as a fixed calendar date (e.g. "January 2, 2026").
+// This is the site's only calendar-date formatter — news posts, release dates,
+// the footer's visit counter, and profile join dates all print through it, so
+// one date reads the same wherever it appears.
+//
 // Pinned to en-US and UTC rather than left to the runtime's locale and time
-// zone: this renders inside server-rendered markup, and a date the server and
-// the browser disagree about is a hydration mismatch, not a nicety. The locale
-// matches the one the News page already prints its post dates in, so a release
-// date and a news date read the same way. Returns '' for an unparseable
-// timestamp, matching relativeTimeFrom above.
+// zone, for two reasons. In server-rendered markup a date the server and the
+// browser disagree about is a hydration mismatch, not a nicety. And even where
+// only the browser renders it, an unpinned instant near midnight UTC prints as
+// a different calendar day for two visitors in different places.
+//
+// Returns '' for an unparseable timestamp, matching relativeTimeFrom above.
 export const absoluteDateFrom = (iso: string): string => {
     const date = new Date(iso)
     if (Number.isNaN(date.getTime())) {
