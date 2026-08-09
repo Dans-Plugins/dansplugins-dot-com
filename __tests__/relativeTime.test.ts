@@ -49,4 +49,11 @@ describe('absoluteDateFrom', () => {
     it('returns an empty string for an unparseable timestamp', () => {
         expect(absoluteDateFrom('not-a-date')).toBe('')
     })
+
+    it('returns an empty string for an absent date', () => {
+        // The footer leans on this: it passes '' for a missing visit-counter
+        // start date and shows the counter only when a date comes back, so an
+        // empty result has to mean "nothing to print" here too.
+        expect(absoluteDateFrom('')).toBe('')
+    })
 })

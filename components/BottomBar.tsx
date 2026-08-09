@@ -43,7 +43,10 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
     const colorMode = useContext(ColorModeContext);
     const theme = useTheme();
 
-    const formattedDate = startDate ? absoluteDateFrom(startDate) : null;
+    // '' for a missing or unparseable start date, which the counter below
+    // treats as "don't show the counter at all" — half a sentence ending in
+    // "since" reads as a broken template.
+    const formattedDate = absoluteDateFrom(startDate ?? '');
 
     return (
         <AppBar position="static" sx={(theme) => bottomAppBarStyle(theme)}>
@@ -51,7 +54,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                 <Box sx={(theme) => flexContainerStyle(theme)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <VersionNumber version={version}/>
-                        {visits != null && startDate && (
+                        {visits != null && formattedDate && (
                             <>
                                 <Typography variant="body2" color="inherit">
                                     •
