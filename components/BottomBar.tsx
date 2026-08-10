@@ -2,6 +2,7 @@ import {AppBar, Box, Button, Toolbar, Typography, useTheme} from '@mui/material'
 import React, {useContext} from 'react';
 import {ColorModeToggleSwitch} from './ColorModeToggleSwitch';
 import {ColorModeContext} from '../utils/ColorModeContext';
+import {absoluteDateFrom} from '../utils/relativeTime';
 import CodeIcon from '@mui/icons-material/Code';
 import BugReportIcon from '@mui/icons-material/BugReport';
 
@@ -42,11 +43,10 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
     const colorMode = useContext(ColorModeContext);
     const theme = useTheme();
 
-    const formattedDate = startDate ? new Date(startDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    }) : null;
+    // '' for a missing or unparseable start date, which the counter below
+    // treats as "don't show the counter at all" — half a sentence ending in
+    // "since" reads as a broken template.
+    const formattedDate = absoluteDateFrom(startDate ?? '');
 
     return (
         <AppBar position="static" sx={(theme) => bottomAppBarStyle(theme)}>
@@ -54,7 +54,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                 <Box sx={(theme) => flexContainerStyle(theme)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <VersionNumber version={version}/>
-                        {visits != null && startDate && (
+                        {visits != null && formattedDate && (
                             <>
                                 <Typography variant="body2" color="inherit">
                                     •

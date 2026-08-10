@@ -31,6 +31,7 @@ import {getMyLikes, type LikedTarget} from '../services/likeService'
 import {resolveLikedItems} from '../utils/likedItems'
 import {badgeLabel} from '../utils/badges'
 import {getApiBaseUrl} from '../utils/apiBase'
+import {absoluteDateFrom} from '../utils/relativeTime'
 import pluginData from './data/plugins.json'
 
 const version = require('../package.json').version
@@ -412,7 +413,7 @@ const AccountPage: NextPage = () => {
                                         <Button variant="outlined" onClick={handleLogout}>Logout</Button>
                                     </Box>
                                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                                        Member since {new Date(profile.createdAt).toLocaleDateString()}
+                                        Member since {absoluteDateFrom(profile.createdAt)}
                                         {' · '}
                                         <Box component={NextLinkComposed} to={`/u/${profile.username}`} sx={{color: 'primary.main'}}>
                                             View your public profile
@@ -543,7 +544,7 @@ const AccountPage: NextPage = () => {
                                             >
                                                 <ListItemText
                                                     primary={`${key.serverName}${key.keyPrefix ? ` (${key.keyPrefix}…)` : ''}`}
-                                                    secondary={`Created ${new Date(key.createdAt).toLocaleDateString()}`}
+                                                    secondary={`Created ${absoluteDateFrom(key.createdAt)}`}
                                                 />
                                             </ListItem>
                                         ))}
