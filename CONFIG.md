@@ -4,7 +4,16 @@ This document describes the configuration options for the Dan's Plugins Communit
 
 ## Environment Variables
 
-The application is configured via environment variables. Create a `.env.local` file in the project root and set the variables described below, or set them directly in your environment.
+The application is configured via environment variables. Which file to put them in depends on how the project is being run, because the two paths do not read the same set of files:
+
+| Running with | Files read | Notes |
+| --- | --- | --- |
+| `npm run dev` / `npm run build` | `.env`, then `.env.local` | Next.js loads both automatically; `.env.local` takes precedence where they overlap. |
+| `docker compose` | `.env` only | Compose substitutes `${VAR}` in `compose.yml` from the shell environment or from a `.env` file in the project root. It does **not** read `.env.local`, and no env file is copied into the website image. See [Docker Compose Configuration](#docker-compose-configuration). |
+
+So `.env` is the file both paths honour, and the one to use when a value should apply to either. Note that a `NEXT_PUBLIC_*` value left in `.env` is picked up by a later `npm run build` as well — for example a `.env` written for local Compose use will inline `http://localhost:3000` into a production bundle built on the same machine.
+
+Variables can also be set directly in the environment, which works for both.
 
 ### `NEXT_PUBLIC_API_URL`
 
@@ -30,16 +39,39 @@ NEXT_PUBLIC_API_URL=https://api.dansplugins.com
 NEXT_PUBLIC_BASE_URL=https://dansplugins.com
 ```
 
+### `JWT_SECRET`
+
+**Type:** string  
+**Default:** *none — required*  
+**Description:** The signing secret for the bundled [UserAuth](https://github.com/Preponderous-Software/UserAuth) service that `dpc-api` delegates authentication to. It must be at least 32 bytes. Unlike the `NEXT_PUBLIC_*` variables it is a runtime secret, not a build-time inline, and it is never exposed to the browser.
+
+It is **required** by the Docker Compose stack: `compose.yml` declares it as `${JWT_SECRET:?...}`, so `docker compose up` — and therefore `./up.sh` — aborts with an error rather than starting when it is unset. It is read by UserAuth rather than by this site, so running the front end alone with `npm run dev` does not need it, while a UserAuth instance started outside Compose does (see [`dpc-api/README.md`](dpc-api/README.md)).
+
+Treat it as a secret: keep it out of version control, and use a distinct value in each environment. Changing it invalidates every token UserAuth has already issued, so everyone signed in is signed out.
+
+**Example:**
+
+```bash
+JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
+```
+
 ## Docker Compose Configuration
 
-When running the site with Docker Compose, environment variables can be placed in a `.env.local` file in the project root. Files matching the `.env*.local` pattern are excluded from version control via `.gitignore`.
+When running the stack with Docker Compose, variables can be set in the shell or placed in a **`.env`** file in the project root. Compose reads `.env` for `${VAR}` substitution in `compose.yml`; it does not read `.env.local`, and no env file is copied into the website image (see the `COPY` lines in `Dockerfile`), so `.env.local` has no effect on a Compose run.
 
-**Example `.env.local`:**
+`.env` holds `JWT_SECRET` and is therefore ignored by git, alongside the `.env*.local` pattern.
+
+Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild after changing them: `docker compose up --build`, or `./up.sh`, which always rebuilds. A plain `docker compose up` reuses the cached image, so neither a changed variable nor a changed source file appears.
+
+**Example `.env`:**
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:45345
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+JWT_SECRET=your-secret-key-at-least-32-bytes-long
 ```
+
+`compose.yml` starts five services: the Next.js site (published on port 3000), `dpc-api` (45345, see [API Port](#api-port)), its PostgreSQL database (5432), and — reachable only from inside the Compose network — UserAuth and its own database. The faction-sync guards `dpc-api` reads (`DPC_SYNC_MIN_INCOMING`, `DPC_SYNC_MAX_DEACTIVATION_RATIO`, `DPC_SYNC_MAX_DEACTIVATIONS`) can be overridden the same way, and are documented in [`dpc-api/README.md`](dpc-api/README.md).
 
 ### API Port
 

@@ -14,6 +14,8 @@ Thank you for your interest in contributing to the Dan's Plugins Community Websi
 - A GitHub account
 - Git installed on your local machine
 - [Node.js](https://nodejs.org/en/) (v18 or later, to match CI/Docker)
+- Java 17, if the change touches the `dpc-api/` back end (Maven comes with the bundled `./mvnw`)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop), to run the full stack locally
 - A code editor (e.g. VS Code)
 - A basic understanding of TypeScript and React
 
@@ -74,9 +76,12 @@ For manual testing, start the development server:
 
     npm run dev
 
-Or use Docker Compose:
+Or bring up the full stack (site, API, databases, UserAuth) with Docker Compose. `JWT_SECRET` is required — Compose refuses to start without it — and `--build` matters, since the website image copies the source in at build time and will otherwise serve a cached build of the code as it was:
 
-    docker compose up
+    npm install
+    JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
+
+`npm install` is needed first because `compose.yml` bind-mounts `./node_modules` into the container. See [CONFIG.md](CONFIG.md#jwt_secret) for that variable and the rest of the configuration.
 
 ### Backend (`dpc-api/`)
 
