@@ -36,9 +36,9 @@ These steps run the front end on its own. Features backed by the API (accounts, 
 
 The site will be available at `http://localhost:3000`.
 
-### Docker Compose (Recommended for Development)
+### Other Ways to Run It
 
-See the [Development](#development) section below.
+`npm run dev` is the day-to-day development server, and Docker Compose brings up the whole stack including `dpc-api`. See the [Development](#development) section below for both.
 
 ## Usage
 
@@ -110,12 +110,17 @@ Docker Compose brings up the site together with `dpc-api`, its database, and the
 #### Setup
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
-2. Set `JWT_SECRET` — the stack will not start without it. Either export it, or put it in a `.env` file in the project root (git-ignored):
+2. Install the site's dependencies on the host:
+   ```bash
+   npm install
+   ```
+   This step is not optional: `compose.yml` bind-mounts `./node_modules` into the website container, so on a fresh clone with no host `node_modules` the container starts against an empty directory and fails to launch.
+3. Set `JWT_SECRET` — the stack will not start without it. Either export it, or put it in a `.env` file in the project root (git-ignored):
    ```bash
    export JWT_SECRET="your-secret-key-at-least-32-bytes-long"
    ```
    See [CONFIG.md](CONFIG.md#jwt_secret) for what it does and the other variables available.
-3. Start the stack:
+4. Start the stack:
    ```bash
    ./up.sh
    ```

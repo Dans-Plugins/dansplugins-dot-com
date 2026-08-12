@@ -4,12 +4,14 @@ This document describes the configuration options for the Dan's Plugins Communit
 
 ## Environment Variables
 
-The application is configured via environment variables. Which file to put them in depends on how the project is being run, because the two paths read different files:
+The application is configured via environment variables. Which file to put them in depends on how the project is being run, because the two paths do not read the same set of files:
 
-| Running with | File read | Notes |
+| Running with | Files read | Notes |
 | --- | --- | --- |
-| `npm run dev` / `npm run build` | `.env.local` | Next.js loads it automatically. Ignored by git via the `.env*.local` pattern. |
-| `docker compose` | `.env` | Compose substitutes `${VAR}` in `compose.yml` from the shell environment or from a `.env` file in the project root — it does not read `.env.local`. See [Docker Compose Configuration](#docker-compose-configuration). |
+| `npm run dev` / `npm run build` | `.env`, then `.env.local` | Next.js loads both automatically; `.env.local` takes precedence where they overlap. |
+| `docker compose` | `.env` only | Compose substitutes `${VAR}` in `compose.yml` from the shell environment or from a `.env` file in the project root. It does **not** read `.env.local`, and no env file is copied into the website image. See [Docker Compose Configuration](#docker-compose-configuration). |
+
+So `.env` is the file both paths honour, and the one to use when a value should apply to either. Note that a `NEXT_PUBLIC_*` value left in `.env` is picked up by a later `npm run build` as well — for example a `.env` written for local Compose use will inline `http://localhost:3000` into a production bundle built on the same machine.
 
 Variables can also be set directly in the environment, which works for both.
 
@@ -58,6 +60,8 @@ JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 When running the stack with Docker Compose, variables can be set in the shell or placed in a **`.env`** file in the project root. Compose reads `.env` for `${VAR}` substitution in `compose.yml`; it does not read `.env.local`, and no env file is copied into the website image (see the `COPY` lines in `Dockerfile`), so `.env.local` has no effect on a Compose run.
 
 `.env` holds `JWT_SECRET` and is therefore ignored by git, alongside the `.env*.local` pattern.
+
+Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild after changing them: `docker compose up --build`, or `./up.sh`, which always rebuilds. A plain `docker compose up` reuses the cached image, so neither a changed variable nor a changed source file appears.
 
 **Example `.env`:**
 

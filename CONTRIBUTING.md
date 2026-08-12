@@ -76,11 +76,12 @@ For manual testing, start the development server:
 
     npm run dev
 
-Or bring up the full stack (site, API, databases, UserAuth) with Docker Compose. `JWT_SECRET` is required — Compose refuses to start without it:
+Or bring up the full stack (site, API, databases, UserAuth) with Docker Compose. `JWT_SECRET` is required — Compose refuses to start without it — and `--build` matters, since the website image copies the source in at build time and will otherwise serve a cached build of the code as it was:
 
-    JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up
+    npm install
+    JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 
-See [CONFIG.md](CONFIG.md#jwt_secret) for that variable and the rest of the configuration.
+`npm install` is needed first because `compose.yml` bind-mounts `./node_modules` into the container. See [CONFIG.md](CONFIG.md#jwt_secret) for that variable and the rest of the configuration.
 
 ### Backend (`dpc-api/`)
 
