@@ -43,7 +43,7 @@ NEXT_PUBLIC_BASE_URL=https://dansplugins.com
 **Default:** *none — required*  
 **Description:** The signing secret for the bundled [UserAuth](https://github.com/Preponderous-Software/UserAuth) service that `dpc-api` delegates authentication to. It must be at least 32 bytes. Unlike the `NEXT_PUBLIC_*` variables it is a runtime secret, not a build-time inline, and it is never exposed to the browser.
 
-This variable only applies to the Docker Compose stack, and it is **required** there: `compose.yml` declares it as `${JWT_SECRET:?...}`, so `docker compose up` — and therefore `./up.sh` — aborts with an error rather than starting when it is unset. Running the site alone with `npm run dev` does not need it.
+It is **required** by the Docker Compose stack: `compose.yml` declares it as `${JWT_SECRET:?...}`, so `docker compose up` — and therefore `./up.sh` — aborts with an error rather than starting when it is unset. It is read by UserAuth rather than by this site, so running the front end alone with `npm run dev` does not need it, while a UserAuth instance started outside Compose does (see [`dpc-api/README.md`](dpc-api/README.md)).
 
 Treat it as a secret: keep it out of version control, and use a distinct value in each environment. Changing it invalidates every token UserAuth has already issued, so everyone signed in is signed out.
 
