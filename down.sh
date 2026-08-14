@@ -1,5 +1,5 @@
-# /bin/bash
+#!/bin/bash
 
-# Run docker-compose
+# Run docker compose
 echo "Stopping container..."
-docker-compose down --remove-orphans
+docker compose down --remove-orphans

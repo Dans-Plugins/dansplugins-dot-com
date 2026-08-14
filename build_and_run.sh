@@ -1,4 +1,4 @@
-# /bin/bash
+#!/bin/bash
 
 # clear old nextjs build
 echo "Clearing old build..."

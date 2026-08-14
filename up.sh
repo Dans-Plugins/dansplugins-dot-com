@@ -1,5 +1,5 @@
-# /bin/bash
+#!/bin/bash
 
-# Run docker-compose
+# Run docker compose
 echo "Starting container..."
-docker-compose up --remove-orphans --build -d
+docker compose up --remove-orphans --build -d
