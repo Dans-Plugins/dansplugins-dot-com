@@ -142,9 +142,9 @@ is entirely user-written text. That needs, at minimum:
 * a report action on every review and comment,
 * soft delete plus a moderation queue behind the existing `AdminProperties`,
 * per-user rate limits on posting,
-* raw HTML disabled in `markdown-to-jsx` wherever user text is rendered —
-  it is enabled by default, and the guide renderer's current settings are safe
-  only because the markdown comes from trusted repositories.
+* raw HTML disabled in `markdown-to-jsx` wherever user text is rendered — it is
+  enabled by default, so it has to be turned off deliberately, as the release-notes
+  and guide renderers both now do.
 
 ### Notifications stay on-site
 

@@ -58,9 +58,8 @@ const changelogStyle = {
 // Raw HTML is disabled deliberately. markdown-to-jsx parses it by default, and
 // these bodies are the first markdown on a resource page that this site does
 // not fetch from a repository file it controls — a mirrored release note is
-// whatever GitHub returned. The guide renderer's looser settings are safe only
-// because its markdown comes from trusted repositories; that argument does not
-// carry over, and reviews and comments will need this off anyway.
+// whatever GitHub returned. components/GuideMarkdown.tsx disables it for the
+// same reason, and reviews and comments will need this off too.
 const Changelog: React.FC<{markdown: string}> = ({markdown}) => (
     <Box sx={changelogStyle}>
         <Markdown options={{disableParsingRawHTML: true}}>{markdown}</Markdown>
