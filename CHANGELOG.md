@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Resource pages now show a plugin's release history. `dpc-api` mirrors each plugin's GitHub releases into new `plugin_versions` and `plugin_version_assets` tables (`V16`) on an hourly schedule and serves them at `GET /api/v1/plugins/{slug}/versions`; `/resources/[slug]` renders the newest release expanded, with its changelog and a download button per asset, and the rest collapsed into accordions. A downloads chip joins the server-count chip, and the "Latest" chip now reads from the mirror when there is one — still the newest *stable* release, as GitHub's own "latest" means it — so a page render no longer spends a call on GitHub's rate limit for something the API already holds. DPC still hosts no files: every download link points at the asset on GitHub. Release notes are rendered with raw HTML parsing disabled, unlike the guide renderer, because a mirrored release body is not a file from a repository this site controls (#273).
+- Resource pages now show a plugin's release history. `dpc-api` mirrors each plugin's GitHub releases into new `plugin_versions` and `plugin_version_assets` tables (`V16`) on an hourly schedule and serves them at `GET /api/v1/plugins/{slug}/versions`; `/resources/[slug]` renders the newest release expanded, with its changelog and a download button per asset, and the rest collapsed into accordions. A downloads chip joins the server-count chip, and the "Latest" chip now reads from the mirror when there is one — still the newest *stable* release, as GitHub's own "latest" means it — so a page render no longer spends a call on GitHub's rate limit for something the API already holds. DPC still hosts no files: every download link points at the asset on GitHub. Release notes are rendered with raw HTML parsing disabled, because a mirrored release body is not a file from a repository this site controls (#273).
 - The release sync deletes a version GitHub no longer reports, but never on the strength of a failed fetch, and never past the oldest release it actually saw — so an outage or a rate limit can leave the mirror stale, but not wrongly empty.
 
 ### Changed
@@ -25,7 +25,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Links inside an on-site guide now go where their author meant. A `USER_GUIDE.md` is written to be read in its repository, so `[Commands](COMMANDS.md)` resolves there against the repository — but rendered at `/guides/<id>` the browser resolved it against the guide's own URL, asked for `/guides/COMMANDS.md`, and got the site's 404 page. Eight of the sixteen guides carry at least one such link, Medieval Factions' four among them; they now point back at the file in the plugin's repository, on the same `blob/HEAD` default branch the "View on GitHub" button uses, with any `#fragment` carried along. Links that already name where they go are untouched, except that anything leaving the site now opens in a new tab with `rel="noopener noreferrer"`, as the rest of the site's outbound links do, and an in-page anchor still jumps down the page (#296).
+
 - `./up.sh` and `./down.sh` now work as `README.md` says they do. Neither script was tracked as executable, so the command the setup instructions give as the way to start the local stack answered `Permission denied` on a fresh clone before Docker was ever reached; all three helper scripts are now mode `100755` (#294). Their first line was `# /bin/bash` — a comment, not a shebang — leaving the interpreter to whatever the caller fell back to, and now reads `#!/bin/bash`. The two Compose scripts also called `docker-compose`, the v1 binary that reached end of life in June 2023 and that current Docker installations may not provide at all; they now call the v2 subcommand `docker compose`, the spelling every document in the repository already used (#292).
+
+### Security
+
+- The guide renderer no longer parses raw HTML. A guide body is fetched at request time from whatever currently sits on a plugin repository's default branch, so the "it comes from a repository we control" argument covered the repositories rather than the code; `components/PluginVersionList.tsx` had already turned the same option off for mirrored release notes. No catalogued guide uses raw HTML, so nothing rendered changes today (#297).
 
 ## [0.15.0-SNAPSHOT-8-8-2026] – 2026-08-08
 
