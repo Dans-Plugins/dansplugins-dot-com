@@ -12,7 +12,7 @@ import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
-import { getLatestReleasesWithRateLimit } from '../utils/github';
+import { getLatestVersionsBySlug } from '../services/pluginVersionService';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
 import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience';
@@ -212,22 +212,27 @@ export const getServerSideProps = async () => {
         console.error('Failed to load visit data; hiding the visit counter.', error);
     }
 
-    // Fetch server counts for all plugins with rate limiting
     const bStatsIds = pluginData.plugins
         .filter(plugin => plugin.bStatsId)
         .map(plugin => plugin.bStatsId as string);
-    
-    const serverCountsMap = await getServerCountsWithRateLimit(bStatsIds, 5);
 
-    // Fetch latest release tags for all plugins with rate limiting
-    const githubLinks = pluginData.plugins.map(plugin => plugin.githubLink);
-    const latestReleasesMap = await getLatestReleasesWithRateLimit(githubLinks, 5);
+    // Two independent lookups, so they run together: server counts from bStats,
+    // one call per plugin with a project; and every card's release tag from the
+    // mirror dpc-api keeps, in a single call. Asking GitHub for those tags
+    // instead cost one call per plugin per render — sixteen against an
+    // unauthenticated budget of sixty an hour, which four page loads exhaust.
+    // Neither figure is load-bearing: both helpers swallow their own errors, and
+    // a missing one hides a chip rather than failing the page.
+    const [serverCountsMap, latestVersionsMap] = await Promise.all([
+        getServerCountsWithRateLimit(bStatsIds, 5),
+        getLatestVersionsBySlug()
+    ]);
 
     // Create plugins with server counts and latest release versions
     const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
         ...plugin,
         serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null,
-        latestVersion: latestReleasesMap.get(plugin.githubLink) ?? null
+        latestVersion: latestVersionsMap.get(plugin.id) ?? null
     }));
 
     return {
