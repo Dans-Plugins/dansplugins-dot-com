@@ -272,12 +272,13 @@ curl http://localhost:45345/api/v1/plugins/versions/latest
 ]
 ```
 
-"Latest" means the newest release that is **not** a pre-release — what GitHub's
-own `/releases/latest` means by the word. A plugin that has published nothing but
-pre-releases is labelled with its newest one rather than dropped from the answer,
-and `prerelease` is how a caller tells the two apart. A plugin with nothing
-mirrored is absent altogether rather than present with a null tag, so the list is
-shorter than `/api/v1/plugins` whenever some plugin has yet to cut a release.
+Rows are ordered by `slug`. "Latest" means the newest release that is **not** a
+pre-release — what GitHub's own `/releases/latest` means by the word. A plugin
+that has published nothing but pre-releases is labelled with its newest one
+rather than dropped from the answer, and `prerelease` is how a caller tells the
+two apart. A plugin with nothing mirrored is absent altogether rather than
+present with a null tag, so the list is shorter than `/api/v1/plugins` whenever
+some plugin has yet to cut a release.
 
 Assets are deliberately not served here: a caller that wants files wants the full
 `/versions` list for one plugin, not a label for every plugin.
