@@ -19,7 +19,7 @@ Variables can also be set directly in the environment, which works for both.
 
 **Type:** string  
 **Default:** `http://localhost:45345`  
-**Description:** The base URL of the DPC API backend. The frontend uses this for all API calls (account management, factions leaderboard, etc.). Change this when deploying to a different host or port. Note that some of those calls are made during **server-side rendering** rather than from the browser — a resource page reads its version history from the API while rendering — so this URL has to be reachable from the Next.js server as well as from a visitor's browser. Where the two differ, the server-side call is the one that decides whether a version list appears.
+**Description:** The base URL of the DPC API backend. The frontend uses this for all API calls (account management, factions leaderboard, etc.). Change this when deploying to a different host or port. Note that some of those calls are made during **server-side rendering** rather than from the browser — a resource page reads its version history from the API while rendering, and the home page reads every card's release tag from it — so this URL has to be reachable from the Next.js server as well as from a visitor's browser. Where the two differ, the server-side call is the one that decides whether a version list and the "Latest" chips appear.
 
 **Example:**
 

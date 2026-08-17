@@ -209,6 +209,7 @@ GitHub, and the rows are metadata about files that live there.
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/v1/plugins/{slug}/versions` | Public | One plugin's mirrored releases, newest first |
+| `GET` | `/api/v1/plugins/versions/latest` | Public | Every plugin's latest release, one row per plugin that has one |
 
 ```bash
 curl http://localhost:45345/api/v1/plugins/medieval-factions/versions
@@ -249,6 +250,38 @@ and because only the newest `DPC_RELEASE_SYNC_MAX_RELEASES` releases are fetched
 a full page of results limits pruning to versions at least as new as the oldest
 release in that page. An outage, a rate limit, or a long release history can
 therefore leave the mirror stale, but never wrongly empty.
+
+##### Every plugin's latest release
+
+A page listing the whole catalogue wants one release per plugin, not each
+plugin's history, and asking for the latter a plugin at a time is one request per
+card. `/api/v1/plugins/versions/latest` answers all of them at once:
+
+```bash
+curl http://localhost:45345/api/v1/plugins/versions/latest
+```
+
+```json
+[
+  {
+    "slug": "medieval-factions",
+    "tag": "v5.3.0",
+    "prerelease": false,
+    "publishedAt": "2026-01-02T03:04:05Z"
+  }
+]
+```
+
+Rows are ordered by `slug`. "Latest" means the newest release that is **not** a
+pre-release — what GitHub's own `/releases/latest` means by the word. A plugin
+that has published nothing but pre-releases is labelled with its newest one
+rather than dropped from the answer, and `prerelease` is how a caller tells the
+two apart. A plugin with nothing mirrored is absent altogether rather than
+present with a null tag, so the list is shorter than `/api/v1/plugins` whenever
+some plugin has yet to cut a release.
+
+Assets are deliberately not served here: a caller that wants files wants the full
+`/versions` list for one plugin, not a label for every plugin.
 
 ### Likes
 

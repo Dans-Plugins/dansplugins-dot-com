@@ -29,6 +29,14 @@ export function releasesUrl(githubLink: string): string | undefined {
 
 /**
  * Fetches the latest release tag for a GitHub repository.
+ *
+ * The last direct call this site makes to the GitHub API while rendering, and
+ * deliberately a single-plugin one: it is the resource page's fallback for when
+ * dpc-api's release mirror has nothing for that plugin. Anything wanting tags
+ * for the whole catalogue reads the mirror instead — see
+ * `getLatestVersionsBySlug` in `services/pluginVersionService.ts` — because a
+ * call per plugin per render does not fit GitHub's unauthenticated rate limit.
+ *
  * @param githubLink The repository's GitHub URL
  * @returns The latest release tag name, or undefined if unavailable/error
  */
@@ -64,33 +72,4 @@ export async function getLatestRelease(githubLink: string): Promise<string | und
         console.error(`Error fetching latest release for ${repo}:`, error);
         return undefined;
     }
-}
-
-/**
- * Fetches the latest release tag for multiple repositories with rate limiting.
- * @param githubLinks Array of GitHub repository URLs
- * @param concurrentLimit Maximum number of concurrent requests (default: 5)
- * @returns Map of githubLink to latest release tag
- */
-export async function getLatestReleasesWithRateLimit(
-    githubLinks: string[],
-    concurrentLimit: number = 5
-): Promise<Map<string, string | undefined>> {
-    const results = new Map<string, string | undefined>();
-
-    for (let i = 0; i < githubLinks.length; i += concurrentLimit) {
-        const batch = githubLinks.slice(i, i + concurrentLimit);
-        const batchResults = await Promise.all(
-            batch.map(async (link) => {
-                const tag = await getLatestRelease(link);
-                return {link, tag};
-            })
-        );
-
-        batchResults.forEach(({link, tag}) => {
-            results.set(link, tag);
-        });
-    }
-
-    return results;
 }

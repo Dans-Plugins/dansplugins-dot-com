@@ -55,6 +55,57 @@ export const getPluginVersions = async (slug: string): Promise<PluginVersion[]> 
     }
 };
 
+/** One plugin's latest mirrored release, as `/api/v1/plugins/versions/latest` serves it. */
+export interface PluginLatestVersion {
+    slug: string;
+    tag: string;
+    // True when the plugin has published nothing but pre-releases, so the tag
+    // above is the newest of those rather than a stable release.
+    prerelease: boolean;
+    publishedAt: string;
+}
+
+/**
+ * Every plugin's latest mirrored release tag, keyed by catalogue slug — one
+ * request for a page rendering the whole catalogue, rather than one per card.
+ *
+ * A plugin with nothing mirrored is simply absent from the map, and so is every
+ * plugin when the API cannot be reached: the tag is a label on a card, so its
+ * absence hides a chip rather than failing the page. There is deliberately no
+ * fall back to GitHub here — doing that for a whole catalogue is the per-render
+ * call storm the mirror exists to avoid.
+ *
+ * Unlike `getPluginVersions` above, a failure here is logged. One unanswered
+ * request blanks every chip on the busiest page at once, and nothing is left
+ * behind it to notice — so without a line in the server log, a misconfigured
+ * NEXT_PUBLIC_API_URL looks exactly like a catalogue that has mirrored no
+ * releases yet.
+ */
+export const getLatestVersionsBySlug = async (): Promise<Map<string, string>> => {
+    try {
+        const res = await fetch(`${getApiBaseUrl()}/api/v1/plugins/versions/latest`);
+        if (!res.ok) {
+            console.error(
+                `Error fetching latest plugin versions: HTTP ${res.status} ${res.statusText}`
+            );
+            return new Map();
+        }
+        const latest = await res.json();
+        if (!Array.isArray(latest)) {
+            console.error('Error fetching latest plugin versions: response body was not an array.');
+            return new Map();
+        }
+        return new Map(
+            (latest as PluginLatestVersion[])
+                .filter((entry) => typeof entry?.slug === 'string' && typeof entry?.tag === 'string')
+                .map((entry): [string, string] => [entry.slug, entry.tag])
+        );
+    } catch (error) {
+        console.error('Error fetching latest plugin versions:', error);
+        return new Map();
+    }
+};
+
 /** Every mirrored release's downloads summed — what the resource page shows as one figure. */
 export const totalDownloads = (versions: PluginVersion[]): number =>
     versions.reduce((sum, version) => sum + (version.downloadCount || 0), 0);

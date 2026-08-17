@@ -1,5 +1,6 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
+    getLatestVersionsBySlug,
     getPluginVersions,
     latestStableTag,
     totalDownloads,
@@ -21,6 +22,11 @@ const version = (overrides: Partial<PluginVersion> = {}): PluginVersion => ({
 const stubFetch = (response: Partial<Response>) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response as Response));
 };
+
+beforeEach(() => {
+    // getLatestVersionsBySlug logs its failures; keep test output quiet.
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+});
 
 afterEach(() => {
     vi.restoreAllMocks();
@@ -78,6 +84,89 @@ describe('getPluginVersions', () => {
             },
         });
         expect(await getPluginVersions('fiefs')).toEqual([]);
+    });
+});
+
+describe('getLatestVersionsBySlug', () => {
+    it('keys the tags by catalogue slug', async () => {
+        stubFetch({
+            ok: true, json: async () => [
+                {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z'},
+                {slug: 'medieval-factions', tag: 'v5.3.0', prerelease: false, publishedAt: '2026-02-01T00:00:00Z'},
+            ],
+        });
+
+        const latest = await getLatestVersionsBySlug();
+
+        expect(latest.get('fiefs')).toBe('v1.2.0');
+        expect(latest.get('medieval-factions')).toBe('v5.3.0');
+    });
+
+    it('requests the whole catalogue in one call', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({ok: true, json: async () => []} as Response);
+        vi.stubGlobal('fetch', fetchMock);
+
+        await getLatestVersionsBySlug();
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/plugins/versions/latest');
+    });
+
+    it('has no entry for a plugin the API did not name', async () => {
+        // A plugin with nothing mirrored is absent from the answer, not present
+        // with a null tag — the home page renders that as no chip.
+        stubFetch({ok: true, json: async () => []});
+        expect((await getLatestVersionsBySlug()).has('fiefs')).toBe(false);
+    });
+
+    it('is empty on a non-ok response', async () => {
+        stubFetch({ok: false, status: 500});
+        expect((await getLatestVersionsBySlug()).size).toBe(0);
+    });
+
+    it('is empty when the API cannot be reached', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network unreachable')));
+        expect((await getLatestVersionsBySlug()).size).toBe(0);
+    });
+
+    it('is empty when the body is not an array', async () => {
+        stubFetch({ok: true, json: async () => ({error: 'nope'})});
+        expect((await getLatestVersionsBySlug()).size).toBe(0);
+    });
+
+    it('logs a failure rather than blanking every chip silently', async () => {
+        // Without this line in the server log, a misconfigured NEXT_PUBLIC_API_URL
+        // is indistinguishable from a catalogue that has mirrored no releases.
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network unreachable')));
+
+        await getLatestVersionsBySlug();
+
+        expect(console.error).toHaveBeenCalled();
+    });
+
+    it('is empty when the body is not JSON at all', async () => {
+        stubFetch({
+            ok: true, json: async () => {
+                throw new SyntaxError('Unexpected token < in JSON');
+            },
+        });
+        expect((await getLatestVersionsBySlug()).size).toBe(0);
+    });
+
+    it('skips an entry missing a slug or a tag rather than mapping undefined', async () => {
+        stubFetch({
+            ok: true, json: async () => [
+                {slug: 'fiefs', tag: 'v1.2.0'},
+                {slug: 'currencies'},
+                {tag: 'v9.9.9'},
+                null,
+            ],
+        });
+
+        const latest = await getLatestVersionsBySlug();
+
+        expect(latest.size).toBe(1);
+        expect(latest.get('fiefs')).toBe('v1.2.0');
     });
 });
 

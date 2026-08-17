@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getLatestRelease, getLatestReleasesWithRateLimit, parseGithubRepo, releasesUrl } from '../utils/github';
+import { getLatestRelease, parseGithubRepo, releasesUrl } from '../utils/github';
 
 const stubFetch = (response: Partial<Response>) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response as Response));
@@ -76,31 +76,6 @@ describe('getLatestRelease', () => {
     it('returns undefined for a link that is not a GitHub URL', async () => {
         vi.stubGlobal('fetch', vi.fn());
         expect(await getLatestRelease('https://example.com/foo/bar')).toBeUndefined();
-        expect(fetch).not.toHaveBeenCalled();
-    });
-});
-
-describe('getLatestReleasesWithRateLimit', () => {
-    it('resolves a tag for every link when batching by the concurrency limit', async () => {
-        const tags: Record<string, string> = { a: 'v1.0.0', b: 'v2.0.0', c: 'v3.0.0', d: 'v4.0.0', e: 'v5.0.0' };
-        vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
-            const repo = url.split('/repos/')[1].split('/releases')[0];
-            const id = repo.split('/')[1];
-            return Promise.resolve({ ok: true, json: async () => ({ tag_name: tags[id] }) } as Response);
-        }));
-
-        const links = Object.keys(tags).map((id) => `https://github.com/org/${id}`);
-        const result = await getLatestReleasesWithRateLimit(links, 2);
-
-        expect(result.size).toBe(5);
-        expect(result.get('https://github.com/org/a')).toBe('v1.0.0');
-        expect(result.get('https://github.com/org/e')).toBe('v5.0.0');
-    });
-
-    it('returns an empty map for an empty link list', async () => {
-        vi.stubGlobal('fetch', vi.fn());
-        const result = await getLatestReleasesWithRateLimit([], 5);
-        expect(result.size).toBe(0);
         expect(fetch).not.toHaveBeenCalled();
     });
 });

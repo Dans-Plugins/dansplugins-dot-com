@@ -1,11 +1,13 @@
 package com.dansplugins.api.controller;
 
+import com.dansplugins.api.dto.PluginLatestVersionResponse;
 import com.dansplugins.api.dto.PluginResponse;
 import com.dansplugins.api.dto.PluginVersionResponse;
 import com.dansplugins.api.entity.Plugin;
 import com.dansplugins.api.exception.ResourceNotFoundException;
 import com.dansplugins.api.repository.PluginRepository;
 import com.dansplugins.api.repository.PluginVersionRepository;
+import com.dansplugins.api.service.PluginVersionQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +24,12 @@ import java.util.List;
  * migration, not over HTTP. Editing arrives with the admin catalogue UI (see
  * {@code RESOURCE_HUB.md}); until then there is no write path to secure.
  *
- * <p>No service layer sits between this and the repository because there is no
- * logic to put in one: every endpoint here is a lookup and a DTO mapping. A
- * service appears when the first computed field (rating aggregates) does. The
- * version list is written by {@link com.dansplugins.api.service.ReleaseSyncService}
- * from GitHub, so it is read-only here for the same reason the catalogue is.
+ * <p>No service layer sits between this and the repository for the lookups,
+ * because there is no logic to put in one: each is a find and a DTO mapping. The
+ * one endpoint that computes something — which release to label a plugin with —
+ * delegates to {@link PluginVersionQueryService} instead. The version list is
+ * written by {@link com.dansplugins.api.service.ReleaseSyncService} from GitHub,
+ * so it is read-only here for the same reason the catalogue is.
  */
 @RestController
 @RequestMapping("/api/v1/plugins")
@@ -36,6 +39,7 @@ public class PluginController {
 
     private final PluginRepository pluginRepository;
     private final PluginVersionRepository pluginVersionRepository;
+    private final PluginVersionQueryService pluginVersionQueryService;
 
     @GetMapping
     @Operation(summary = "List every plugin in the catalogue, alphabetically by title")
@@ -49,6 +53,21 @@ public class PluginController {
         return pluginRepository.findBySlug(slug)
                 .map(PluginResponse::from)
                 .orElseThrow(() -> new ResourceNotFoundException("No plugin with slug '" + slug + "'"));
+    }
+
+    /**
+     * Exists so a page showing the whole catalogue at once can label every card
+     * with one request instead of one per plugin — the home page's sixteen.
+     *
+     * <p>Mapped at {@code /versions/latest} rather than {@code /latest-versions}
+     * so that nothing has to be known about how Spring ranks a literal segment
+     * against the {@code /{slug}} template: no request can match both this and
+     * {@code /{slug}/versions}, whose second segment is the literal one.
+     */
+    @GetMapping("/versions/latest")
+    @Operation(summary = "Each plugin's latest mirrored release, one row per plugin that has one")
+    public List<PluginLatestVersionResponse> latestVersions() {
+        return pluginVersionQueryService.latestPerPlugin();
     }
 
     /**

@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -86,6 +87,17 @@ class PluginControllerTest {
                 new PluginVersionAsset("WildPets-1.1.0-sources.jar", 512, 1,
                         "https://github.com/Dans-Plugins/Wild-Pets/releases/download/v1.1.0/sources.jar")));
         pluginVersionRepository.save(newer);
+    }
+
+    /** One mirrored release carrying only the columns the latest-version tests read. */
+    private void givenRelease(String slug, String tag, String publishedAt, boolean prerelease) {
+        Plugin plugin = pluginRepository.findBySlug(slug).orElseThrow();
+        PluginVersion version = new PluginVersion(plugin, tag);
+        version.setHtmlUrl("https://github.com/Dans-Plugins/X/releases/tag/" + tag);
+        version.setPrerelease(prerelease);
+        version.setPublishedAt(Instant.parse(publishedAt));
+        version.setLastSyncedAt(Instant.parse("2026-03-01T00:00:00Z"));
+        pluginVersionRepository.save(version);
     }
 
     @Test
@@ -177,6 +189,60 @@ class PluginControllerTest {
     void returnsNotFoundForVersionsOfAnUnknownSlug() throws Exception {
         mockMvc.perform(get("/api/v1/plugins/not-a-plugin/versions"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void namesEachPluginsLatestStableRelease() throws Exception {
+        givenMirroredVersions();
+
+        // Wild Pets' newest release, v1.1.0, is a pre-release; the label is the
+        // newest stable one behind it, as GitHub's own /releases/latest means it.
+        // Medieval Cookery has nothing mirrored, so the answer is one row rather
+        // than two with a null tag: the caller asked which plugins have a release
+        // to name, and "none" is an absence.
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].slug").value("wild-pets"))
+                .andExpect(jsonPath("$[0].tag").value("v1.0.0"))
+                .andExpect(jsonPath("$[0].prerelease").value(false))
+                .andExpect(jsonPath("$[0].publishedAt", startsWith("2026-01-01")));
+    }
+
+    @Test
+    void fallsBackToTheNewestPreReleaseWhenAPluginHasNoStableOne() throws Exception {
+        givenRelease("medieval-cookery", "v0.1.0-beta", "2026-01-01T00:00:00Z", true);
+        givenRelease("medieval-cookery", "v0.2.0-beta", "2026-02-01T00:00:00Z", true);
+
+        // Dropping the plugin from the answer would be worse than labelling it
+        // with a pre-release, so it is labelled — and says which it is.
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].tag").value("v0.2.0-beta"))
+                .andExpect(jsonPath("$[0].prerelease").value(true));
+    }
+
+    @Test
+    void ordersTheLatestVersionsBySlug() throws Exception {
+        givenMirroredVersions();
+        givenRelease("medieval-cookery", "v3.0.0", "2026-02-15T00:00:00Z", false);
+
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].slug").value("medieval-cookery"))
+                .andExpect(jsonPath("$[1].slug").value("wild-pets"));
+    }
+
+    @Test
+    void servesAnEmptyListWhenNothingIsMirroredAtAll() throws Exception {
+        // Also the assertion that /versions/latest is routed to its own handler:
+        // it and /{slug}/versions are both two segments, and being mistaken for
+        // the latter would be a 404 for the plugin "versions" rather than a 200.
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
