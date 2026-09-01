@@ -13,7 +13,7 @@ Thank you for your interest in contributing to the Dan's Plugins Community Websi
 
 - A GitHub account
 - Git installed on your local machine
-- [Node.js](https://nodejs.org/en/) (v18 or later, to match CI/Docker)
+- [Node.js](https://nodejs.org/en/) (v18.17 or later, the floor Next.js 14 requires; CI and Docker both run 18.x)
 - Java 17, if the change touches the `dpc-api/` back end (Maven comes with the bundled `./mvnw`)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop), to run the full stack locally
 - A code editor (e.g. VS Code)
