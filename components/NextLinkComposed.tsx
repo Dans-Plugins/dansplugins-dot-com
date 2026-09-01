@@ -6,6 +6,11 @@ import NextLink, {LinkProps as NextLinkProps} from 'next/link';
 // an anchor (Button, Link, ListItemButton, Box component="a", ...) can navigate
 // without a full page reload. `to` (rather than `href`) avoids colliding with
 // the `href` most of those MUI components already accept in their own props.
+//
+// Written for Next 13+, where `next/link` renders the anchor itself and takes
+// the forwarded ref. On Next 12 and earlier the Link expected a child `<a>`, so
+// this file used `passHref` around one; keeping that here would nest two
+// anchors, which is invalid HTML and confuses assistive technology.
 interface NextLinkComposedProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
     to: NextLinkProps['href'];
     linkAs?: NextLinkProps['as'];
@@ -29,10 +34,9 @@ export const NextLinkComposed = React.forwardRef<HTMLAnchorElement, NextLinkComp
                 shallow={shallow}
                 prefetch={prefetch}
                 locale={locale}
-                passHref
-            >
-                <a ref={ref} {...other} />
-            </NextLink>
+                ref={ref}
+                {...other}
+            />
         );
     },
 );
