@@ -20,7 +20,12 @@ No special software is required to use the website. Simply visit [https://danspl
 2. Browse the plugin cards displayed on the page, or narrow them down:
    - Type in the **Search plugins…** box to filter by plugin name or description. A "Showing N of M plugins" count appears while a search is active, and the ✕ clears it.
    - Use the **By Popularity** / **Most Liked** / **Alphabetical** buttons to reorder the catalogue.
-3. Once you have found a plugin, use the buttons on its card:
+3. A card may carry up to two small chips between the description and the buttons, each shown only when the figure behind it is available:
+   - **N servers** — how many servers are running the plugin, as reported by bStats. Plugins with no bStats project, or none reporting yet, show no such chip.
+   - **Latest: vX.Y.Z** — the plugin's newest release. A plugin that has published no release, or whose releases have not yet been mirrored from GitHub, shows no such chip.
+
+   Both figures are repeated on the plugin's own page (see below), so there is no need to open it just to read them.
+4. Once you have found a plugin, use the buttons on its card:
    - **Details** — that plugin's own page on this site (see below). Its name is a link to the same place.
    - **Guide** — that plugin's user guide, on this site.
    - **GitHub** — the plugin's source code and releases.

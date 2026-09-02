@@ -11,6 +11,12 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:45345}
       NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      # Where the Next.js server reaches dpc-api while rendering. The public URL
+      # above is the published host port, which from inside this container is
+      # its own loopback with nothing listening — server-rendered reads of the
+      # API need the Compose network name instead. Server-only, so it is read at
+      # runtime rather than inlined at build time. See CONFIG.md.
+      DPC_API_INTERNAL_URL: ${DPC_API_INTERNAL_URL:-http://dpc-api:8080}
     volumes:
       - ./node_modules:/app/node_modules
       - ./data:/app/data

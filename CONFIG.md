@@ -19,12 +19,28 @@ Variables can also be set directly in the environment, which works for both.
 
 **Type:** string  
 **Default:** `http://localhost:45345`  
-**Description:** The base URL of the DPC API backend. The frontend uses this for all API calls (account management, factions leaderboard, etc.). Change this when deploying to a different host or port. Note that some of those calls are made during **server-side rendering** rather than from the browser — a resource page reads its version history from the API while rendering, and the home page reads every card's release tag from it — so this URL has to be reachable from the Next.js server as well as from a visitor's browser. Where the two differ, the server-side call is the one that decides whether a version list and the "Latest" chips appear.
+**Description:** The base URL of the DPC API backend, as a **visitor's browser** reaches it. The frontend uses this for all API calls (account management, factions leaderboard, etc.). Change this when deploying to a different host or port. Note that some of those calls are made during **server-side rendering** rather than from the browser — a resource page reads its version history from the API while rendering, and the home page reads every card's release tag from it — so this URL has to be reachable from the Next.js server too, unless [`DPC_API_INTERNAL_URL`](#dpc_api_internal_url) names a separate address for that. Where the server cannot reach the API, a version list and the "Latest" chips are simply absent: each of those reads swallows its own error so the page degrades rather than breaks.
 
 **Example:**
 
 ```env
 NEXT_PUBLIC_API_URL=https://api.dansplugins.com
+```
+
+### `DPC_API_INTERNAL_URL`
+
+**Type:** string  
+**Default:** *unset — falls back to `NEXT_PUBLIC_API_URL`*  
+**Description:** The base URL of the DPC API backend, as the **Next.js server** reaches it while rendering. Set this only where the server and the browser reach `dpc-api` at different addresses; when it is unset, server-side calls use `NEXT_PUBLIC_API_URL` like everything else, which is the right answer wherever the API answers at one public origin from both sides.
+
+The Docker Compose stack is the case that needs it. `NEXT_PUBLIC_API_URL` there is the API's published host port (`http://localhost:45345`), which is what a visitor's browser needs — but from inside the `dpc-website` container that is the container's own loopback, where nothing listens. On the Compose network the API is `http://dpc-api:8080`, and no single value can name both. `compose.yml` therefore defaults this variable to `http://dpc-api:8080`; override it in the shell or `.env` if the API service is renamed or moved.
+
+Unlike the `NEXT_PUBLIC_*` variables it is never exposed to the browser and is **not** inlined at build time — it is read from the environment at runtime, so changing it needs a container restart rather than an image rebuild.
+
+**Example:**
+
+```env
+DPC_API_INTERNAL_URL=http://dpc-api:8080
 ```
 
 ### `NEXT_PUBLIC_BASE_URL`
@@ -61,7 +77,9 @@ When running the stack with Docker Compose, variables can be set in the shell or
 
 `.env` holds `JWT_SECRET` and is therefore ignored by git, alongside the `.env*.local` pattern.
 
-Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild after changing them: `docker compose up --build`, or `./up.sh`, which always rebuilds. A plain `docker compose up` reuses the cached image, so neither a changed variable nor a changed source file appears.
+Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild after changing them: `docker compose up --build`, or `./up.sh`, which always rebuilds. A plain `docker compose up` reuses the cached image, so neither a changed variable nor a changed source file appears. [`DPC_API_INTERNAL_URL`](#dpc_api_internal_url) is the exception — being server-only it is read at runtime, so a restart is enough.
+
+`compose.yml` sets `DPC_API_INTERNAL_URL` to `http://dpc-api:8080` by default, which is how the website container reaches the API on the Compose network. Leave it alone unless the API service is renamed or moved; it does not belong in a `.env` written for `npm run dev`, where the server and the browser are the same machine and `NEXT_PUBLIC_API_URL` already answers for both.
 
 **Example `.env`:**
 
@@ -86,6 +104,8 @@ When changing the API port, set `NEXT_PUBLIC_API_URL` to match. This is passed t
 ```bash
 API_PORT=9090 NEXT_PUBLIC_API_URL=http://localhost:9090 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
+
+`API_PORT` is the *published* port only; inside the Compose network the API still listens on 8080, so [`DPC_API_INTERNAL_URL`](#dpc_api_internal_url) does not change with it.
 
 ## Social Preview Image
 
