@@ -2,7 +2,8 @@
 // which dpc-api proxies to the shared UserAuth identity service. The base URL
 // is the same public API the account page's profile calls use.
 //
-// Every outcome is one of three kinds, and the distinction is the point:
+// Every outcome is one of three kinds (registration adds a fourth, below), and
+// the distinction is the point:
 //
 //   * authenticated — the service did the thing and issued a token.
 //   * refused       — the service answered, and the answer is no (wrong
