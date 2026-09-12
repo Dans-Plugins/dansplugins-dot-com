@@ -28,6 +28,7 @@ import BottomBar from '../components/BottomBar'
 import {NextLinkComposed} from '../components/NextLinkComposed'
 import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 import {getMyLikes, type LikedTarget} from '../services/likeService'
+import {login, logout, register} from '../services/authService'
 import {resolveLikedItems} from '../utils/likedItems'
 import {badgeLabel} from '../utils/badges'
 import {getApiBaseUrl} from '../utils/apiBase'
@@ -135,6 +136,19 @@ const AccountPage: NextPage = () => {
         }
     }, [token, fetchProfile])
 
+    // Persisting the token is best-effort: with storage blocked (some private
+    // modes, or a browser set to refuse site data) setItem throws, and the
+    // session then simply lasts until the page is reloaded rather than failing
+    // a login that succeeded.
+    const startSession = (jwt: string) => {
+        setToken(jwt)
+        try {
+            localStorage.setItem('dpc-token', jwt)
+        } catch {
+            // ignore: the in-memory token above keeps this visit signed in
+        }
+    }
+
     // After authenticating, send the user back to wherever they came from — e.g. a
     // plugin whose like button bounced them here (LikeButton sets ?returnTo=...).
     // Only internal paths are honored, never an absolute URL, to avoid an open redirect.
@@ -152,24 +166,24 @@ const AccountPage: NextPage = () => {
         setSuccess(null)
         setSubmitting(true)
         try {
-            const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password}),
-            })
-            if (res.ok) {
-                const data = await res.json()
-                setToken(data.token)
-                localStorage.setItem('dpc-token', data.token)
+            const result = await register(username, password)
+            if (result.status === 'authenticated') {
+                startSession(result.token)
                 setSuccess('Account created successfully!')
                 setUsername('')
                 setPassword('')
                 returnAfterAuth()
+            } else if (result.status === 'registered') {
+                // The account exists but no token was issued: switch to the
+                // Login tab with the username kept, so the visitor can log in
+                // without retyping it — and without re-submitting the Register
+                // form, which would answer 409 on the account just created.
+                setSuccess(result.message)
+                setPassword('')
+                setTab(0)
             } else {
-                setError('Registration failed. Make sure your username is available and your password meets the requirements (8–128 characters).')
+                setError(result.message)
             }
-        } catch {
-            setError('We couldn’t reach the server. Please check your connection and try again.')
         } finally {
             setSubmitting(false)
         }
@@ -181,24 +195,16 @@ const AccountPage: NextPage = () => {
         setSuccess(null)
         setSubmitting(true)
         try {
-            const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password}),
-            })
-            if (res.ok) {
-                const data = await res.json()
-                setToken(data.token)
-                localStorage.setItem('dpc-token', data.token)
+            const result = await login(username, password)
+            if (result.status === 'authenticated') {
+                startSession(result.token)
                 setSuccess('Logged in!')
                 setUsername('')
                 setPassword('')
                 returnAfterAuth()
             } else {
-                setError('Invalid credentials.')
+                setError(result.message)
             }
-        } catch {
-            setError('We couldn’t reach the server. Please check your connection and try again.')
         } finally {
             setSubmitting(false)
         }
@@ -208,10 +214,7 @@ const AccountPage: NextPage = () => {
         // Revoke the token server-side (via UserAuth) before clearing it locally.
         // Best-effort: clearing the local token is the meaningful part of logout.
         if (token) {
-            fetch(`${API_BASE}/api/v1/auth/logout`, {
-                method: 'POST',
-                headers: {'Authorization': `Bearer ${token}`},
-            }).catch(() => { /* ignore: local clear below still logs the user out */ })
+            logout(token)
         }
         setToken(null)
         setProfile(null)
