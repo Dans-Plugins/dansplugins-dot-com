@@ -3,6 +3,8 @@ import {
     AUTH_REQUEST_TIMEOUT_MS,
     LOGIN_REFUSED_MESSAGE,
     REGISTER_REFUSED_MESSAGE,
+    REGISTER_REQUEST_TIMEOUT_MS,
+    REGISTER_TIMEOUT_MESSAGE,
     REGISTERED_LOGIN_NEEDED_MESSAGE,
     SERVICE_UNAVAILABLE_MESSAGE,
     TIMEOUT_MESSAGE,
@@ -193,20 +195,38 @@ describe('register', () => {
         });
     });
 
-    it('reports a timed-out request as a timeout', async () => {
+    // The account may already exist server-side when the client gives up, so
+    // the message steers the visitor to log in rather than re-register.
+    it('reports a timed-out request with the register-specific message', async () => {
         rejectFetch(timeoutError());
-        expect(await register('dan', 'hunter22')).toEqual({status: 'unavailable', message: TIMEOUT_MESSAGE});
+        expect(await register('dan', 'hunter22')).toEqual({
+            status: 'unavailable',
+            message: REGISTER_TIMEOUT_MESSAGE,
+        });
+    });
+
+    // dpc-api makes two sequential UserAuth calls for a registration, each
+    // with its own 5 s connect + 10 s read budget, so the bound is longer
+    // than login's.
+    it('bounds the request with the longer registration timeout', async () => {
+        const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
+        stubFetch({ok: true, status: 201, json: async () => ({token: 't'})});
+        await register('dan', 'hunter22');
+        expect(timeoutSpy).toHaveBeenCalledWith(REGISTER_REQUEST_TIMEOUT_MS);
+        expect(REGISTER_REQUEST_TIMEOUT_MS).toBeGreaterThan(AUTH_REQUEST_TIMEOUT_MS);
     });
 });
 
 describe('logout', () => {
     it('posts the bearer token to the logout endpoint', async () => {
+        const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
         const fetchMock = stubFetch({ok: true, status: 200});
         await logout('my-token');
         const [url, init] = fetchMock.mock.calls[0];
         expect(url).toMatch(/\/api\/v1\/auth\/logout$/);
         expect(init).toMatchObject({method: 'POST', headers: {Authorization: 'Bearer my-token'}});
         expect(init.signal).toBeInstanceOf(AbortSignal);
+        expect(timeoutSpy).toHaveBeenCalledWith(AUTH_REQUEST_TIMEOUT_MS);
     });
 
     it('resolves without throwing on a non-ok response', async () => {

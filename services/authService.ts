@@ -21,10 +21,18 @@ import {getApiBaseUrl} from '../utils/apiBase';
 const API_BASE = getApiBaseUrl();
 
 /**
- * Upper bound on a single auth request. A wedged dpc-api otherwise leaves the
- * form's submit button spinning until the browser gives up on its own.
+ * Upper bound on a login or logout request. A wedged dpc-api otherwise leaves
+ * the form's submit button spinning until the browser gives up on its own.
  */
 export const AUTH_REQUEST_TIMEOUT_MS = 8000;
+
+/**
+ * Registration gets a longer bound because it is not idempotent and dpc-api
+ * makes two sequential UserAuth calls for it (register, then login), each
+ * allowed 5 s to connect and 10 s to answer. Cutting it off earlier would
+ * invite a retry that 409s on the account the first attempt already created.
+ */
+export const REGISTER_REQUEST_TIMEOUT_MS = 30000;
 
 export type AuthResult =
     | {status: 'authenticated'; token: string}
@@ -46,14 +54,18 @@ export const SERVICE_UNAVAILABLE_MESSAGE =
     'Sign-in is temporarily unavailable. Please try again in a few minutes.';
 export const TIMEOUT_MESSAGE =
     'The server took too long to respond. Please try again in a moment.';
+// A registration that timed out may still have gone through server-side, so
+// the next step is a login, not another registration.
+export const REGISTER_TIMEOUT_MESSAGE =
+    'The server took too long to respond. Your account may still have been created — try logging in before registering again.';
 export const UNREACHABLE_MESSAGE =
     'We couldn’t reach the server. Please check your connection and try again.';
 
 // AbortSignal.timeout is missing from a few older browsers; a request there is
 // simply unbounded, as every request was before, rather than failing outright.
-const timeoutSignal = (): AbortSignal | undefined =>
+const timeoutSignal = (ms: number): AbortSignal | undefined =>
     typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
-        ? AbortSignal.timeout(AUTH_REQUEST_TIMEOUT_MS)
+        ? AbortSignal.timeout(ms)
         : undefined;
 
 const isTimeout = (e: unknown): boolean =>
@@ -79,17 +91,30 @@ const readToken = async (res: Response): Promise<string | null> => {
     }
 };
 
+interface PostOptions {
+    path: string;
+    timeoutMs: number;
+    timeoutMessage: string;
+    refusedMessage: string;
+    /** The result for a 2xx whose body carries no token. */
+    onOkWithoutToken: AuthResult;
+}
+
 const post = async (
-    path: string,
-    init: Omit<RequestInit, 'signal'>,
-    refusedMessage: string,
-    onOkWithoutToken: AuthResult
+    username: string,
+    password: string,
+    {path, timeoutMs, timeoutMessage, refusedMessage, onOkWithoutToken}: PostOptions
 ): Promise<AuthResult> => {
     let res: Response;
     try {
-        res = await fetch(`${API_BASE}${path}`, {...init, signal: timeoutSignal()});
+        res = await fetch(`${API_BASE}${path}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password}),
+            signal: timeoutSignal(timeoutMs),
+        });
     } catch (e) {
-        return {status: 'unavailable', message: isTimeout(e) ? TIMEOUT_MESSAGE : UNREACHABLE_MESSAGE};
+        return {status: 'unavailable', message: isTimeout(e) ? timeoutMessage : UNREACHABLE_MESSAGE};
     }
     if (res.ok) {
         const token = await readToken(res);
@@ -101,25 +126,25 @@ const post = async (
     return {status: 'refused', message: refusedMessage};
 };
 
-const credentialsInit = (username: string, password: string): Omit<RequestInit, 'signal'> => ({
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({username, password}),
-});
-
 /** Create an account. Resolves to `authenticated` when dpc-api also logged it in. */
 export const register = (username: string, password: string): Promise<AuthResult> =>
-    post('/api/v1/auth/register', credentialsInit(username, password), REGISTER_REFUSED_MESSAGE, {
-        status: 'registered',
-        message: REGISTERED_LOGIN_NEEDED_MESSAGE,
+    post(username, password, {
+        path: '/api/v1/auth/register',
+        timeoutMs: REGISTER_REQUEST_TIMEOUT_MS,
+        timeoutMessage: REGISTER_TIMEOUT_MESSAGE,
+        refusedMessage: REGISTER_REFUSED_MESSAGE,
+        onOkWithoutToken: {status: 'registered', message: REGISTERED_LOGIN_NEEDED_MESSAGE},
     });
 
 /** Log in with a username and password. */
 export const login = (username: string, password: string): Promise<AuthResult> =>
-    // A 2xx login with no token is not an answer either; nothing was issued.
-    post('/api/v1/auth/login', credentialsInit(username, password), LOGIN_REFUSED_MESSAGE, {
-        status: 'unavailable',
-        message: SERVICE_UNAVAILABLE_MESSAGE,
+    post(username, password, {
+        path: '/api/v1/auth/login',
+        timeoutMs: AUTH_REQUEST_TIMEOUT_MS,
+        timeoutMessage: TIMEOUT_MESSAGE,
+        refusedMessage: LOGIN_REFUSED_MESSAGE,
+        // A 2xx login with no token is not an answer either; nothing was issued.
+        onOkWithoutToken: {status: 'unavailable', message: SERVICE_UNAVAILABLE_MESSAGE},
     });
 
 /**
@@ -132,7 +157,7 @@ export const logout = async (token: string): Promise<void> => {
         await fetch(`${API_BASE}/api/v1/auth/logout`, {
             method: 'POST',
             headers: {Authorization: `Bearer ${token}`},
-            signal: timeoutSignal(),
+            signal: timeoutSignal(AUTH_REQUEST_TIMEOUT_MS),
         });
     } catch {
         // ignore: the caller clears the local token regardless

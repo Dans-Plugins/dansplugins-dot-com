@@ -136,6 +136,19 @@ const AccountPage: NextPage = () => {
         }
     }, [token, fetchProfile])
 
+    // Persisting the token is best-effort: with storage blocked (some private
+    // modes, or a browser set to refuse site data) setItem throws, and the
+    // session then simply lasts until the page is reloaded rather than failing
+    // a login that succeeded.
+    const startSession = (jwt: string) => {
+        setToken(jwt)
+        try {
+            localStorage.setItem('dpc-token', jwt)
+        } catch {
+            // ignore: the in-memory token above keeps this visit signed in
+        }
+    }
+
     // After authenticating, send the user back to wherever they came from — e.g. a
     // plugin whose like button bounced them here (LikeButton sets ?returnTo=...).
     // Only internal paths are honored, never an absolute URL, to avoid an open redirect.
@@ -155,17 +168,19 @@ const AccountPage: NextPage = () => {
         try {
             const result = await register(username, password)
             if (result.status === 'authenticated') {
-                setToken(result.token)
-                localStorage.setItem('dpc-token', result.token)
+                startSession(result.token)
                 setSuccess('Account created successfully!')
                 setUsername('')
                 setPassword('')
                 returnAfterAuth()
             } else if (result.status === 'registered') {
-                // The account exists but no token was issued: keep the username
-                // in the form so the visitor can log in without retyping it.
+                // The account exists but no token was issued: switch to the
+                // Login tab with the username kept, so the visitor can log in
+                // without retyping it — and without re-submitting the Register
+                // form, which would answer 409 on the account just created.
                 setSuccess(result.message)
                 setPassword('')
+                setTab(0)
             } else {
                 setError(result.message)
             }
@@ -182,8 +197,7 @@ const AccountPage: NextPage = () => {
         try {
             const result = await login(username, password)
             if (result.status === 'authenticated') {
-                setToken(result.token)
-                localStorage.setItem('dpc-token', result.token)
+                startSession(result.token)
                 setSuccess('Logged in!')
                 setUsername('')
                 setPassword('')
