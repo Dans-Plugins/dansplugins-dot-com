@@ -55,6 +55,10 @@ export const siteDownloadUrl = (asset: {downloadUrl: string; downloadPath?: stri
         ? `${getPublicApiBaseUrl()}${asset.downloadPath}`
         : asset.downloadUrl;
 
+/** "1 download", "1,204 downloads" — one wording for every place a figure is shown. */
+export const downloadsLabel = (count: number): string =>
+    `${count.toLocaleString()} ${count === 1 ? 'download' : 'downloads'}`;
+
 /** A plugin's downloads through the site, as `/api/v1/plugins/{slug}/downloads` serves them. */
 export interface PluginDownloads {
     // Every release summed, releases since withdrawn from GitHub included.

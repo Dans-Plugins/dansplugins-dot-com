@@ -65,6 +65,11 @@ describe('PluginCard download count', () => {
         expect(screen.getByTestId('download-count').textContent).toBe('1,234 downloads');
     });
 
+    it('says "1 download", not "1 downloads"', () => {
+        renderCard({downloadCount: 1});
+        expect(screen.getByTestId('download-count').textContent).toBe('1 download');
+    });
+
     it('is absent at zero, so a plugin nobody has downloaded yet is not labelled with a 0', () => {
         renderCard({downloadCount: 0});
         expect(screen.queryByTestId('download-count')).toBeNull();
