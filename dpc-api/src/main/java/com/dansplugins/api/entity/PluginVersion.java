@@ -22,6 +22,8 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -119,6 +121,29 @@ public class PluginVersion {
     /** What the resource page shows as this release's total download figure. */
     public long totalDownloadCount() {
         return assets.stream().mapToLong(PluginVersionAsset::getDownloadCount).sum();
+    }
+
+    /**
+     * The file a server operator installs: the release's plugin jar, or empty
+     * when the release attaches none. This is the rule Dan's Plugin Manager
+     * applies to the same releases — the first {@code .jar} asset — with one
+     * refinement, because {@link #assets} is ordered by name and a
+     * {@code -sources.jar} sorts ahead of the plugin jar it accompanies: a
+     * sources or javadoc jar is passed over unless it is the only jar there is.
+     */
+    public Optional<PluginVersionAsset> pluginJar() {
+        List<PluginVersionAsset> jars = assets.stream()
+                .filter(asset -> asset.getName().toLowerCase(Locale.ROOT).endsWith(".jar"))
+                .toList();
+        return jars.stream()
+                .filter(asset -> !isCompanionJar(asset.getName()))
+                .findFirst()
+                .or(() -> jars.stream().findFirst());
+    }
+
+    private static boolean isCompanionJar(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return lower.endsWith("-sources.jar") || lower.endsWith("-javadoc.jar");
     }
 
     @PrePersist

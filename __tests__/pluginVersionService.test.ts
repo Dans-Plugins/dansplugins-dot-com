@@ -88,18 +88,36 @@ describe('getPluginVersions', () => {
 });
 
 describe('getLatestVersionsBySlug', () => {
-    it('keys the tags by catalogue slug', async () => {
+    it('keys the tags and jar links by catalogue slug', async () => {
         stubFetch({
             ok: true, json: async () => [
-                {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z'},
-                {slug: 'medieval-factions', tag: 'v5.3.0', prerelease: false, publishedAt: '2026-02-01T00:00:00Z'},
+                {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z',
+                    downloadUrl: 'https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar'},
+                {slug: 'medieval-factions', tag: 'v5.3.0', prerelease: false, publishedAt: '2026-02-01T00:00:00Z',
+                    downloadUrl: null},
             ],
         });
 
         const latest = await getLatestVersionsBySlug();
 
-        expect(latest.get('fiefs')).toBe('v1.2.0');
-        expect(latest.get('medieval-factions')).toBe('v5.3.0');
+        expect(latest.get('fiefs')).toEqual({
+            tag: 'v1.2.0',
+            downloadUrl: 'https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar',
+        });
+        // A release with no jar still labels the card; it just offers no file.
+        expect(latest.get('medieval-factions')).toEqual({tag: 'v5.3.0', downloadUrl: null});
+    });
+
+    it('treats a missing downloadUrl as no file rather than as a broken link', async () => {
+        // The shape an API predating the field returns: the label must survive
+        // a deploy in which the site moves before the API does.
+        stubFetch({
+            ok: true, json: async () => [
+                {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z'},
+            ],
+        });
+
+        expect((await getLatestVersionsBySlug()).get('fiefs')).toEqual({tag: 'v1.2.0', downloadUrl: null});
     });
 
     it('requests the whole catalogue in one call', async () => {
@@ -166,7 +184,7 @@ describe('getLatestVersionsBySlug', () => {
         const latest = await getLatestVersionsBySlug();
 
         expect(latest.size).toBe(1);
-        expect(latest.get('fiefs')).toBe('v1.2.0');
+        expect(latest.get('fiefs')?.tag).toBe('v1.2.0');
     });
 });
 

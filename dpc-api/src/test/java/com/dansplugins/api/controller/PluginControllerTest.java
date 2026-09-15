@@ -206,7 +206,45 @@ class PluginControllerTest {
                 .andExpect(jsonPath("$[0].slug").value("wild-pets"))
                 .andExpect(jsonPath("$[0].tag").value("v1.0.0"))
                 .andExpect(jsonPath("$[0].prerelease").value(false))
-                .andExpect(jsonPath("$[0].publishedAt", startsWith("2026-01-01")));
+                .andExpect(jsonPath("$[0].publishedAt", startsWith("2026-01-01")))
+                // The card's Download button: that release's jar, not the newer pre-release's.
+                .andExpect(jsonPath("$[0].downloadUrl")
+                        .value("https://github.com/Dans-Plugins/Wild-Pets/releases/download/v1.0.0/WildPets-1.0.0.jar"));
+    }
+
+    @Test
+    void servesANullDownloadUrlWhenTheLatestReleaseAttachesNoJar() throws Exception {
+        givenRelease("medieval-cookery", "v3.0.0", "2026-02-15T00:00:00Z", false);
+
+        // A release with no files is still the one to label the card with; the
+        // card just has nothing to offer for download. Asserted as an explicit
+        // null so the key cannot quietly vanish from the documented shape.
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tag").value("v3.0.0"))
+                .andExpect(jsonPath("$[0].downloadUrl").value(nullValue()));
+    }
+
+    @Test
+    void offersThePluginJarRatherThanASourcesJarThatSortsAheadOfIt() throws Exception {
+        Plugin cookery = pluginRepository.findBySlug("medieval-cookery").orElseThrow();
+        PluginVersion version = new PluginVersion(cookery, "v3.0.0");
+        version.setHtmlUrl("https://github.com/Dans-Plugins/Medieval-Cookery/releases/tag/v3.0.0");
+        version.setPublishedAt(Instant.parse("2026-02-15T00:00:00Z"));
+        version.setLastSyncedAt(Instant.parse("2026-03-01T00:00:00Z"));
+        // Assets are ordered by name, and '-' sorts before '.', so the sources
+        // jar comes first — "first .jar" alone would hand the card the wrong file.
+        version.replaceAssets(List.of(
+                new PluginVersionAsset("MedievalCookery-3.0.0-sources.jar", 512, 0,
+                        "https://github.com/Dans-Plugins/Medieval-Cookery/releases/download/v3.0.0/sources.jar"),
+                new PluginVersionAsset("MedievalCookery-3.0.0.jar", 4096, 9,
+                        "https://github.com/Dans-Plugins/Medieval-Cookery/releases/download/v3.0.0/MedievalCookery-3.0.0.jar")));
+        pluginVersionRepository.save(version);
+
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].downloadUrl")
+                        .value("https://github.com/Dans-Plugins/Medieval-Cookery/releases/download/v3.0.0/MedievalCookery-3.0.0.jar"));
     }
 
     @Test

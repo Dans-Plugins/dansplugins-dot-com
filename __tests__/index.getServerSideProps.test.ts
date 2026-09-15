@@ -13,7 +13,12 @@ interface HomePropsShape {
     props: {
         visits: number | null;
         startDate: string | null;
-        pluginsWithCounts: Array<{ id: string; serverCount?: number | null; latestVersion?: string | null }>;
+        pluginsWithCounts: Array<{
+            id: string;
+            serverCount?: number | null;
+            latestVersion?: string | null;
+            latestDownloadUrl?: string | null;
+        }>;
     };
 }
 
@@ -43,6 +48,12 @@ describe('home getServerSideProps serialization', () => {
         const undefinedVersions = result.props.pluginsWithCounts.filter((p) => p.latestVersion === undefined);
         expect(undefinedVersions).toEqual([]);
     });
+
+    it('uses null for a plugin the release mirror offered no jar for', async () => {
+        const result = await getServerSideProps() as HomePropsShape;
+        const undefinedUrls = result.props.pluginsWithCounts.filter((p) => p.latestDownloadUrl === undefined);
+        expect(undefinedUrls).toEqual([]);
+    });
 });
 
 describe('home getServerSideProps release tags', () => {
@@ -52,7 +63,8 @@ describe('home getServerSideProps release tags', () => {
                 return Promise.resolve({
                     ok: true,
                     json: async () => [
-                        {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z'}
+                        {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z',
+                            downloadUrl: 'https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar'}
                     ]
                 } as Response);
             }
@@ -63,8 +75,10 @@ describe('home getServerSideProps release tags', () => {
 
         const fiefs = result.props.pluginsWithCounts.find((p) => p.id === 'fiefs');
         expect(fiefs?.latestVersion).toBe('v1.2.0');
+        expect(fiefs?.latestDownloadUrl).toBe('https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar');
         const currencies = result.props.pluginsWithCounts.find((p) => p.id === 'currencies');
         expect(currencies?.latestVersion).toBeNull();
+        expect(currencies?.latestDownloadUrl).toBeNull();
     });
 
     it('never calls GitHub, however many plugins the catalogue holds', async () => {

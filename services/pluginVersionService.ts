@@ -63,6 +63,15 @@ export interface PluginLatestVersion {
     // above is the newest of those rather than a stable release.
     prerelease: boolean;
     publishedAt: string;
+    // That release's plugin jar on GitHub — the one file a catalogue card
+    // offers — or null when the release attaches no jar.
+    downloadUrl: string | null;
+}
+
+/** What the home page needs per card from the mirror: a label, and a file to offer. */
+export interface LatestVersionLabel {
+    tag: string;
+    downloadUrl: string | null;
 }
 
 /**
@@ -81,7 +90,7 @@ export interface PluginLatestVersion {
  * NEXT_PUBLIC_API_URL looks exactly like a catalogue that has mirrored no
  * releases yet.
  */
-export const getLatestVersionsBySlug = async (): Promise<Map<string, string>> => {
+export const getLatestVersionsBySlug = async (): Promise<Map<string, LatestVersionLabel>> => {
     try {
         const res = await fetch(`${getApiBaseUrl()}/api/v1/plugins/versions/latest`);
         if (!res.ok) {
@@ -98,7 +107,12 @@ export const getLatestVersionsBySlug = async (): Promise<Map<string, string>> =>
         return new Map(
             (latest as PluginLatestVersion[])
                 .filter((entry) => typeof entry?.slug === 'string' && typeof entry?.tag === 'string')
-                .map((entry): [string, string] => [entry.slug, entry.tag])
+                .map((entry): [string, LatestVersionLabel] => [entry.slug, {
+                    tag: entry.tag,
+                    // Anything but a string is "no file": an API older than
+                    // this field, or an explicit null, both hide the button.
+                    downloadUrl: typeof entry.downloadUrl === 'string' ? entry.downloadUrl : null,
+                }])
         );
     } catch (error) {
         console.error('Error fetching latest plugin versions:', error);
