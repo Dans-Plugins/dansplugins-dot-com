@@ -21,7 +21,10 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -109,12 +112,40 @@ public class PluginVersion {
         this.tag = tag;
     }
 
-    /** Replaces the mirrored asset list in place, so orphan removal sees the deletions. */
+    /**
+     * Brings the mirrored asset list into line with what GitHub reports,
+     * reconciling by file name: a file still reported keeps its row and takes
+     * the new figures, a file no longer reported loses its row (orphan removal
+     * makes that a real delete), and a new file gets one.
+     *
+     * <p>Reconciling rather than clearing and re-adding matters because of the
+     * order Hibernate flushes in — inserts before deletes. Clear-and-re-add a
+     * file that is still there and the new row is inserted while the old one
+     * still holds {@code (plugin_version_id, name)}, which
+     * {@code uq_plugin_version_asset} refuses. It went unseen while the mirror
+     * was empty, then broke every hourly sync after the first.
+     */
     public void replaceAssets(List<PluginVersionAsset> replacements) {
-        this.assets.clear();
-        for (PluginVersionAsset asset : replacements) {
-            asset.attachTo(this);
-            this.assets.add(asset);
+        Map<String, PluginVersionAsset> reported = new LinkedHashMap<>();
+        for (PluginVersionAsset replacement : replacements) {
+            reported.put(replacement.getName(), replacement);
+        }
+
+        Iterator<PluginVersionAsset> existing = this.assets.iterator();
+        while (existing.hasNext()) {
+            PluginVersionAsset current = existing.next();
+            PluginVersionAsset update = reported.remove(current.getName());
+            if (update == null) {
+                existing.remove();
+                continue;
+            }
+            current.setSizeBytes(update.getSizeBytes());
+            current.setDownloadCount(update.getDownloadCount());
+            current.setDownloadUrl(update.getDownloadUrl());
+        }
+        for (PluginVersionAsset added : reported.values()) {
+            added.attachTo(this);
+            this.assets.add(added);
         }
     }
 
