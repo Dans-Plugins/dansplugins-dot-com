@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +41,12 @@ class ReleaseSyncServiceTest {
 
     @Mock
     private PluginVersionRepository pluginVersionRepository;
+
+    // Never stubbed: a mocked manager hands TransactionTemplate a null status,
+    // which it commits or rolls back without complaint, so each unit of work
+    // runs straight through — the boundaries are asserted, not the database.
+    @Mock
+    private PlatformTransactionManager transactionManager;
 
     private ReleaseSyncService service;
 
@@ -75,7 +83,7 @@ class ReleaseSyncServiceTest {
     /** Wires the service and makes save() return what it was given, as JPA does. */
     private void givenService(boolean syncEnabled) {
         service = new ReleaseSyncService(gitHubReleaseClient, pluginRepository, pluginVersionRepository,
-                new ReleaseSyncProperties(null, 3600000, syncEnabled, MAX_RELEASES));
+                new ReleaseSyncProperties(null, 3600000, syncEnabled, MAX_RELEASES), transactionManager);
     }
 
     private void savesWhatItIsGiven() {
@@ -191,6 +199,10 @@ class ReleaseSyncServiceTest {
         service.sync();
 
         verify(pluginVersionRepository).save(argThatVersion(version -> version.getTag().equals("v1.4.0")));
+        // The malformed release was rolled back on its own: the good one and the
+        // prune each committed in a transaction the failure never touched.
+        verify(transactionManager, times(1)).rollback(any());
+        verify(transactionManager, times(2)).commit(any());
     }
 
     @Test

@@ -6,11 +6,12 @@ import com.dansplugins.api.entity.PluginVersion;
 import com.dansplugins.api.entity.PluginVersionAsset;
 import com.dansplugins.api.repository.PluginRepository;
 import com.dansplugins.api.repository.PluginVersionRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -46,7 +47,6 @@ import java.util.regex.Pattern;
  * </ul>
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class ReleaseSyncService {
 
@@ -56,6 +56,30 @@ public class ReleaseSyncService {
     private final PluginRepository pluginRepository;
     private final PluginVersionRepository pluginVersionRepository;
     private final ReleaseSyncProperties properties;
+    // One release is one transaction of its own, so that a release the database
+    // refuses is rolled back alone. Under PostgreSQL any failed statement aborts
+    // the transaction it ran in, and a catch that then carries on issuing
+    // statements in the same transaction finds every one of them refused — the
+    // "skipping malformed release" log was, in production, the first of a
+    // cascade that took the whole hourly pass down with it. A plugin's prune
+    // runs in its own transaction for the same reason.
+    private final TransactionTemplate perRelease;
+    private final TransactionTemplate perPlugin;
+
+    public ReleaseSyncService(GitHubReleaseClient gitHubReleaseClient,
+                              PluginRepository pluginRepository,
+                              PluginVersionRepository pluginVersionRepository,
+                              ReleaseSyncProperties properties,
+                              PlatformTransactionManager transactionManager) {
+        this.gitHubReleaseClient = gitHubReleaseClient;
+        this.pluginRepository = pluginRepository;
+        this.pluginVersionRepository = pluginVersionRepository;
+        this.properties = properties;
+        this.perRelease = new TransactionTemplate(transactionManager);
+        this.perRelease.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.perPlugin = new TransactionTemplate(transactionManager);
+        this.perPlugin.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
 
     /**
      * The {@code owner/repo} slug in a repository URL, e.g.
@@ -78,7 +102,6 @@ public class ReleaseSyncService {
 
     @Scheduled(fixedDelayString = "${dpc.releases.sync-interval-ms:3600000}",
             initialDelayString = "${dpc.releases.sync-initial-delay-ms:15000}")
-    @Transactional
     public void sync() {
         if (!properties.syncEnabled()) {
             return;
@@ -103,7 +126,14 @@ public class ReleaseSyncService {
             boolean wholeHistorySeen = fetched.get().size() < properties.maxReleasesPerPlugin();
             List<PluginVersion> mirroredVersions = upsertAll(plugin, fetched.get());
             mirrored += mirroredVersions.size();
-            pruned += prune(plugin, mirroredVersions, wholeHistorySeen);
+            try {
+                pruned += perPlugin.execute(status -> prune(plugin, mirroredVersions, wholeHistorySeen));
+            } catch (RuntimeException e) {
+                // The plugin's releases are already mirrored and committed; a
+                // failed prune costs this plugin's withdrawn rows until the next
+                // pass, not the plugins still to come.
+                log.warn("Pruning withdrawn releases failed for {}: {}", plugin.getSlug(), e.getMessage());
+            }
         }
         log.info("Release sync: mirrored {} releases, pruned {} withdrawn, skipped {} plugins",
                 mirrored, pruned, skipped);
@@ -119,7 +149,7 @@ public class ReleaseSyncService {
                 continue;
             }
             try {
-                saved.add(upsertOne(plugin, raw, syncedAt));
+                saved.add(perRelease.execute(status -> upsertOne(plugin, raw, syncedAt)));
             } catch (RuntimeException e) {
                 log.warn("Skipping malformed release {} for {}: {}",
                         raw.get("tag_name"), plugin.getSlug(), e.getMessage());
