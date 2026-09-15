@@ -1,6 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
     getLatestVersionsBySlug,
+    downloadsLabel,
     getPluginDownloads,
     getPluginVersions,
     latestStableTag,
@@ -317,5 +318,14 @@ describe('getPluginDownloads', () => {
     it('is null when the body is not the documented shape', async () => {
         stubFetch({ok: true, json: async () => ({message: 'nope'})});
         expect(await getPluginDownloads('fiefs')).toBeNull();
+    });
+});
+
+describe('downloadsLabel', () => {
+    it('agrees in number and groups thousands', () => {
+        expect(downloadsLabel(0)).toBe('0 downloads');
+        expect(downloadsLabel(1)).toBe('1 download');
+        expect(downloadsLabel(2)).toBe('2 downloads');
+        expect(downloadsLabel(1204)).toBe('1,204 downloads');
     });
 });

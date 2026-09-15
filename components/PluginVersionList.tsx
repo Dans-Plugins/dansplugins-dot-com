@@ -16,7 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ScienceIcon from '@mui/icons-material/Science';
 import Markdown from 'markdown-to-jsx';
-import {siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
+import {downloadsLabel, siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
 import {formatFileSize} from '../utils/fileSize';
 import {absoluteDateFrom} from '../utils/relativeTime';
 
@@ -107,7 +107,7 @@ const VersionHeading: React.FC<{version: PluginVersion}> = ({version}) => (
             title="Downloads through dansplugins.com"
             data-testid="version-download-count"
         >
-            · {(version.siteDownloadCount ?? 0).toLocaleString()} downloads
+            · {downloadsLabel(version.siteDownloadCount ?? 0)}
         </Typography>
     </Stack>
 );

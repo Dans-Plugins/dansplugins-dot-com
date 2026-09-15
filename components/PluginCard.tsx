@@ -14,6 +14,7 @@ import {
 } from '../styles/styles';
 import {colorForTitle} from '../utils/pluginAvatar';
 import {resourcePath} from '../utils/resources';
+import {downloadsLabel} from '../services/pluginVersionService';
 
 interface PluginCardProps {
     id: string;
@@ -121,7 +122,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
                                 size="small"
                                 variant="outlined"
                                 icon={<DownloadIcon/>}
-                                label={`${downloadCount.toLocaleString()} downloads`}
+                                label={downloadsLabel(downloadCount)}
                                 title="Downloads through dansplugins.com"
                                 data-testid="download-count"
                             />
