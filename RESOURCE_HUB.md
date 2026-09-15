@@ -53,6 +53,13 @@ Downloads point at GitHub release assets. `dpc-api` syncs release metadata
 schedule, the same way `BacklogSyncService` already syncs issues, and the site
 renders from that mirror.
 
+The site's own download figures — the total and latest-release counts shown the
+way SpigotMC shows its own — are counted by `dpc-api`, not copied from GitHub:
+a Download button on the site goes through the API's `/download` link, which
+adds one to `plugin_download_counts` and redirects to the file on GitHub. The
+bytes still never pass through DPC; GitHub's all-sources counter is kept
+alongside as a separate number.
+
 The alternative — accepting uploads — buys nothing and costs storage, malware
 scanning, takedown handling and the legal exposure that comes with hosting
 binaries. Every plugin already publishes releases on GitHub, so the mirror is

@@ -25,9 +25,13 @@ interface PluginCardProps {
     icon?: string;
     serverCount?: number | null;
     latestVersion?: string | null;
-    // The latest release's plugin jar on GitHub, from the same mirror row as
-    // latestVersion; absent when the plugin has no release or it attaches no jar.
+    // Where Download sends the visitor — dpc-api's counting link for the
+    // latest release's plugin jar, from the same mirror row as latestVersion;
+    // absent when the plugin has no release or it attaches no jar.
     latestDownloadUrl?: string | null;
+    // Downloads made through this site, every release summed — the figure a
+    // SpigotMC listing shows per resource. Absent or zero hides the chip.
+    downloadCount?: number | null;
     likeCount: number;
     liked: boolean;
     token: string | null;
@@ -43,6 +47,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
     serverCount,
     latestVersion,
     latestDownloadUrl,
+    downloadCount,
     likeCount,
     liked,
     token
@@ -92,7 +97,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 </Typography>
             </CardContent>
 
-            {(serverCount && serverCount > 0) || latestVersion ? (
+            {(serverCount && serverCount > 0) || latestVersion || (downloadCount && downloadCount > 0) ? (
                 <Box sx={{px: 2, pb: 1}}>
                     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1}}>
                         {serverCount && serverCount > 0 ? (
@@ -109,6 +114,16 @@ const PluginCard: React.FC<PluginCardProps> = ({
                                 variant="outlined"
                                 icon={<NewReleasesIcon/>}
                                 label={`Latest: ${latestVersion}`}
+                            />
+                        ) : null}
+                        {downloadCount && downloadCount > 0 ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<DownloadIcon/>}
+                                label={`${downloadCount.toLocaleString()} downloads`}
+                                title="Downloads through dansplugins.com"
+                                data-testid="download-count"
                             />
                         ) : null}
                     </Stack>
@@ -130,13 +145,15 @@ const PluginCard: React.FC<PluginCardProps> = ({
                     // The jar itself, as DPM would fetch it — not the release
                     // page. Same-tab on purpose: a cross-origin file link
                     // downloads in place, and target="_blank" would leave an
-                    // empty tab behind it in some browsers.
+                    // empty tab behind it in some browsers. nofollow because
+                    // following it is what counts a download.
                     <Button
                         variant="outlined"
                         size="small"
                         startIcon={<DownloadIcon/>}
                         component={Link}
                         href={latestDownloadUrl}
+                        rel="nofollow"
                         aria-label={`Download ${title}${latestVersion ? ` ${latestVersion}` : ''}`}
                     >
                         Download

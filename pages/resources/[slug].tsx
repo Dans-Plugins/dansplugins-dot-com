@@ -18,9 +18,11 @@ import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import PluginVersionList from '../../components/PluginVersionList';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {
+    getPluginDownloads,
     getPluginVersions,
     latestStableTag,
     totalDownloads,
+    PluginDownloads,
     PluginVersion
 } from '../../services/pluginVersionService';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
@@ -62,6 +64,10 @@ interface ResourcePageProps {
     // publishes no releases, and also whenever the API can't be reached — the
     // page hides the section either way rather than failing.
     versions: PluginVersion[];
+    // Downloads made through this site — total, and of the latest release —
+    // the pair a SpigotMC resource page shows. Null when the API can't be
+    // reached, and the figures are omitted rather than shown as zeros.
+    downloads: PluginDownloads | null;
 }
 
 // Treat the catalogue's empty strings as the absences they are.
@@ -78,7 +84,7 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
     // asking at all: a mirrored release list already names the latest tag, and
     // the whole point of mirroring is that a page render doesn't spend a call
     // on GitHub's rate limit to learn something dpc-api already knows.
-    const versions = await getPluginVersions(slug);
+    const [versions, downloads] = await Promise.all([getPluginVersions(slug), getPluginDownloads(slug)]);
     const mirroredLatest = latestStableTag(versions);
 
     // Neither figure is load-bearing: a bStats outage or a GitHub rate limit
@@ -99,7 +105,8 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             icon: orNull(plugin.icon),
             serverCount: serverCount ?? null,
             latestVersion: mirroredLatest ?? latestFromGithub ?? null,
-            versions
+            versions,
+            downloads
         }
     };
 };
@@ -113,13 +120,15 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     icon,
     serverCount,
     latestVersion,
-    versions
+    versions,
+    downloads
 }) => {
-    const downloads = releasesUrl(githubLink);
-    // Only what the mirror has seen, which is the newest releases rather than
-    // every release ever cut — the chip is labelled "downloads" without claiming
-    // to be the plugin's lifetime total.
-    const downloadCount = totalDownloads(versions);
+    const releases = releasesUrl(githubLink);
+    // GitHub's figure, kept as a second number beside the site's own: only what
+    // the mirror has seen, which is the newest releases rather than every
+    // release ever cut, so the chip says where it is from without claiming to
+    // be a lifetime total.
+    const githubDownloadCount = totalDownloads(versions);
     return (
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo
@@ -156,8 +165,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     <SelfLoadingLikeButton targetType="plugin" targetId={slug}/>
                 </Stack>
 
-                {serverCount || latestVersion || downloadCount ? (
-                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: 3}}>
+                {serverCount || latestVersion || githubDownloadCount ? (
+                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: downloads ? 2 : 3}}>
                         {serverCount ? (
                             <Chip
                                 size="small"
@@ -174,15 +183,43 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                                 label={`Latest: ${latestVersion}`}
                             />
                         ) : null}
-                        {downloadCount ? (
+                        {githubDownloadCount ? (
                             <Chip
                                 size="small"
                                 variant="outlined"
                                 icon={<CloudDownloadIcon/>}
-                                label={`${downloadCount.toLocaleString()} downloads`}
+                                label={`${githubDownloadCount.toLocaleString()} downloads on GitHub`}
+                                title="GitHub's count of downloads of the mirrored releases, from anywhere"
                             />
                         ) : null}
                     </Stack>
+                ) : null}
+
+                {downloads ? (
+                    // The site's own downloads, the way a SpigotMC resource page
+                    // shows them: a total, and the latest release's. Zeros are
+                    // shown — a new counter reads 0, not nothing — and the pair
+                    // is one landmark so a screen reader gets both figures together.
+                    <Paper
+                        variant="outlined"
+                        component="section"
+                        aria-label="Downloads"
+                        data-testid="downloads"
+                        sx={{px: 2, py: 1.5, mb: 3, display: 'inline-flex', flexWrap: 'wrap', gap: 3, rowGap: 1}}
+                    >
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <DownloadIcon fontSize="small" color="action"/>
+                            <Typography variant="body2" color="text.secondary">Downloads</Typography>
+                        </Stack>
+                        <Typography variant="body2" data-testid="downloads-total">
+                            <Box component="span" sx={{fontWeight: 700}}>{downloads.total.toLocaleString()}</Box>
+                            {' '}total
+                        </Typography>
+                        <Typography variant="body2" data-testid="downloads-latest">
+                            <Box component="span" sx={{fontWeight: 700}}>{downloads.latest.toLocaleString()}</Box>
+                            {downloads.latestTag ? ` latest (${downloads.latestTag})` : ' latest'}
+                        </Typography>
+                    </Paper>
                 ) : null}
 
                 <Typography variant="body1" color="text.secondary" sx={{mb: 3, lineHeight: 1.7}}>
@@ -190,13 +227,13 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                 </Typography>
 
                 <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: 4}}>
-                    {downloads ? (
+                    {releases ? (
                         <Button
                             variant="contained"
                             startIcon={<DownloadIcon/>}
                             endIcon={<OpenInNewIcon/>}
                             component={Link}
-                            href={downloads}
+                            href={releases}
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -238,7 +275,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
 
                 <Divider sx={{mb: 3}}/>
 
-                <PluginVersionList versions={versions} releasesUrl={downloads}/>
+                <PluginVersionList versions={versions} releasesUrl={releases}/>
 
                 <Paper elevation={0} sx={{p: 2.5, bgcolor: 'action.hover'}}>
                     <Typography variant="h6" component="h2" gutterBottom>

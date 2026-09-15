@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {GetServerSidePropsContext} from 'next';
 
 import {getServerSideProps} from '../pages/resources/[slug]';
-import type {PluginVersion} from '../services/pluginVersionService';
+import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
 interface ResourcePropsShape {
     props: {
@@ -15,6 +15,7 @@ interface ResourcePropsShape {
         serverCount: number | null;
         latestVersion: string | null;
         versions: PluginVersion[];
+        downloads: PluginDownloads | null;
     };
 }
 
@@ -43,21 +44,28 @@ const mirroredVersion = (tag: string): PluginVersion => ({
     prerelease: false,
     publishedAt: '2026-01-01T00:00:00Z',
     downloadCount: 40,
+    siteDownloadCount: 0,
     assets: [],
 });
 
-// Route the three upstreams the page calls by URL, so a test can fail one
+// Route the four upstreams the page calls by URL, so a test can fail one
 // without affecting the others.
-const stubUpstreams = ({servers, tag, versions}: {
+const stubUpstreams = ({servers, tag, versions, downloads}: {
     servers?: number;
     tag?: string;
     versions?: PluginVersion[];
+    downloads?: PluginDownloads;
 }) => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
         if (url.includes('bstats.org')) {
             return servers === undefined
                 ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
                 : {ok: true, json: async () => [[0, servers]]} as unknown as Response;
+        }
+        if (url.includes('/downloads')) {
+            return downloads === undefined
+                ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
+                : {ok: true, json: async () => downloads} as unknown as Response;
         }
         if (url.includes('/versions')) {
             return versions === undefined
@@ -102,8 +110,28 @@ describe('resource page getServerSideProps', () => {
             icon: '/icons/at.png',
             serverCount: 1234,
             latestVersion: 'v1.2.3',
-            versions: []
+            versions: [],
+            downloads: null
         });
+    });
+
+    it('serves the site\'s own download figures when dpc-api has them', async () => {
+        stubUpstreams({servers: 1234, versions: [mirroredVersion('v2.0.0')],
+            downloads: {total: 41, latestTag: 'v2.0.0', latest: 3}});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.downloads).toEqual({total: 41, latestTag: 'v2.0.0', latest: 3});
+    });
+
+    it('serves null download figures, not zeros, when that endpoint fails', async () => {
+        stubUpstreams({servers: 1234, versions: [mirroredVersion('v2.0.0')]});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        // The version history is still there; only the figures are withheld.
+        expect(result.props.versions).toHaveLength(1);
+        expect(result.props.downloads).toBeNull();
     });
 
     it('serves the mirrored release history when dpc-api has one', async () => {

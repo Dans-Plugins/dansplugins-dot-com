@@ -23,3 +23,10 @@ export const getApiBaseUrl = (): string => {
     }
     return publicUrl;
 };
+
+// The origin a *visitor's browser* reaches dpc-api at, whichever side is
+// asking. getApiBaseUrl() answers the Compose-internal address while rendering
+// on the server, which is right for a fetch the server makes and wrong for a
+// link the server writes into HTML for the browser to follow — a download link
+// rendered as http://dpc-api:8080/... goes nowhere from outside the stack.
+export const getPublicApiBaseUrl = (): string => process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL;

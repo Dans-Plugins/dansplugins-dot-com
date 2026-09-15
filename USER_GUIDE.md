@@ -36,13 +36,13 @@ No special software is required to use the website. Simply visit [https://danspl
 ### Viewing a Plugin's Page
 
 1. From the home page, click a plugin's name or its **Details** button (or visit `/resources/<plugin>` directly — for example `/resources/medieval-factions`).
-2. The page shows the plugin's description, how many servers are running it, its latest release version, and how many times its releases have been downloaded, along with the heart to like it.
+2. The page shows the plugin's description, how many servers are running it, its latest release version, and how many times its mirrored releases have been downloaded from GitHub, along with the heart to like it. Below those, a **Downloads** box counts downloads made through this site the way SpigotMC counts its own: the total across every release, and the latest release's.
 3. Use the buttons to act on it:
    - **Download** — the plugin's releases on GitHub, where its builds are published. The website does not host plugin files itself.
    - **User guide** — the same guide reachable from the Guides page.
    - **Source** — the plugin's source code.
    - **SpigotMC** — its SpigotMC page, for plugins that have one.
-4. Under **Versions**, the newest release is shown open, with its release notes and a download button for each file it publishes; earlier releases sit below it and expand when clicked. Every download link leads to the file on GitHub. Plugins that have never published a release show no Versions section.
+4. Under **Versions**, the newest release is shown open, with its release notes, how many times it has been downloaded through this site, and a download button for each file it publishes; earlier releases sit below it and expand when clicked. Every download link leads to the file on GitHub — the site only counts the download on the way past. Plugins that have never published a release show no Versions section.
 5. At the bottom, **Report a bug** opens a new issue on that plugin's issue tracker, and **Suggest a feature** goes to the Dev Portal, where ideas can be submitted and upvoted.
 
 ### Reading the Latest News

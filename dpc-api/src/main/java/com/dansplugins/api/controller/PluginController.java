@@ -1,5 +1,6 @@
 package com.dansplugins.api.controller;
 
+import com.dansplugins.api.dto.PluginDownloadsResponse;
 import com.dansplugins.api.dto.PluginLatestVersionResponse;
 import com.dansplugins.api.dto.PluginResponse;
 import com.dansplugins.api.dto.PluginVersionResponse;
@@ -7,22 +8,35 @@ import com.dansplugins.api.entity.Plugin;
 import com.dansplugins.api.exception.ResourceNotFoundException;
 import com.dansplugins.api.repository.PluginRepository;
 import com.dansplugins.api.repository.PluginVersionRepository;
+import com.dansplugins.api.service.PluginDownloadService;
 import com.dansplugins.api.service.PluginVersionQueryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The plugin catalogue. Entirely public and, for now, entirely read-only — the
  * rows are seeded by {@code V15__create_plugins_table.sql} and edited by
  * migration, not over HTTP. Editing arrives with the admin catalogue UI (see
- * {@code RESOURCE_HUB.md}); until then there is no write path to secure.
+ * {@code RESOURCE_HUB.md}); until then there is no write path to secure. The
+ * one thing a visitor's request does write — a download counter, via the
+ * redirecting {@code /download} link — is a GET by necessity, since it is a
+ * link a browser follows, and is public for the same reason.
  *
  * <p>No service layer sits between this and the repository for the lookups,
  * because there is no logic to put in one: each is a find and a DTO mapping. The
@@ -34,12 +48,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/plugins")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Plugins", description = "The DPC plugin catalogue")
 public class PluginController {
 
     private final PluginRepository pluginRepository;
     private final PluginVersionRepository pluginVersionRepository;
     private final PluginVersionQueryService pluginVersionQueryService;
+    private final PluginDownloadService pluginDownloadService;
 
     @GetMapping
     @Operation(summary = "List every plugin in the catalogue, alphabetically by title")
@@ -50,9 +66,7 @@ public class PluginController {
     @GetMapping("/{slug}")
     @Operation(summary = "Get one plugin by its catalogue slug")
     public PluginResponse get(@PathVariable String slug) {
-        return pluginRepository.findBySlug(slug)
-                .map(PluginResponse::from)
-                .orElseThrow(() -> new ResourceNotFoundException("No plugin with slug '" + slug + "'"));
+        return PluginResponse.from(findPlugin(slug));
     }
 
     /**
@@ -78,10 +92,55 @@ public class PluginController {
     @GetMapping("/{slug}/versions")
     @Operation(summary = "List a plugin's mirrored GitHub releases, newest first")
     public List<PluginVersionResponse> versions(@PathVariable String slug) {
-        Plugin plugin = pluginRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResourceNotFoundException("No plugin with slug '" + slug + "'"));
+        Plugin plugin = findPlugin(slug);
+        Map<String, Map<String, Long>> siteCounts = pluginDownloadService.countsFor(plugin);
         return pluginVersionRepository.findByPluginOrderByPublishedAtDesc(plugin).stream()
-                .map(PluginVersionResponse::from)
+                .map(version -> PluginVersionResponse.from(slug, version, siteCounts.get(version.getTag())))
                 .toList();
+    }
+
+    @GetMapping("/{slug}/downloads")
+    @Operation(summary = "A plugin's downloads through dansplugins.com: in total, and of its latest release")
+    public PluginDownloadsResponse downloads(@PathVariable String slug) {
+        return pluginVersionQueryService.downloadsOf(findPlugin(slug));
+    }
+
+    /**
+     * The link the site's Download buttons point at. Counts the download and
+     * sends the browser on to the file on GitHub — the bytes never pass
+     * through here, as {@code RESOURCE_HUB.md} requires. A HEAD (a link
+     * checker, a browser preflighting) is answered with the same redirect but
+     * not counted, and the response asks crawlers not to index or follow it.
+     *
+     * <p>The redirect is issued even when counting fails: a visitor's download
+     * must not break because a counter could not be written, so that failure
+     * is a log line rather than a 500. The target is always the mirror's URL
+     * for the named file, never anything from the request.
+     */
+    @GetMapping("/{slug}/versions/{tag}/assets/{assetName}/download")
+    @Operation(summary = "Count a download made through dansplugins.com and redirect to the file on GitHub")
+    @ApiResponse(responseCode = "302", description = "Redirect to the file on GitHub")
+    @ApiResponse(responseCode = "404", description = "No such plugin, release or file in the mirror")
+    public ResponseEntity<Void> download(@PathVariable String slug, @PathVariable String tag,
+                                         @PathVariable String assetName, HttpServletRequest request) {
+        Plugin plugin = findPlugin(slug);
+        String target = pluginDownloadService.resolve(plugin, tag, assetName);
+        if (!HttpMethod.HEAD.matches(request.getMethod())) {
+            try {
+                pluginDownloadService.count(plugin, tag, assetName);
+            } catch (RuntimeException e) {
+                log.warn("Download of {} {} {} could not be counted", slug, tag, assetName, e);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(target))
+                .header("X-Robots-Tag", "noindex, nofollow")
+                .cacheControl(CacheControl.noStore())
+                .build();
+    }
+
+    private Plugin findPlugin(String slug) {
+        return pluginRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("No plugin with slug '" + slug + "'"));
     }
 }

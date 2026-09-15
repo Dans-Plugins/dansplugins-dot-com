@@ -7,13 +7,24 @@
 // DPC hosts none of these files. Every downloadUrl points at the asset on
 // GitHub; the rows here are metadata about files that live elsewhere. See
 // RESOURCE_HUB.md.
-import {getApiBaseUrl} from '../utils/apiBase';
+//
+// Two download figures travel with every release. `downloadCount` is GitHub's:
+// downloads from anywhere, copied at sync time. `siteDownloadCount` is
+// dpc-api's own: downloads made through this site, which is what the pages
+// present the way SpigotMC presents its own. The second is counted because the
+// site's download links go through the API's `downloadPath`, which adds one
+// and redirects to GitHub — see siteDownloadUrl() below.
+import {getApiBaseUrl, getPublicApiBaseUrl} from '../utils/apiBase';
 
 export interface PluginVersionAsset {
     name: string;
     sizeBytes: number;
     downloadCount: number;
     downloadUrl: string;
+    siteDownloadCount: number;
+    // The API's counting link for the file, relative to its origin. Absent
+    // from an API older than the counter, in which case the link is GitHub's.
+    downloadPath?: string | null;
 }
 
 export interface PluginVersion {
@@ -29,8 +40,57 @@ export interface PluginVersion {
     // This release's assets summed, served so a caller showing one number does
     // not have to know how many files a release attaches.
     downloadCount: number;
+    // The same sum of the site's own counters.
+    siteDownloadCount: number;
     assets: PluginVersionAsset[];
 }
+
+/**
+ * Where a Download button sends the visitor: the API's counting link when the
+ * mirror served one, else the file on GitHub directly. Always the *public* API
+ * origin — this is a link the browser follows, even when the server renders it.
+ */
+export const siteDownloadUrl = (asset: {downloadUrl: string; downloadPath?: string | null}): string =>
+    typeof asset.downloadPath === 'string' && asset.downloadPath
+        ? `${getPublicApiBaseUrl()}${asset.downloadPath}`
+        : asset.downloadUrl;
+
+/** A plugin's downloads through the site, as `/api/v1/plugins/{slug}/downloads` serves them. */
+export interface PluginDownloads {
+    // Every release summed, releases since withdrawn from GitHub included.
+    total: number;
+    // The release the catalogue labels as latest; null when nothing is mirrored.
+    latestTag: string | null;
+    // That release's downloads; 0 when latestTag is null.
+    latest: number;
+}
+
+/**
+ * The SpigotMC pair for one plugin — total downloads and the latest release's —
+ * or null for anything short of a well-formed success, in which case the page
+ * omits the figures rather than showing zeros it cannot vouch for.
+ */
+export const getPluginDownloads = async (slug: string): Promise<PluginDownloads | null> => {
+    try {
+        const res = await fetch(
+            `${getApiBaseUrl()}/api/v1/plugins/${encodeURIComponent(slug)}/downloads`
+        );
+        if (!res.ok) {
+            return null;
+        }
+        const body = await res.json();
+        if (typeof body?.total !== 'number' || typeof body?.latest !== 'number') {
+            return null;
+        }
+        return {
+            total: body.total,
+            latestTag: typeof body.latestTag === 'string' ? body.latestTag : null,
+            latest: body.latest,
+        };
+    } catch {
+        return null;
+    }
+};
 
 /**
  * One plugin's mirrored releases, newest first.
@@ -66,12 +126,22 @@ export interface PluginLatestVersion {
     // That release's plugin jar on GitHub — the one file a catalogue card
     // offers — or null when the release attaches no jar.
     downloadUrl: string | null;
+    // The API's counting link for the same jar; null alongside downloadUrl,
+    // and absent from an API older than the counter.
+    downloadPath?: string | null;
+    // Downloads through the site: of this release, and of the plugin in total.
+    siteDownloadCount?: number;
+    totalSiteDownloadCount?: number;
 }
 
-/** What the home page needs per card from the mirror: a label, and a file to offer. */
+/** What the home page needs per card from the mirror: a label, a file to offer, and a figure. */
 export interface LatestVersionLabel {
     tag: string;
+    // The link the card's Download button follows: the API's counting link
+    // when there is one, else the jar on GitHub — see siteDownloadUrl().
     downloadUrl: string | null;
+    // The plugin's downloads through the site, every release summed.
+    downloadCount: number;
 }
 
 /**
@@ -111,7 +181,10 @@ export const getLatestVersionsBySlug = async (): Promise<Map<string, LatestVersi
                     tag: entry.tag,
                     // Anything but a string is "no file": an API older than
                     // this field, or an explicit null, both hide the button.
-                    downloadUrl: typeof entry.downloadUrl === 'string' ? entry.downloadUrl : null,
+                    downloadUrl: typeof entry.downloadUrl === 'string'
+                        ? siteDownloadUrl({downloadUrl: entry.downloadUrl, downloadPath: entry.downloadPath})
+                        : null,
+                    downloadCount: typeof entry.totalSiteDownloadCount === 'number' ? entry.totalSiteDownloadCount : 0,
                 }])
         );
     } catch (error) {
@@ -120,7 +193,7 @@ export const getLatestVersionsBySlug = async (): Promise<Map<string, LatestVersi
     }
 };
 
-/** Every mirrored release's downloads summed — what the resource page shows as one figure. */
+/** Every mirrored release's GitHub downloads summed — the resource page's "on GitHub" figure. */
 export const totalDownloads = (versions: PluginVersion[]): number =>
     versions.reduce((sum, version) => sum + (version.downloadCount || 0), 0);
 

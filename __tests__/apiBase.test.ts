@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {DEFAULT_API_BASE_URL, getApiBaseUrl} from '../utils/apiBase';
+import {DEFAULT_API_BASE_URL, getApiBaseUrl, getPublicApiBaseUrl} from '../utils/apiBase';
 
 describe('getApiBaseUrl', () => {
     afterEach(() => {
@@ -43,5 +43,27 @@ describe('getApiBaseUrl', () => {
             vi.stubEnv('DPC_API_INTERNAL_URL', 'http://dpc-api:8080');
             expect(getApiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
         });
+    });
+});
+
+describe('getPublicApiBaseUrl', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs();
+        vi.unstubAllGlobals();
+    });
+
+    it('names the public origin even on the server, where getApiBaseUrl would name the internal one', () => {
+        // A link the server writes into HTML is followed by the browser, which
+        // cannot reach http://dpc-api:8080.
+        vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.dansplugins.com');
+        vi.stubEnv('DPC_API_INTERNAL_URL', 'http://dpc-api:8080');
+        expect(getPublicApiBaseUrl()).toBe('https://api.dansplugins.com');
+        expect(getApiBaseUrl()).toBe('http://dpc-api:8080');
+    });
+
+    it('falls back to the local dev-portal default', () => {
+        vi.stubEnv('NEXT_PUBLIC_API_URL', '');
+        vi.stubEnv('DPC_API_INTERNAL_URL', 'http://dpc-api:8080');
+        expect(getPublicApiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
     });
 });
