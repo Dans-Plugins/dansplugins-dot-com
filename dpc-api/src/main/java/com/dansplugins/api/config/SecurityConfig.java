@@ -75,6 +75,9 @@ public class SecurityConfig {
                         // The plugin catalogue is public and read-only; there is no write path
                         // to guard until the admin catalogue UI adds one.
                         .requestMatchers(HttpMethod.GET, "/api/v1/plugins", "/api/v1/plugins/**").permitAll()
+                        // A HEAD at a download link (a link checker, a browser
+                        // preflighting) gets the redirect without the count.
+                        .requestMatchers(HttpMethod.HEAD, "/api/v1/plugins/**").permitAll()
                         // Public like counts (must precede the authenticated /likes rule below)
                         .requestMatchers(HttpMethod.GET, "/api/v1/likes/counts").permitAll()
                         // Backlog console data is a public aggregation of already-public GitHub data

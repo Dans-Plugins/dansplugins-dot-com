@@ -16,7 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ScienceIcon from '@mui/icons-material/Science';
 import Markdown from 'markdown-to-jsx';
-import type {PluginVersion} from '../services/pluginVersionService';
+import {siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
 import {formatFileSize} from '../utils/fileSize';
 import {absoluteDateFrom} from '../utils/relativeTime';
 
@@ -66,6 +66,9 @@ const Changelog: React.FC<{markdown: string}> = ({markdown}) => (
     </Box>
 );
 
+// Each file links through dpc-api's counting redirect (siteDownloadUrl), so a
+// download from here shows up in the figures the page presents; nofollow keeps
+// a crawler's visit from being one of them.
 const AssetButtons: React.FC<{version: PluginVersion}> = ({version}) => (
     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mt: 2}}>
         {version.assets.map((asset) => (
@@ -75,9 +78,9 @@ const AssetButtons: React.FC<{version: PluginVersion}> = ({version}) => (
                 variant="outlined"
                 startIcon={<DownloadIcon/>}
                 component={Link}
-                href={asset.downloadUrl}
+                href={siteDownloadUrl(asset)}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
             >
                 {asset.name} ({formatFileSize(asset.sizeBytes)})
             </Button>
@@ -95,6 +98,16 @@ const VersionHeading: React.FC<{version: PluginVersion}> = ({version}) => (
         ) : null}
         <Typography component="span" variant="body2" color="text.secondary">
             {absoluteDateFrom(version.publishedAt)}
+        </Typography>
+        {/* Downloads through this site, the way each SpigotMC update lists its own. */}
+        <Typography
+            component="span"
+            variant="body2"
+            color="text.secondary"
+            title="Downloads through dansplugins.com"
+            data-testid="version-download-count"
+        >
+            · {(version.siteDownloadCount ?? 0).toLocaleString()} downloads
         </Typography>
     </Stack>
 );

@@ -210,6 +210,8 @@ GitHub, and the rows are metadata about files that live there.
 |---|---|---|---|
 | `GET` | `/api/v1/plugins/{slug}/versions` | Public | One plugin's mirrored releases, newest first |
 | `GET` | `/api/v1/plugins/versions/latest` | Public | Every plugin's latest release, one row per plugin that has one |
+| `GET` | `/api/v1/plugins/{slug}/downloads` | Public | The plugin's downloads through dansplugins.com: total, and of its latest release |
+| `GET` | `/api/v1/plugins/{slug}/versions/{tag}/assets/{name}/download` | Public | Counts a download through dansplugins.com and `302`s to the file on GitHub |
 
 ```bash
 curl http://localhost:45345/api/v1/plugins/medieval-factions/versions
@@ -225,12 +227,15 @@ curl http://localhost:45345/api/v1/plugins/medieval-factions/versions
     "prerelease": false,
     "publishedAt": "2026-01-02T03:04:05Z",
     "downloadCount": 412,
+    "siteDownloadCount": 37,
     "assets": [
       {
         "name": "MedievalFactions-5.3.0.jar",
         "sizeBytes": 2411724,
         "downloadCount": 412,
-        "downloadUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/download/v5.3.0/MedievalFactions-5.3.0.jar"
+        "downloadUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/download/v5.3.0/MedievalFactions-5.3.0.jar",
+        "siteDownloadCount": 37,
+        "downloadPath": "/api/v1/plugins/medieval-factions/versions/v5.3.0/assets/MedievalFactions-5.3.0.jar/download"
       }
     ]
   }
@@ -242,6 +247,33 @@ unknown slug is a `404`. `name` and `changelog` are `null` when the release was
 published without a title or without notes. A version's `downloadCount` is its
 assets' counts summed — GitHub's figures, copied at sync time, since the download
 itself never passes through this service.
+
+`siteDownloadCount` is a different figure: downloads made *through
+dansplugins.com*, which is what the site presents the way SpigotMC presents its
+own. The site's Download buttons point at each asset's `downloadPath` (relative
+to this API's public origin) rather than at GitHub; that endpoint adds one to
+the counter and answers `302 Location: <downloadUrl>`, so the bytes still never
+pass through here. A `HEAD` gets the redirect without the count, the response
+carries `X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store`, and an
+address the mirror does not list is a `404` — the redirect target only ever
+comes from the mirror. The counters live in `plugin_download_counts`, keyed by
+(plugin, tag, asset name) rather than by the mirrored rows, because the sync
+replaces those rows on every run: a download that happened keeps counting
+toward the plugin's total whatever GitHub later does to the release. Counting
+never blocks the download — if the counter cannot be written the redirect is
+still issued and the failure is logged.
+
+```bash
+curl http://localhost:45345/api/v1/plugins/medieval-factions/downloads
+```
+
+```json
+{ "total": 1204, "latestTag": "v5.3.0", "latest": 37 }
+```
+
+`total` sums every release, withdrawn ones included; `latestTag` is the release
+[`/versions/latest`](#every-plugins-latest-release) would name (`null`, with
+`latest` `0`, when nothing is mirrored).
 
 The sync (`ReleaseSyncService`) is deliberately conservative about deletion.
 GitHub is the system of record, so a release it no longer reports is deleted
@@ -268,7 +300,10 @@ curl http://localhost:45345/api/v1/plugins/versions/latest
     "tag": "v5.3.0",
     "prerelease": false,
     "publishedAt": "2026-01-02T03:04:05Z",
-    "downloadUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/download/v5.3.0/MedievalFactions-5.3.0.jar"
+    "downloadUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/download/v5.3.0/MedievalFactions-5.3.0.jar",
+    "downloadPath": "/api/v1/plugins/medieval-factions/versions/v5.3.0/assets/MedievalFactions-5.3.0.jar/download",
+    "siteDownloadCount": 37,
+    "totalSiteDownloadCount": 1204
   }
 ]
 ```
@@ -276,6 +311,9 @@ curl http://localhost:45345/api/v1/plugins/versions/latest
 `downloadUrl` is that release's plugin jar — the first `.jar` asset, skipping a
 `-sources` or `-javadoc` jar when a plugin jar is there, the same file Dan's
 Plugin Manager would install — and `null` when the release attaches no jar.
+`downloadPath` is the counting link for the same file (`null` alongside it), and
+the two site counts are the pair a catalogue card shows: this release's
+downloads through the site, and the plugin's total.
 
 Rows are ordered by `slug`. "Latest" means the newest release that is **not** a
 pre-release — what GitHub's own `/releases/latest` means by the word. A plugin

@@ -3,6 +3,7 @@ package com.dansplugins.api.controller;
 import com.dansplugins.api.entity.Plugin;
 import com.dansplugins.api.entity.PluginVersion;
 import com.dansplugins.api.entity.PluginVersionAsset;
+import com.dansplugins.api.repository.PluginDownloadCountRepository;
 import com.dansplugins.api.repository.PluginRepository;
 import com.dansplugins.api.repository.PluginVersionRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -14,12 +15,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,9 +46,13 @@ class PluginControllerTest {
     @Autowired
     private PluginVersionRepository pluginVersionRepository;
 
+    @Autowired
+    private PluginDownloadCountRepository pluginDownloadCountRepository;
+
     @BeforeEach
     void setUp() {
-        // Versions first: they reference the plugins deleted on the next line.
+        // Versions and counters first: they reference the plugins deleted last.
+        pluginDownloadCountRepository.deleteAll();
         pluginVersionRepository.deleteAll();
         pluginRepository.deleteAll();
         pluginRepository.save(new Plugin("wild-pets", "Wild Pets", "Tame any entity.",
@@ -58,9 +66,15 @@ class PluginControllerTest {
     @AfterEach
     void tearDown() {
         // The H2 DB is shared across @SpringBootTest classes; leave it as found.
+        pluginDownloadCountRepository.deleteAll();
         pluginVersionRepository.deleteAll();
         pluginRepository.deleteAll();
     }
+
+    private static final String WILD_PETS_1_0_0_DOWNLOAD =
+            "/api/v1/plugins/wild-pets/versions/v1.0.0/assets/WildPets-1.0.0.jar/download";
+    private static final String WILD_PETS_1_1_0_DOWNLOAD =
+            "/api/v1/plugins/wild-pets/versions/v1.1.0/assets/WildPets-1.1.0.jar/download";
 
     /** Two mirrored releases for Wild Pets, published a month apart. */
     private void givenMirroredVersions() {
@@ -290,5 +304,158 @@ class PluginControllerTest {
         // an accident of the controller.
         mockMvc.perform(get("/api/v1/plugins"))
                 .andExpect(status().isOk());
+    }
+
+    // ---- downloads through the site ----
+
+    @Test
+    void downloadLinkCountsAndRedirectsToTheFileOnGitHub() throws Exception {
+        givenMirroredVersions();
+
+        // The browser is sent to GitHub; the bytes never pass through here. The
+        // response is marked for crawlers and caches so a link checker's fetch
+        // is as rare as possible and a cached redirect cannot skip the count.
+        mockMvc.perform(get(WILD_PETS_1_0_0_DOWNLOAD))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location",
+                        "https://github.com/Dans-Plugins/Wild-Pets/releases/download/v1.0.0/WildPets-1.0.0.jar"))
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"))
+                .andExpect(header().string("Cache-Control", "no-store"));
+        mockMvc.perform(get(WILD_PETS_1_0_0_DOWNLOAD)).andExpect(status().isFound());
+
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/versions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[1].tag").value("v1.0.0"))
+                .andExpect(jsonPath("$[1].siteDownloadCount").value(2))
+                .andExpect(jsonPath("$[1].assets[0].siteDownloadCount").value(2))
+                .andExpect(jsonPath("$[1].assets[0].downloadPath").value(WILD_PETS_1_0_0_DOWNLOAD))
+                // GitHub's own figure is untouched: the two counters are different things.
+                .andExpect(jsonPath("$[1].assets[0].downloadCount").value(40))
+                .andExpect(jsonPath("$[1].downloadCount").value(40))
+                .andExpect(jsonPath("$[0].siteDownloadCount").value(0));
+    }
+
+    @Test
+    void aHeadRequestRedirectsButIsNotADownload() throws Exception {
+        givenMirroredVersions();
+
+        // Link checkers and browsers preflighting a link send HEAD; a visitor
+        // fetching the file does not.
+        mockMvc.perform(head(WILD_PETS_1_0_0_DOWNLOAD))
+                .andExpect(status().isFound())
+                .andExpect(header().exists("Location"));
+
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/downloads"))
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void downloadLinkIsNotFoundForAnythingTheMirrorDoesNotList() throws Exception {
+        givenMirroredVersions();
+
+        // The redirect target only ever comes from the mirror, so an address the
+        // mirror does not know is a 404 rather than a guess at a GitHub URL.
+        mockMvc.perform(get("/api/v1/plugins/not-a-plugin/versions/v1.0.0/assets/WildPets-1.0.0.jar/download"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/versions/v9.9.9/assets/WildPets-1.0.0.jar/download"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/versions/v1.0.0/assets/Other.jar/download"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/downloads"))
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void summarisesAPluginsDownloadsAsTotalAndLatest() throws Exception {
+        givenMirroredVersions();
+        mockMvc.perform(get(WILD_PETS_1_0_0_DOWNLOAD)).andExpect(status().isFound());
+        mockMvc.perform(get(WILD_PETS_1_0_0_DOWNLOAD)).andExpect(status().isFound());
+        mockMvc.perform(get(WILD_PETS_1_0_0_DOWNLOAD)).andExpect(status().isFound());
+        mockMvc.perform(get(WILD_PETS_1_1_0_DOWNLOAD)).andExpect(status().isFound());
+
+        // "Latest" is the release the catalogue labels as such — the newest
+        // stable one, v1.0.0, not the newer pre-release — so the SpigotMC pair
+        // reads 4 in total, 3 of the latest.
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/downloads"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(4))
+                .andExpect(jsonPath("$.latestTag").value("v1.0.0"))
+                .andExpect(jsonPath("$.latest").value(3));
+
+        // And the catalogue row carries the same pair, plus the counting link.
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].slug").value("wild-pets"))
+                .andExpect(jsonPath("$[0].downloadPath").value(WILD_PETS_1_0_0_DOWNLOAD))
+                .andExpect(jsonPath("$[0].siteDownloadCount").value(3))
+                .andExpect(jsonPath("$[0].totalSiteDownloadCount").value(4));
+    }
+
+    @Test
+    void summarisesAPluginWithNothingMirroredAsZeroes() throws Exception {
+        mockMvc.perform(get("/api/v1/plugins/medieval-cookery/downloads"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.latestTag").value(nullValue()))
+                .andExpect(jsonPath("$.latest").value(0));
+        mockMvc.perform(get("/api/v1/plugins/not-a-plugin/downloads"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void downloadsSurviveTheSyncReplacingTheRelease() throws Exception {
+        givenMirroredVersions();
+        mockMvc.perform(get(WILD_PETS_1_0_0_DOWNLOAD)).andExpect(status().isFound());
+        mockMvc.perform(get(WILD_PETS_1_1_0_DOWNLOAD)).andExpect(status().isFound());
+
+        // The sync replaces asset rows on every run and deletes releases GitHub
+        // withdraws. Neither may cost a plugin downloads that happened: the
+        // counters are keyed by (plugin, tag, asset name), not by those rows.
+        // Here v1.1.0 is withdrawn, and v1.0.0 is withdrawn and published again
+        // — every mirrored row the downloads were made against is gone.
+        Plugin wildPets = pluginRepository.findBySlug("wild-pets").orElseThrow();
+        pluginVersionRepository.delete(pluginVersionRepository.findByPluginAndTag(wildPets, "v1.1.0").orElseThrow());
+        pluginVersionRepository.delete(pluginVersionRepository.findByPluginAndTag(wildPets, "v1.0.0").orElseThrow());
+        PluginVersion republished = new PluginVersion(wildPets, "v1.0.0");
+        republished.setHtmlUrl("https://github.com/Dans-Plugins/Wild-Pets/releases/tag/v1.0.0");
+        republished.setPublishedAt(Instant.parse("2026-01-01T00:00:00Z"));
+        republished.setLastSyncedAt(Instant.parse("2026-04-01T00:00:00Z"));
+        republished.replaceAssets(List.of(new PluginVersionAsset("WildPets-1.0.0.jar", 1024, 41,
+                "https://github.com/Dans-Plugins/Wild-Pets/releases/download/v1.0.0/WildPets-1.0.0.jar")));
+        pluginVersionRepository.save(republished);
+
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/downloads"))
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.latest").value(1));
+        mockMvc.perform(get("/api/v1/plugins/wild-pets/versions"))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].siteDownloadCount").value(1));
+        // The withdrawn release's file is no longer offered, so its link is gone too.
+        mockMvc.perform(get(WILD_PETS_1_1_0_DOWNLOAD)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void downloadPathEscapesWhatItIsBuiltFrom() throws Exception {
+        Plugin cookery = pluginRepository.findBySlug("medieval-cookery").orElseThrow();
+        PluginVersion version = new PluginVersion(cookery, "v3.0.0");
+        version.setHtmlUrl("https://github.com/Dans-Plugins/Medieval-Cookery/releases/tag/v3.0.0");
+        version.setPublishedAt(Instant.parse("2026-02-15T00:00:00Z"));
+        version.setLastSyncedAt(Instant.parse("2026-03-01T00:00:00Z"));
+        version.replaceAssets(List.of(new PluginVersionAsset("Medieval Cookery 3.0.jar", 10, 0,
+                "https://github.com/Dans-Plugins/Medieval-Cookery/releases/download/v3.0.0/Medieval.Cookery.3.0.jar")));
+        pluginVersionRepository.save(version);
+
+        // A GitHub asset name can hold a space; the served path is what a browser
+        // can follow, and following it finds the same asset again. Performed as
+        // a URI rather than a template so MockMvc does not encode the % again.
+        String path = "/api/v1/plugins/medieval-cookery/versions/v3.0.0/assets/Medieval%20Cookery%203.0.jar/download";
+        mockMvc.perform(get("/api/v1/plugins/versions/latest"))
+                .andExpect(jsonPath("$[0].downloadPath").value(path));
+        mockMvc.perform(get(URI.create(path)))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location",
+                        "https://github.com/Dans-Plugins/Medieval-Cookery/releases/download/v3.0.0/Medieval.Cookery.3.0.jar"));
+        mockMvc.perform(get("/api/v1/plugins/medieval-cookery/downloads"))
+                .andExpect(jsonPath("$.latest").value(1));
     }
 }

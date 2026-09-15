@@ -1,8 +1,10 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
     getLatestVersionsBySlug,
+    getPluginDownloads,
     getPluginVersions,
     latestStableTag,
+    siteDownloadUrl,
     totalDownloads,
     PluginVersion,
 } from '../services/pluginVersionService';
@@ -15,6 +17,7 @@ const version = (overrides: Partial<PluginVersion> = {}): PluginVersion => ({
     prerelease: false,
     publishedAt: '2026-01-01T00:00:00Z',
     downloadCount: 12,
+    siteDownloadCount: 0,
     assets: [],
     ...overrides,
 });
@@ -103,9 +106,33 @@ describe('getLatestVersionsBySlug', () => {
         expect(latest.get('fiefs')).toEqual({
             tag: 'v1.2.0',
             downloadUrl: 'https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar',
+            downloadCount: 0,
         });
         // A release with no jar still labels the card; it just offers no file.
-        expect(latest.get('medieval-factions')).toEqual({tag: 'v5.3.0', downloadUrl: null});
+        expect(latest.get('medieval-factions')).toEqual({tag: 'v5.3.0', downloadUrl: null, downloadCount: 0});
+    });
+
+    it('routes the card\'s download through the API\'s counting link, at the public origin', async () => {
+        vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.dansplugins.com');
+        vi.stubEnv('DPC_API_INTERNAL_URL', 'http://dpc-api:8080');
+        stubFetch({
+            ok: true, json: async () => [
+                {slug: 'fiefs', tag: 'v1.2.0', prerelease: false, publishedAt: '2026-01-01T00:00:00Z',
+                    downloadUrl: 'https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar',
+                    downloadPath: '/api/v1/plugins/fiefs/versions/v1.2.0/assets/Fiefs-1.2.0.jar/download',
+                    siteDownloadCount: 3, totalSiteDownloadCount: 41},
+            ],
+        });
+
+        // The link is what a visitor's browser follows, so it is the public
+        // origin even though this runs on the server, where the fetch itself
+        // goes to the internal one; the figure on the card is the total.
+        expect((await getLatestVersionsBySlug()).get('fiefs')).toEqual({
+            tag: 'v1.2.0',
+            downloadUrl: 'https://api.dansplugins.com/api/v1/plugins/fiefs/versions/v1.2.0/assets/Fiefs-1.2.0.jar/download',
+            downloadCount: 41,
+        });
+        vi.unstubAllEnvs();
     });
 
     it('treats a missing downloadUrl as no file rather than as a broken link', async () => {
@@ -117,7 +144,7 @@ describe('getLatestVersionsBySlug', () => {
             ],
         });
 
-        expect((await getLatestVersionsBySlug()).get('fiefs')).toEqual({tag: 'v1.2.0', downloadUrl: null});
+        expect((await getLatestVersionsBySlug()).get('fiefs')).toEqual({tag: 'v1.2.0', downloadUrl: null, downloadCount: 0});
     });
 
     it('requests the whole catalogue in one call', async () => {
@@ -232,5 +259,63 @@ describe('latestStableTag', () => {
 
     it('is null for a plugin with no mirrored releases', () => {
         expect(latestStableTag([])).toBeNull();
+    });
+});
+
+describe('siteDownloadUrl', () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    const asset = {
+        downloadUrl: 'https://github.com/Dans-Plugins/Fiefs/releases/download/v1.2.0/Fiefs-1.2.0.jar',
+        downloadPath: '/api/v1/plugins/fiefs/versions/v1.2.0/assets/Fiefs-1.2.0.jar/download',
+    };
+
+    it('prefixes the API\'s counting path with the public origin', () => {
+        vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.dansplugins.com');
+        expect(siteDownloadUrl(asset))
+            .toBe('https://api.dansplugins.com/api/v1/plugins/fiefs/versions/v1.2.0/assets/Fiefs-1.2.0.jar/download');
+    });
+
+    it('falls back to the file on GitHub when the API served no counting path', () => {
+        // An API older than the counter: the button still works, it just is not counted.
+        expect(siteDownloadUrl({downloadUrl: asset.downloadUrl})).toBe(asset.downloadUrl);
+        expect(siteDownloadUrl({downloadUrl: asset.downloadUrl, downloadPath: null})).toBe(asset.downloadUrl);
+        expect(siteDownloadUrl({downloadUrl: asset.downloadUrl, downloadPath: ''})).toBe(asset.downloadUrl);
+    });
+});
+
+describe('getPluginDownloads', () => {
+    it('returns the total and latest pair on a 200 response', async () => {
+        stubFetch({ok: true, json: async () => ({total: 41, latestTag: 'v1.2.0', latest: 3})});
+        expect(await getPluginDownloads('fiefs')).toEqual({total: 41, latestTag: 'v1.2.0', latest: 3});
+    });
+
+    it('requests the downloads endpoint for the given slug', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({ok: true, json: async () => ({total: 0, latestTag: null, latest: 0})} as Response);
+        vi.stubGlobal('fetch', fetchMock);
+
+        await getPluginDownloads('medieval-factions');
+
+        expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/plugins/medieval-factions/downloads');
+    });
+
+    it('keeps a null latestTag for a plugin with nothing mirrored', async () => {
+        stubFetch({ok: true, json: async () => ({total: 0, latestTag: null, latest: 0})});
+        expect(await getPluginDownloads('fiefs')).toEqual({total: 0, latestTag: null, latest: 0});
+    });
+
+    it('is null on a non-ok response, so the page omits the figures rather than showing zeros', async () => {
+        stubFetch({ok: false, status: 503, statusText: 'Service Unavailable'});
+        expect(await getPluginDownloads('fiefs')).toBeNull();
+    });
+
+    it('is null when the API cannot be reached', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ECONNREFUSED')));
+        expect(await getPluginDownloads('fiefs')).toBeNull();
+    });
+
+    it('is null when the body is not the documented shape', async () => {
+        stubFetch({ok: true, json: async () => ({message: 'nope'})});
+        expect(await getPluginDownloads('fiefs')).toBeNull();
     });
 });

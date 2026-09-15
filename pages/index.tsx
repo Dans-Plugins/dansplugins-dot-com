@@ -56,6 +56,7 @@ interface PluginWithServerCount extends Plugin {
     serverCount?: number | null;
     latestVersion?: string | null;
     latestDownloadUrl?: string | null;
+    downloadCount?: number | null;
 }
 
 interface PluginSectionProps {
@@ -80,6 +81,7 @@ const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, like
                     serverCount={plugin.serverCount}
                     latestVersion={plugin.latestVersion}
                     latestDownloadUrl={plugin.latestDownloadUrl}
+                    downloadCount={plugin.downloadCount}
                     likeCount={likeCounts[plugin.id] || 0}
                     liked={likedSet.has(plugin.id)}
                     token={token}
@@ -235,7 +237,8 @@ export const getServerSideProps = async () => {
         ...plugin,
         serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null,
         latestVersion: latestVersionsMap.get(plugin.id)?.tag ?? null,
-        latestDownloadUrl: latestVersionsMap.get(plugin.id)?.downloadUrl ?? null
+        latestDownloadUrl: latestVersionsMap.get(plugin.id)?.downloadUrl ?? null,
+        downloadCount: latestVersionsMap.get(plugin.id)?.downloadCount ?? null
     }));
 
     return {

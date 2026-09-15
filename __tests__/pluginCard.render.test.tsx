@@ -58,3 +58,25 @@ describe('PluginCard download button', () => {
             .toBe('https://github.com/Dans-Plugins/Fiefs');
     });
 });
+
+describe('PluginCard download count', () => {
+    it('shows the plugin\'s downloads through the site as a chip', () => {
+        renderCard({downloadCount: 1234});
+        expect(screen.getByTestId('download-count').textContent).toBe('1,234 downloads');
+    });
+
+    it('is absent at zero, so a plugin nobody has downloaded yet is not labelled with a 0', () => {
+        renderCard({downloadCount: 0});
+        expect(screen.queryByTestId('download-count')).toBeNull();
+    });
+
+    it('is absent when the prop is not given at all', () => {
+        renderCard();
+        expect(screen.queryByTestId('download-count')).toBeNull();
+    });
+
+    it('marks the download link nofollow, since following it is what counts a download', () => {
+        renderCard({latestVersion: 'v1.2.0', latestDownloadUrl: JAR});
+        expect(screen.getByRole('link', {name: 'Download Fiefs v1.2.0'}).getAttribute('rel')).toBe('nofollow');
+    });
+});
