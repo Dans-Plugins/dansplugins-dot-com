@@ -1,6 +1,7 @@
 import React from 'react';
 import {Avatar, Box, Button, Card, CardActions, CardContent, Chip, Link, Stack, Typography} from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import DownloadIcon from '@mui/icons-material/Download';
 import DnsIcon from '@mui/icons-material/Dns';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
@@ -24,6 +25,9 @@ interface PluginCardProps {
     icon?: string;
     serverCount?: number | null;
     latestVersion?: string | null;
+    // The latest release's plugin jar on GitHub, from the same mirror row as
+    // latestVersion; absent when the plugin has no release or it attaches no jar.
+    latestDownloadUrl?: string | null;
     likeCount: number;
     liked: boolean;
     token: string | null;
@@ -38,6 +42,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
     icon,
     serverCount,
     latestVersion,
+    latestDownloadUrl,
     likeCount,
     liked,
     token
@@ -121,6 +126,22 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 >
                     Details
                 </Button>
+                {latestDownloadUrl ? (
+                    // The jar itself, as DPM would fetch it — not the release
+                    // page. Same-tab on purpose: a cross-origin file link
+                    // downloads in place, and target="_blank" would leave an
+                    // empty tab behind it in some browsers.
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<DownloadIcon/>}
+                        component={Link}
+                        href={latestDownloadUrl}
+                        aria-label={`Download ${title}${latestVersion ? ` ${latestVersion}` : ''}`}
+                    >
+                        Download
+                    </Button>
+                ) : null}
                 <Button
                     size="small"
                     startIcon={<MenuBookIcon/>}

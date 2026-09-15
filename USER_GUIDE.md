@@ -27,6 +27,7 @@ No special software is required to use the website. Simply visit [https://danspl
    Both figures are repeated on the plugin's own page (see below), so there is no need to open it just to read them.
 4. Once you have found a plugin, use the buttons on its card:
    - **Details** — that plugin's own page on this site (see below). Its name is a link to the same place.
+   - **Download** — the latest release's plugin jar, straight from GitHub; the same file Dan's Plugin Manager would install. The button is shown only when the release named by the **Latest** chip attaches a jar, and the file is served by GitHub, not by this site.
    - **Guide** — that plugin's user guide, on this site.
    - **GitHub** — the plugin's source code and releases.
    - **SpigotMC** — the plugin's SpigotMC resource page, shown for plugins that have one.

@@ -267,10 +267,15 @@ curl http://localhost:45345/api/v1/plugins/versions/latest
     "slug": "medieval-factions",
     "tag": "v5.3.0",
     "prerelease": false,
-    "publishedAt": "2026-01-02T03:04:05Z"
+    "publishedAt": "2026-01-02T03:04:05Z",
+    "downloadUrl": "https://github.com/Dans-Plugins/Medieval-Factions/releases/download/v5.3.0/MedievalFactions-5.3.0.jar"
   }
 ]
 ```
+
+`downloadUrl` is that release's plugin jar — the first `.jar` asset, skipping a
+`-sources` or `-javadoc` jar when a plugin jar is there, the same file Dan's
+Plugin Manager would install — and `null` when the release attaches no jar.
 
 Rows are ordered by `slug`. "Latest" means the newest release that is **not** a
 pre-release — what GitHub's own `/releases/latest` means by the word. A plugin

@@ -25,9 +25,11 @@ public interface PluginVersionRepository extends JpaRepository<PluginVersion, UU
      * Every mirrored release across the whole catalogue, newest first, with its
      * plugin joined in — what {@code PluginVersionQueryService} folds down to one
      * row per plugin. The plugin is fetched rather than left as a lazy proxy
-     * because every row's slug is read; the assets are deliberately *not*,
-     * because none are.
+     * because every row's slug is read, and the assets come with it because
+     * each chosen row's plugin jar is read too — without the graph that is one
+     * further query per plugin in the catalogue.
      */
+    @EntityGraph(attributePaths = "assets")
     @Query("select v from PluginVersion v join fetch v.plugin order by v.publishedAt desc")
     List<PluginVersion> findAllWithPluginOrderByPublishedAtDesc();
 
