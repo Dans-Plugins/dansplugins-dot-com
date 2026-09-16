@@ -1,12 +1,59 @@
 /**
+ * How long one bStats request may take before it is abandoned. bStats sits
+ * behind Cloudflare; when its origin is down every request hangs for the
+ * full Cloudflare 522 wait (~15 s), and the home page awaits sixteen of them.
+ * Without a bound that made `/` take close to a minute, which failed the
+ * container health check and took the whole site offline (2026-09-16).
+ */
+export const BSTATS_TIMEOUT_MS = 3_000;
+
+/** How long a fetched count is served before bStats is asked again. */
+export const BSTATS_CACHE_TTL_MS = 10 * 60 * 1_000;
+
+type CacheEntry = { count: number | undefined; fetchedAt: number };
+
+// Module-level: one cache per server process. Server counts change slowly
+// and are decorative, so a ten-minute-old figure is fine, and during an
+// outage the last good figure keeps being shown instead of nothing.
+const cache = new Map<string, CacheEntry>();
+
+/** Test hook: forget every cached count. */
+export function clearServerCountCache(): void {
+    cache.clear();
+}
+
+/**
  * Fetches the server count for a given bStatsId from the bStats API
  * @param bStatsId The bStats plugin ID
  * @returns The server count or undefined if unavailable/error
  */
 export async function getServerCount(bStatsId: string): Promise<number | undefined> {
+    const cached = cache.get(bStatsId);
+    if (cached && Date.now() - cached.fetchedAt < BSTATS_CACHE_TTL_MS) {
+        return cached.count;
+    }
+
+    const fresh = await fetchServerCount(bStatsId);
+    if (fresh !== undefined) {
+        cache.set(bStatsId, { count: fresh, fetchedAt: Date.now() });
+        return fresh;
+    }
+
+    // Stale beats blank: keep showing the last good figure through an outage.
+    // Re-stamp it so the next render does not pay the timeout again until the
+    // TTL has passed.
+    if (cached) {
+        cache.set(bStatsId, { count: cached.count, fetchedAt: Date.now() });
+        return cached.count;
+    }
+    return undefined;
+}
+
+async function fetchServerCount(bStatsId: string): Promise<number | undefined> {
     try {
         const response = await fetch(
-            'https://bstats.org/api/v1/plugins/' + bStatsId + '/charts/servers/data?maxElements=1'
+            'https://bstats.org/api/v1/plugins/' + bStatsId + '/charts/servers/data?maxElements=1',
+            { signal: AbortSignal.timeout(BSTATS_TIMEOUT_MS) }
         );
         
         if (!response.ok) {
@@ -18,7 +65,7 @@ export async function getServerCount(bStatsId: string): Promise<number | undefin
         
         const data = await response.json();
         
-        if (!Array.isArray(data) || data.length < 1) {
+        if (!Array.isArray(data) || data.length === 0) {
             return undefined;
         }
         
