@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {GetServerSidePropsContext} from 'next';
 
 import {getServerSideProps} from '../pages/resources/[slug]';
+import {clearServerCountCache} from '../utils/bstats';
 import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
 interface ResourcePropsShape {
@@ -82,6 +83,9 @@ const stubUpstreams = ({servers, tag, versions, downloads}: {
 };
 
 beforeEach(() => {
+    // Server counts are cached across renders (utils/bstats.ts); each test
+    // must start from an empty cache or a count leaks from the previous one.
+    clearServerCountCache();
     // The default case is the one that matters most: an unmirrored plugin, where
     // the latest tag still comes from the live GitHub call.
     stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: []});
