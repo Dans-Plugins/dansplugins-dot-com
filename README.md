@@ -124,7 +124,7 @@ Docker Compose brings up the site together with `dpc-api`, its database, and the
    ```bash
    ./up.sh
    ```
-   The site will be accessible at `http://localhost:3000` and the API at `http://localhost:45345`.
+   The site will be accessible at `http://localhost:3000` and the API at `http://localhost:45345`. The website container does not start until `dpc-api` reports healthy — which in turn waits on its database and on UserAuth — so expect a minute or so before `localhost:3000` answers on a cold start. The wait is deliberate: the home page's "Latest" chips and a resource page's Versions section are read from `dpc-api` while rendering, and a page served before the API was up would simply omit them.
 
 #### Stopping the Server
 
