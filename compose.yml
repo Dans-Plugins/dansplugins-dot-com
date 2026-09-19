@@ -20,6 +20,14 @@ services:
     volumes:
       - ./node_modules:/app/node_modules
       - ./data:/app/data
+    # The server-rendered pages read dpc-api (latest-version chips, a resource
+    # page's Versions section) and hide the figure rather than fail when it does
+    # not answer, so a site that starts ahead of the API renders exactly like
+    # one against an API with nothing to say. Wait for it to be healthy — which
+    # makes ./up.sh slower to reach a usable site, deliberately.
+    depends_on:
+      dpc-api:
+        condition: service_healthy
     restart: always
 
   dpc-db:
@@ -62,6 +70,16 @@ services:
         condition: service_healthy
       userauth:
         condition: service_healthy
+    # dpc-api has no actuator, so the probe is its public catalogue listing:
+    # it answers only once the Spring context is up, Flyway has run, and the
+    # database can be read — which is what the website is waiting for. The
+    # runtime image is Alpine, which ships BusyBox wget and no curl.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/api/v1/plugins"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     restart: always
 
   # Shared UserAuth service (https://github.com/Preponderous-Software/UserAuth)
