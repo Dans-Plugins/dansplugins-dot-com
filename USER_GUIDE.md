@@ -94,6 +94,17 @@ No special software is required to use the website. Simply visit [https://danspl
 4. The **My likes** section lists the plugins and guides you've liked, linking to each one — your personal toolbox.
 5. Click **View your public profile** to see your profile as other people see it (display name, avatar, bio, join date, badges, and likes). Anyone can view a user's public profile at `/u/<username>`. Badges are earned automatically — for example, **Server Owner** appears once you have created an API key for a server.
 
+### Editing the Plugin Catalogue (admins)
+
+The catalogue — every plugin's title, description, links, icon and tags — lives in the community API and is edited on the site, not by pull request.
+
+1. Sign in on the **Account** page. If your account is one the API lists as an admin (`DPC_ADMIN_USERNAMES` on the server), a notice there links to **Edit the plugin catalogue**; the page is also at `/admin/plugins`.
+2. Pick a plugin from the list to edit it, or **Add a plugin**. A new plugin's **slug** becomes its URL (`/resources/<slug>`, `/guides/<slug>`) and cannot be changed afterwards; everything else can.
+3. Fill in the fields — the GitHub repository is required, the SpigotMC URL, bStats id and icon path are optional, and **Tags** is a comma-separated list of short lower-case words (the tag filter on the home page is built from whatever tags are in use). An icon path names a file under `public/icons` in the website repository, so a new icon still ships with the site.
+4. **Save changes** (or **Add plugin**). The API checks the fields and refuses anything malformed with a message on the field; a slug already in use is refused too. The public pages show the change on their next render — within five minutes for a page that had it cached.
+
+Removing a plugin is not offered: its mirrored versions, download counts and likes all hang off the row, so that stays a deliberate change made in the API repository. Anyone who is not an admin sees the page but the API refuses every change, and the page says so.
+
 ### Getting Support
 
 If you need help with any DPC plugin, join the community Discord:

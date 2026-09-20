@@ -61,6 +61,7 @@ describe('robots.txt getServerSideProps', () => {
         expect(body).toContain('Sitemap: https://example.test/sitemap.xml');
         expect(body).toContain('Disallow: /account');
         expect(body).toContain('Disallow: /dev');
+        expect(body).toContain('Disallow: /admin');
         expect(body).toContain('Disallow: /api/');
     });
 

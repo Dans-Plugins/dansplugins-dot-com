@@ -162,6 +162,7 @@ describe('robotsTxt', () => {
             'User-agent: *\n' +
             'Allow: /\n' +
             'Disallow: /account\n' +
+            'Disallow: /admin\n' +
             'Disallow: /dev\n' +
             'Disallow: /api/\n' +
             '\n' +
