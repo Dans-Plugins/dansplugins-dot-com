@@ -64,8 +64,8 @@ export const sitemapXml = (baseUrl: string, paths: readonly string[]): string =>
     ].join('\n');
 };
 
-// The on-site guide pages (`/guides/[id]`), one per plugin in
-// pages/data/plugins.json. They are reachable from the Guides page, but listing
+// The on-site guide pages (`/guides/[id]`), one per plugin in the catalogue
+// dpc-api serves. They are reachable from the Guides page, but listing
 // them saves a crawler from having to follow that page's links to find them. Ids
 // are percent-encoded as a single path segment — every id today is a plain slug,
 // but Next.js hands `params.id` back decoded, so encoding here is what keeps the

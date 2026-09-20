@@ -23,9 +23,9 @@ import {NextLinkComposed} from '../../components/NextLinkComposed'
 import {pageStyle, sectionHeaderStyle} from '../../styles/styles'
 import {getPublicProfile, type PublicProfile} from '../../services/profileService'
 import {resolveLikedItems} from '../../utils/likedItems'
+import {fetchCatalogueInBrowser, type CataloguePlugin} from '../../services/pluginCatalogueService'
 import {badgeLabel} from '../../utils/badges'
 import {absoluteDateFrom} from '../../utils/relativeTime'
-import pluginData from '../data/plugins.json'
 
 const version = require('../../package.json').version
 
@@ -34,6 +34,18 @@ const PublicProfilePage: NextPage = () => {
     const username = typeof router.query.username === 'string' ? router.query.username : null
     const [profile, setProfile] = useState<PublicProfile | null>(null)
     const [loading, setLoading] = useState(true)
+    // The catalogue names the liked items; see pages/account.tsx.
+    const [catalogue, setCatalogue] = useState<CataloguePlugin[]>([])
+
+    useEffect(() => {
+        let active = true
+        fetchCatalogueInBrowser().then((plugins) => {
+            if (active) setCatalogue(plugins)
+        })
+        return () => {
+            active = false
+        }
+    }, [])
 
     useEffect(() => {
         if (!username) return
@@ -50,7 +62,7 @@ const PublicProfilePage: NextPage = () => {
         }
     }, [username])
 
-    const likedItems = profile ? resolveLikedItems(profile.likes, pluginData.plugins) : []
+    const likedItems = profile ? resolveLikedItems(profile.likes, catalogue) : []
     const heading = profile?.displayName || profile?.username || username || 'Profile'
 
     return (

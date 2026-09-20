@@ -9,6 +9,8 @@ vi.mock('../services/visitService', () => ({
 
 import {getServerSideProps} from '../pages/index';
 import {clearSpigotListingCache} from '../utils/spigot';
+import {clearCatalogueCache} from '../services/pluginCatalogueService';
+import {API_CATALOGUE, catalogueResponse} from './fixtures/catalogue';
 
 interface HomePropsShape {
     props: {
@@ -19,6 +21,10 @@ interface HomePropsShape {
             serverCount?: number | null;
             latestVersion?: string | null;
             latestDownloadUrl?: string | null;
+            spigotmcLink?: string | null;
+            bStatsId?: string | null;
+            icon?: string | null;
+            tags?: string[];
             testedVersions?: string[] | null;
             spigotRating?: {average: number; count: number} | null;
         }>;
@@ -29,10 +35,42 @@ beforeEach(() => {
     // Tested versions are cached across renders (utils/spigot.ts); start each
     // test from an empty cache or a list leaks from the previous one.
     clearSpigotListingCache();
-    // Simulate bStats being unreachable so every server-count lookup resolves
-    // to undefined inside getServerCount — the worst case for serialization.
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('bstats unreachable')));
+    clearCatalogueCache();
+    // The catalogue answers; every other upstream (bStats, Spiget, the release
+    // mirror) is unreachable, so every figure resolves to undefined inside its
+    // helper — the worst case for serialization.
+    vi.stubGlobal('fetch', catalogueOnly());
     vi.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+// A fetch that serves the catalogue fixture and rejects everything else, or
+// hands the rest to `others` when a test wants one more upstream to answer.
+const catalogueOnly = (others?: (url: string) => Promise<Response>) =>
+    vi.fn((url: string) => /\/api\/v1\/plugins$/.test(url)
+        ? Promise.resolve(catalogueResponse())
+        : others ? others(url) : Promise.reject(new Error('upstream unreachable')));
+
+describe('home getServerSideProps catalogue', () => {
+    it('renders the plugins the API serves, title-sorted as the API orders them', async () => {
+        const result = await getServerSideProps() as HomePropsShape;
+        expect(result.props.pluginsWithCounts.map((p) => p.id)).toEqual(API_CATALOGUE.map((p) => p.slug));
+        const cookery = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-cookery');
+        // The API's nulls come through as nulls, never undefined.
+        expect(cookery).toMatchObject({spigotmcLink: null, bStatsId: null, icon: null, tags: ['medieval', 'recipes', 'roleplay']});
+    });
+
+    it('serves an empty catalogue, which the page shows as unavailable, when the API has never answered', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('api unreachable')));
+        const result = await getServerSideProps() as HomePropsShape;
+        expect(result.props.pluginsWithCounts).toEqual([]);
+    });
+
+    it('keeps serving the last good catalogue through an outage', async () => {
+        await getServerSideProps();
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('api unreachable')));
+        const result = await getServerSideProps() as HomePropsShape;
+        expect(result.props.pluginsWithCounts.map((p) => p.id)).toEqual(API_CATALOGUE.map((p) => p.slug));
+    });
 });
 
 describe('home getServerSideProps serialization', () => {
@@ -50,7 +88,7 @@ describe('home getServerSideProps serialization', () => {
     });
 
     it('labels each card with the versions Spiget lists for its SpigotMC resource', async () => {
-        vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+        vi.stubGlobal('fetch', catalogueOnly((url: string) => {
             if (url.includes('api.spiget.org/v2/resources/79941?')) {
                 return Promise.resolve({ok: true, json: async () => ({testedVersions: ['1.21'], rating: {count: 45, average: 4.7}, downloads: 63788})} as Response);
             }
@@ -89,7 +127,7 @@ describe('home getServerSideProps serialization', () => {
 
 describe('home getServerSideProps release tags', () => {
     it('labels each card with the tag the mirror gives for its slug', async () => {
-        vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+        vi.stubGlobal('fetch', catalogueOnly((url: string) => {
             if (url.includes('/api/v1/plugins/versions/latest')) {
                 return Promise.resolve({
                     ok: true,
@@ -115,7 +153,7 @@ describe('home getServerSideProps release tags', () => {
     it('never calls GitHub, however many plugins the catalogue holds', async () => {
         // The whole point of reading the mirror: a call per plugin per render
         // does not fit GitHub's unauthenticated hourly rate limit.
-        const fetchMock = vi.fn().mockResolvedValue({ok: true, json: async () => []} as Response);
+        const fetchMock = catalogueOnly(() => Promise.resolve({ok: true, json: async () => []} as Response));
         vi.stubGlobal('fetch', fetchMock);
 
         await getServerSideProps();

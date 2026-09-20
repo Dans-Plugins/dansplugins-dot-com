@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The site renders its plugin catalogue from `dpc-api` (`GET /api/v1/plugins`) instead of the checked-in `pages/data/plugins.json`, which is deleted along with the drift guard that policed the two copies (#87, step 2). `services/pluginCatalogueService.ts` reads the table once per server process, caches it for five minutes, and keeps serving the last good copy through an outage, so an API blip never blanks the home page; a process that has never reached the API at all shows "The plugin catalogue could not be loaded right now" on the home and Guides pages rather than an empty grid, and a resource or guide page it cannot look up is a 404, the same as for a slug the catalogue does not have. The account and profile pages, which name liked items by looking their ids up in the catalogue, now fetch it in the browser. Every field an admin can now edit through the API (#328) — title, description, links, icon path, tags — reaches the page on the next render; adding a plugin no longer needs a pull request or a migration. The icon test now checks the paths the migrations seed rather than the deleted file.
+
 ### Added
 
 - `dpc-api` can now be told about a catalogue change without a migration: `POST /api/v1/plugins` adds a plugin and `PUT /api/v1/plugins/{slug}` replaces one — title, description, links, bStats id, icon path and tags — for a signed-in user named in `DPC_ADMIN_USERNAMES`, the same gate that already controls feature-request conversion (#87, step 1). A `PUT` replaces the whole entry, so the form that will drive it sends every field, and `""` or `null` clears an optional one. There is deliberately no `DELETE`: a plugin row anchors mirrored versions, download counters and every like pointing at it, so removal stays a migration. `GET /api/v1/profile/me` now carries `admin`, so the site can show the editing UI only to someone the API will let use it. Anyone else gets `403`, and the endpoints are exempt from the `X-API-Key` filter the way every other bearer-authenticated write is.

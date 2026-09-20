@@ -30,10 +30,10 @@ import {pageStyle, sectionHeaderStyle} from '../styles/styles'
 import {getMyLikes, type LikedTarget} from '../services/likeService'
 import {login, logout, register} from '../services/authService'
 import {resolveLikedItems} from '../utils/likedItems'
+import {fetchCatalogueInBrowser, type CataloguePlugin} from '../services/pluginCatalogueService'
 import {badgeLabel} from '../utils/badges'
 import {getApiBaseUrl} from '../utils/apiBase'
 import {absoluteDateFrom} from '../utils/relativeTime'
-import pluginData from './data/plugins.json'
 
 const version = require('../package.json').version
 
@@ -93,6 +93,21 @@ const AccountPage: NextPage = () => {
         const saved = localStorage.getItem('dpc-token')
         if (saved) {
             setToken(saved)
+        }
+    }, [])
+
+    // Liked items are named by looking their ids up in the catalogue, which
+    // now comes from dpc-api rather than a file bundled with the page. Until
+    // it arrives (or if it never does) an item shows its id, as it always did
+    // for an id the catalogue did not know.
+    const [catalogue, setCatalogue] = useState<CataloguePlugin[]>([])
+    useEffect(() => {
+        let active = true
+        fetchCatalogueInBrowser().then((plugins) => {
+            if (active) setCatalogue(plugins)
+        })
+        return () => {
+            active = false
         }
     }, [])
 
@@ -320,7 +335,7 @@ const AccountPage: NextPage = () => {
         }
     }
 
-    const likedItems = resolveLikedItems(likes, pluginData.plugins)
+    const likedItems = resolveLikedItems(likes, catalogue)
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>

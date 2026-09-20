@@ -4,6 +4,8 @@ import type {GetServerSidePropsContext} from 'next';
 import {getServerSideProps} from '../pages/resources/[slug]';
 import {clearServerCountCache} from '../utils/bstats';
 import {clearSpigotListingCache} from '../utils/spigot';
+import {clearCatalogueCache} from '../services/pluginCatalogueService';
+import {catalogueResponse} from './fixtures/catalogue';
 import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
 interface ResourcePropsShape {
@@ -37,7 +39,7 @@ interface NotFoundShape {
 const contextWithSlug = (slug?: string): GetServerSidePropsContext =>
     ({params: slug === undefined ? {} : {slug}} as GetServerSidePropsContext);
 
-// Real entries from pages/data/plugins.json, so the lookup exercises the actual
+// Entries from the catalogue fixture the API stub serves, so the lookup exercises the actual
 // catalogue rather than a fixture that could drift from it. MEDIEVAL_COOKERY is
 // the one plugin with neither a SpigotMC page nor a bStats project — the
 // empty-string case the page has to normalise.
@@ -57,7 +59,7 @@ const mirroredVersion = (spec: string | {tag: string; publishedAt: string}): Plu
     assets: [],
 });
 
-// Route the six upstreams the page calls by URL, so a test can fail one
+// Route the seven upstreams the page calls by URL, so a test can fail one
 // without affecting the others.
 const stubUpstreams = ({servers, tag, versions, downloads, tested, rating, spigotDownloads, firstReleasedAt}: {
     servers?: number;
@@ -71,6 +73,9 @@ const stubUpstreams = ({servers, tag, versions, downloads, tested, rating, spigo
     firstReleasedAt?: string | null;
 }) => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        if (/\/api\/v1\/plugins$/.test(url)) {
+            return catalogueResponse();
+        }
         if (/\/api\/v1\/plugins\/[^/]+$/.test(url)) {
             return firstReleasedAt === undefined
                 ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
@@ -110,6 +115,7 @@ beforeEach(() => {
     // must start from an empty cache or a count leaks from the previous one.
     clearServerCountCache();
     clearSpigotListingCache();
+    clearCatalogueCache();
     // The default case is the one that matters most: an unmirrored plugin, where
     // the latest tag still comes from the live GitHub call.
     stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.18', '1.19', '1.20'], firstReleasedAt: null});
@@ -146,13 +152,9 @@ describe('resource page getServerSideProps', () => {
             firstReleasedAt: null,
             lastUpdatedAt: null,
             tags: ['admin'],
-            // Every other admin plugin shares the one tag, so the order is
-            // alphabetical, and the fifth (Nether Access Controller) is cut.
+            // The one other admin plugin in the fixture.
             related: [
-                {slug: 'alternate-account-finder', title: 'Alternate Account Finder', description: 'Identifies accounts that have used the same IP address.', icon: '/icons/aaf.png'},
-                {slug: 'dans-essentials', title: 'Dan\'s Essentials', description: 'Provides miscellaneous commands.', icon: '/icons/de.png'},
-                {slug: 'dans-plugin-manager', title: 'Dan\'s Plugin Manager', description: 'Lets operators download the community\'s plugins in-game or from the server console.', icon: '/icons/dpm.png'},
-                {slug: 'dans-spawn-system', title: 'Dan\'s Spawn System', description: 'Allows players to use signs to select a custom spawn in their world.', icon: '/icons/dss.png'}
+                {slug: 'dans-essentials', title: 'Dan\'s Essentials', description: 'Provides miscellaneous commands.', icon: '/icons/de.png'}
             ]
         });
     });
@@ -161,11 +163,10 @@ describe('resource page getServerSideProps', () => {
         const result = await getServerSideProps(contextWithSlug('currencies')) as ResourcePropsShape;
 
         // Currencies is medieval + factions + economy: the other factions
-        // plugins and Medieval Economy share two tags (alphabetical among
-        // themselves), the rest of the medieval line one, and the limit of
-        // four cuts the list after the first of those.
+        // plugins share two tags (alphabetical between themselves), Medieval
+        // Cookery one, and Activity Tracker and Dan's Essentials none.
         expect(result.props.related.map((p) => p.slug)).toEqual([
-            'fiefs', 'medieval-economy', 'medieval-factions', 'medieval-cookery'
+            'fiefs', 'medieval-factions', 'medieval-cookery'
         ]);
     });
 
@@ -338,7 +339,14 @@ describe('resource page getServerSideProps', () => {
         expect(result.props.serverCount).toBe(1234);
     });
 
-    it('still serves the page when every upstream throws', async () => {
+    it('still serves the page from the cached catalogue when every upstream throws', async () => {
+        // One good read warms the per-process catalogue cache; after that an
+        // outage of everything, the catalogue included, degrades the page
+        // rather than losing it.
+        await getServerSideProps(contextWithSlug(KNOWN_SLUG));
+        // Only the catalogue stays warm; the figure caches have their own tests.
+        clearServerCountCache();
+        clearSpigotListingCache();
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network unreachable')));
 
         const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
@@ -347,6 +355,17 @@ describe('resource page getServerSideProps', () => {
         expect(result.props.serverCount).toBeNull();
         expect(result.props.latestVersion).toBeNull();
         expect(result.props.versions).toEqual([]);
+    });
+
+    it('is notFound when the catalogue has never been readable in this process', async () => {
+        // Nothing to look the slug up in: the honest answer is 404, the same as
+        // for a slug the catalogue does not have. The home page, by contrast,
+        // says the catalogue is unavailable rather than showing an empty grid.
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network unreachable')));
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as NotFoundShape;
+
+        expect(result).toEqual({notFound: true});
     });
 
     it('never returns undefined, which Next.js cannot serialise into page props', async () => {

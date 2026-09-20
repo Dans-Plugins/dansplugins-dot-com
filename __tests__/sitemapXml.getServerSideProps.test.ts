@@ -2,7 +2,8 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {Mock} from 'vitest';
 import type {GetServerSidePropsContext} from 'next';
 
-import pluginData from '../pages/data/plugins.json';
+import {API_CATALOGUE, catalogueResponse} from './fixtures/catalogue';
+import {clearCatalogueCache} from '../services/pluginCatalogueService';
 import {STATIC_SITEMAP_PATHS} from '../utils/sitemap';
 import {getServerSideProps} from '../pages/sitemap.xml';
 
@@ -34,11 +35,15 @@ const renderSitemap = async (): Promise<string> => {
 };
 
 beforeEach(() => {
+    // The catalogue comes from dpc-api; serve the fixture and start uncached.
+    clearCatalogueCache();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(catalogueResponse()));
     vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://example.test');
 });
 
 afterEach(() => {
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
 });
 
 describe('sitemap.xml getServerSideProps', () => {
@@ -69,14 +74,14 @@ describe('sitemap.xml getServerSideProps', () => {
         });
     });
 
-    // The guide URLs come from pages/data/plugins.json rather than a fixture, so
-    // this fails if the route stops feeding the catalogue through guideSitemapPaths.
+    // The guide URLs come from the catalogue the API stub serves, so this fails
+    // if the route stops feeding the catalogue through guideSitemapPaths.
     it('lists a guide URL for every plugin in the catalogue', async () => {
         const body = await renderSitemap();
 
-        expect(pluginData.plugins.length).toBeGreaterThan(0);
-        pluginData.plugins.forEach((plugin) => {
-            expect(body).toContain(`<loc>https://example.test/guides/${plugin.id}</loc>`);
+        expect(API_CATALOGUE.length).toBeGreaterThan(0);
+        API_CATALOGUE.forEach((plugin) => {
+            expect(body).toContain(`<loc>https://example.test/guides/${plugin.slug}</loc>`);
         });
     });
 
@@ -85,9 +90,9 @@ describe('sitemap.xml getServerSideProps', () => {
     it('lists a resource URL for every plugin in the catalogue', async () => {
         const body = await renderSitemap();
 
-        expect(pluginData.plugins.length).toBeGreaterThan(0);
-        pluginData.plugins.forEach((plugin) => {
-            expect(body).toContain(`<loc>https://example.test/resources/${plugin.id}</loc>`);
+        expect(API_CATALOGUE.length).toBeGreaterThan(0);
+        API_CATALOGUE.forEach((plugin) => {
+            expect(body).toContain(`<loc>https://example.test/resources/${plugin.slug}</loc>`);
         });
     });
 

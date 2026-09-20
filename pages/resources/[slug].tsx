@@ -33,24 +33,13 @@ import {getServerCount} from '../../utils/bstats';
 import {formatTestedVersions, getSpigotListing, shownRating, spigotResourceId, spigotReviewsUrl} from '../../utils/spigot';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
+import {getCatalogue} from '../../services/pluginCatalogueService';
 import {absoluteDateFrom} from '../../utils/relativeTime';
 import {resourceDescription, resourcePath} from '../../utils/resources';
 import {relatedPlugins} from '../../utils/catalogueFilter';
 
 const version = require('../../package.json').version;
 
-interface CataloguePlugin {
-    id: string;
-    title: string;
-    description: string;
-    githubLink: string;
-    spigotmcLink?: string;
-    bStatsId?: string;
-    icon?: string;
-    tags?: string[];
-}
-
-const pluginData = require('../data/plugins.json') as { plugins: CataloguePlugin[] };
 
 interface ResourcePageProps {
     slug: string;
@@ -107,12 +96,13 @@ interface RelatedPlugin {
     icon: string | null;
 }
 
-// Treat the catalogue's empty strings as the absences they are.
-const orNull = (value: string | undefined): string | null => (value && value.trim() ? value : null);
 
 export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async ({params}) => {
     const slug = typeof params?.slug === 'string' ? params.slug : '';
-    const plugin = pluginData.plugins.find((p) => p.id === slug);
+    // The catalogue comes from dpc-api now; one read serves both the plugin
+    // and the related-plugins ranking below.
+    const catalogue = slug ? await getCatalogue() : [];
+    const plugin = catalogue.find((p) => p.id === slug);
     if (!plugin) {
         return {notFound: true};
     }
@@ -142,8 +132,8 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             title: plugin.title,
             description: plugin.description,
             githubLink: plugin.githubLink,
-            spigotmcLink: orNull(plugin.spigotmcLink),
-            icon: orNull(plugin.icon),
+            spigotmcLink: plugin.spigotmcLink,
+            icon: plugin.icon,
             serverCount: serverCount ?? null,
             latestVersion: mirroredLatest ?? latestFromGithub ?? null,
             testedVersions: spigotListing?.testedVersions ?? null,
@@ -153,12 +143,12 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             downloads,
             firstReleasedAt: record?.firstReleasedAt ?? null,
             lastUpdatedAt: versions[0]?.publishedAt ?? null,
-            tags: plugin.tags ?? [],
-            related: relatedPlugins(plugin, pluginData.plugins).map((other) => ({
+            tags: plugin.tags,
+            related: relatedPlugins(plugin, catalogue).map((other) => ({
                 slug: other.id,
                 title: other.title,
                 description: other.description,
-                icon: orNull(other.icon)
+                icon: other.icon
             }))
         }
     };

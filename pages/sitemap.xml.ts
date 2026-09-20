@@ -1,5 +1,6 @@
 import type {GetServerSideProps} from 'next';
 import {siteBaseUrl} from '../utils/seo';
+import {getCatalogue} from '../services/pluginCatalogueService';
 import {STATIC_SITEMAP_PATHS, guideSitemapPaths, resourceSitemapPaths, sitemapXml} from '../utils/sitemap';
 
 // Serves /sitemap.xml. A route rather than a static file under public/ because
@@ -7,14 +8,8 @@ import {STATIC_SITEMAP_PATHS, guideSitemapPaths, resourceSitemapPaths, sitemapXm
 // (NEXT_PUBLIC_BASE_URL, documented in CONFIG.md), which a checked-in file would
 // have to hard-code.
 
-interface GuidePlugin {
-    id: string;
-}
-
-const pluginData = require('./data/plugins.json') as { plugins: GuidePlugin[] };
-
 export const getServerSideProps: GetServerSideProps = async ({res}) => {
-    const pluginIds = pluginData.plugins.map((plugin) => plugin.id);
+    const pluginIds = (await getCatalogue()).map((plugin) => plugin.id);
     const paths = [
         ...STATIC_SITEMAP_PATHS,
         ...resourceSitemapPaths(pluginIds),

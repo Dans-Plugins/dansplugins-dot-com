@@ -1,11 +1,12 @@
 import {Box, Container, List, ListItem, ListItemButton, ListItemText, Paper, Typography} from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import type {NextPage} from 'next';
+import type {GetServerSideProps, NextPage} from 'next';
 import TopBar from '../components/TopBar';
 import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import {NextLinkComposed} from '../components/NextLinkComposed';
+import {getCatalogue} from '../services/pluginCatalogueService';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -15,17 +16,21 @@ const version = require('../package.json').version;
 
 // The guide list is driven by the same plugin catalogue rendered on the home
 // page, so adding a plugin there automatically lists its guide here.
-interface GuidePlugin {
-    id: string;
-    title: string;
-    githubLink: string;
+interface GuidesProps {
+    // Title-sorted, as the catalogue API serves it. Empty when the catalogue
+    // could not be read, which the page says rather than showing nothing.
+    guides: {id: string; title: string}[];
 }
 
-const pluginData = require('./data/plugins.json') as { plugins: GuidePlugin[] };
+export const getServerSideProps: GetServerSideProps<GuidesProps> = async () => ({
+    props: {
+        guides: (await getCatalogue())
+            .map(({id, title}) => ({id, title}))
+            .sort((a, b) => a.title.localeCompare(b.title))
+    }
+});
 
-const guides = [...pluginData.plugins].sort((a, b) => a.title.localeCompare(b.title));
-
-const Guides: NextPage = () => (
+const Guides: NextPage<GuidesProps> = ({guides}) => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo title="Guides" description="User guides for every Dan's Plugins Community plugin."/>
         <TopBar/>
@@ -37,6 +42,11 @@ const Guides: NextPage = () => (
                 Each plugin&apos;s guide (its <code>USER_GUIDE.md</code>) lives in the plugin&apos;s
                 repository. Select a plugin below to read its guide.
             </Typography>
+            {guides.length === 0 ? (
+                <Typography color="text.secondary">
+                    The plugin catalogue could not be loaded right now. Please try again shortly.
+                </Typography>
+            ) : null}
             <Paper elevation={0} sx={{maxWidth: 600, overflow: 'hidden'}}>
                 <List disablePadding>
                     {guides.map((plugin, index) => (
