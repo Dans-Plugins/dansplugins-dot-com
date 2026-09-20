@@ -136,7 +136,21 @@ class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Wild Pets"))
                 .andExpect(jsonPath("$.githubUrl").value("https://github.com/Dans-Plugins/Wild-Pets"))
-                .andExpect(jsonPath("$.bstatsId").value("12332"));
+                .andExpect(jsonPath("$.bstatsId").value("12332"))
+                // Present and null until the release sync has recorded it, so
+                // a client can tell "not yet known" from an older API.
+                .andExpect(jsonPath("$.firstReleasedAt").value(nullValue()));
+    }
+
+    @Test
+    void servesTheFirstReleaseDate_onceTheSyncHasRecordedIt() throws Exception {
+        Plugin wildPets = pluginRepository.findBySlug("wild-pets").orElseThrow();
+        wildPets.setFirstReleasedAt(Instant.parse("2021-06-15T12:00:00Z"));
+        pluginRepository.save(wildPets);
+
+        mockMvc.perform(get("/api/v1/plugins/wild-pets"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstReleasedAt").value("2021-06-15T12:00:00Z"));
     }
 
     @Test

@@ -24,6 +24,16 @@ describe('sortPlugins', () => {
         expect(sortPlugins(countless, 'popularity').map((p) => p.id)).toEqual(['m', 'z'])
     })
 
+    it('sorts by downloads through the site descending, a missing count as 0, ties alphabetical', () => {
+        const downloaded = [
+            {id: 'a', title: 'Apple', downloadCount: 3},
+            {id: 'b', title: 'Banana', downloadCount: null},
+            {id: 'c', title: 'Cherry', downloadCount: 40},
+            {id: 'd', title: 'Damson'},
+        ]
+        expect(sortPlugins(downloaded, 'most-downloaded').map((p) => p.id)).toEqual(['c', 'a', 'b', 'd'])
+    })
+
     it('sorts by like count descending, ties alphabetical', () => {
         const likeCounts = {a: 1, b: 5, c: 5}
         expect(sortPlugins(plugins, 'most-liked', likeCounts).map((p) => p.id)).toEqual(['b', 'c', 'a'])

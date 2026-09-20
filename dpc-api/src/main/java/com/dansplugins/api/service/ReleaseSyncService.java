@@ -15,6 +15,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +127,7 @@ public class ReleaseSyncService {
             boolean wholeHistorySeen = fetched.get().size() < properties.maxReleasesPerPlugin();
             List<PluginVersion> mirroredVersions = upsertAll(plugin, fetched.get());
             mirrored += mirroredVersions.size();
+            recordFirstRelease(plugin, repo.get(), fetched.get(), wholeHistorySeen);
             try {
                 pruned += perPlugin.execute(status -> prune(plugin, mirroredVersions, wholeHistorySeen));
             } catch (RuntimeException e) {
@@ -137,6 +139,47 @@ public class ReleaseSyncService {
         }
         log.info("Release sync: mirrored {} releases, pruned {} withdrawn, skipped {} plugins",
                 mirrored, pruned, skipped);
+    }
+
+    /**
+     * Records when the plugin's first release was published, once. The mirror
+     * keeps only the newest {@code maxReleasesPerPlugin} releases, so the
+     * oldest mirrored row is not the first release for any plugin with a
+     * longer history — and a first release never moves, so this is learned
+     * one time and kept. When the fetch already held the whole history the
+     * answer is in hand; otherwise GitHub's last page is asked for, which is
+     * the only extra call the sync makes and only until the value is known.
+     *
+     * <p>Nothing here may fail the sync: a plugin whose first release could
+     * not be learned this pass is asked about again next pass.
+     */
+    private void recordFirstRelease(Plugin plugin, String repo, List<Map<String, Object>> fetched,
+                                    boolean wholeHistorySeen) {
+        if (plugin.getFirstReleasedAt() != null) {
+            return;
+        }
+        try {
+            Optional<List<Map<String, Object>>> candidates = wholeHistorySeen
+                    ? Optional.of(fetched)
+                    : gitHubReleaseClient.oldestRelease(repo);
+            if (candidates.isEmpty()) {
+                return;
+            }
+            Optional<Instant> earliest = candidates.get().stream()
+                    // A draft has no published_at and is not a release yet.
+                    .filter(raw -> !Boolean.TRUE.equals(raw.get("draft")))
+                    .map(raw -> raw.get("published_at"))
+                    .filter(value -> value != null && !value.toString().isBlank())
+                    .map(value -> Instant.parse(value.toString()))
+                    .min(Comparator.naturalOrder());
+            if (earliest.isEmpty()) {
+                return;
+            }
+            plugin.setFirstReleasedAt(earliest.get());
+            pluginRepository.save(plugin);
+        } catch (RuntimeException e) {
+            log.warn("Recording the first release failed for {}: {}", plugin.getSlug(), e.getMessage());
+        }
     }
 
     private List<PluginVersion> upsertAll(Plugin plugin, List<Map<String, Object>> rawReleases) {

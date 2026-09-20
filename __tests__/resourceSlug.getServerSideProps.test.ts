@@ -18,6 +18,9 @@ interface ResourcePropsShape {
         latestVersion: string | null;
         versions: PluginVersion[];
         downloads: PluginDownloads | null;
+        testedVersions: string[] | null;
+        firstReleasedAt: string | null;
+        lastUpdatedAt: string | null;
     };
 }
 
@@ -38,28 +41,35 @@ const KNOWN_SLUG = 'activity-tracker';
 const SLUG_WITHOUT_OPTIONAL_LINKS = 'medieval-cookery';
 
 // A release as dpc-api's mirror serves it, trimmed to the fields the page reads.
-const mirroredVersion = (tag: string): PluginVersion => ({
-    tag,
-    name: `Activity Tracker ${tag}`,
+const mirroredVersion = (spec: string | {tag: string; publishedAt: string}): PluginVersion => ({
+    tag: typeof spec === 'string' ? spec : spec.tag,
+    name: `Activity Tracker ${typeof spec === 'string' ? spec : spec.tag}`,
     changelog: '### Fixed\n- Something',
-    htmlUrl: `https://github.com/Dans-Plugins/Activity-Tracker/releases/tag/${tag}`,
+    htmlUrl: `https://github.com/Dans-Plugins/Activity-Tracker/releases/tag/${typeof spec === 'string' ? spec : spec.tag}`,
     prerelease: false,
-    publishedAt: '2026-01-01T00:00:00Z',
+    publishedAt: typeof spec === 'string' ? '2026-01-01T00:00:00Z' : spec.publishedAt,
     downloadCount: 40,
     siteDownloadCount: 0,
     assets: [],
 });
 
-// Route the five upstreams the page calls by URL, so a test can fail one
+// Route the six upstreams the page calls by URL, so a test can fail one
 // without affecting the others.
-const stubUpstreams = ({servers, tag, versions, downloads, tested}: {
+const stubUpstreams = ({servers, tag, versions, downloads, tested, firstReleasedAt}: {
     servers?: number;
     tag?: string;
     versions?: PluginVersion[];
     downloads?: PluginDownloads;
     tested?: string[];
+    // The catalogue row: absent fails that request, null is "not yet recorded".
+    firstReleasedAt?: string | null;
 }) => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        if (/\/api\/v1\/plugins\/[^/]+$/.test(url)) {
+            return firstReleasedAt === undefined
+                ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
+                : {ok: true, json: async () => ({slug: url.split('/').pop(), firstReleasedAt})} as unknown as Response;
+        }
         if (url.includes('api.spiget.org')) {
             return tested === undefined
                 ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
@@ -96,7 +106,7 @@ beforeEach(() => {
     clearTestedVersionsCache();
     // The default case is the one that matters most: an unmirrored plugin, where
     // the latest tag still comes from the live GitHub call.
-    stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.18', '1.19', '1.20']});
+    stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.18', '1.19', '1.20'], firstReleasedAt: null});
 });
 
 describe('resource page getServerSideProps', () => {
@@ -124,8 +134,49 @@ describe('resource page getServerSideProps', () => {
             latestVersion: 'v1.2.3',
             testedVersions: ['1.18', '1.19', '1.20'],
             versions: [],
-            downloads: null
+            downloads: null,
+            firstReleasedAt: null,
+            lastUpdatedAt: null
         });
+    });
+
+    it('states the first release as dpc-api recorded it, and the last update as the newest mirrored release', async () => {
+        stubUpstreams({
+            servers: 1234, tag: 'v1.2.3', firstReleasedAt: '2021-06-15T12:00:00Z',
+            versions: [
+                mirroredVersion({tag: 'v1.2.3', publishedAt: '2026-03-01T00:00:00Z'}),
+                mirroredVersion({tag: 'v1.2.2', publishedAt: '2026-02-01T00:00:00Z'})
+            ]
+        });
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.firstReleasedAt).toBe('2021-06-15T12:00:00Z');
+        expect(result.props.lastUpdatedAt).toBe('2026-03-01T00:00:00Z');
+    });
+
+    it('never takes the mirror\'s oldest row for the first release', async () => {
+        // The mirror keeps only the newest releases, so its oldest row is not
+        // the first release; with nothing recorded the date is withheld.
+        stubUpstreams({
+            servers: 1234, tag: 'v1.2.3', firstReleasedAt: null,
+            versions: [mirroredVersion({tag: 'v1.2.3', publishedAt: '2026-03-01T00:00:00Z'})]
+        });
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.firstReleasedAt).toBeNull();
+        expect(result.props.lastUpdatedAt).toBe('2026-03-01T00:00:00Z');
+    });
+
+    it('still serves the page, without dates, when the catalogue row cannot be read', async () => {
+        stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: []});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.firstReleasedAt).toBeNull();
+        expect(result.props.lastUpdatedAt).toBeNull();
+        expect(result.props.serverCount).toBe(1234);
     });
 
     it('asks Spiget for the resource id in the catalogue\'s SpigotMC link, and nothing more', async () => {

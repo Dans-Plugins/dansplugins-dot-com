@@ -1,0 +1,11 @@
+-- When a plugin's first release was published, as GitHub reports it. The
+-- release mirror keeps only the newest releases of each plugin (see
+-- dpc.releases.max-releases-per-plugin), so the oldest mirrored row is not the
+-- first release for any plugin with a longer history than the window. The sync
+-- learns this once per plugin — from the page it fetched when that page held
+-- the whole history, otherwise from one extra request for GitHub's last page —
+-- and never asks again, since a first release does not move.
+--
+-- Nullable: a plugin with no releases has no value, and so does every plugin
+-- until the sync has had a chance to record one.
+ALTER TABLE plugins ADD COLUMN first_released_at TIMESTAMPTZ;

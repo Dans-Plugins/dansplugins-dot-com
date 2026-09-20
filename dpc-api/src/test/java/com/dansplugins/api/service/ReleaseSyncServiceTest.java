@@ -283,6 +283,94 @@ class ReleaseSyncServiceTest {
         assertThat(ReleaseSyncService.repoSlugFrom(null)).isEmpty();
     }
 
+    @Test
+    void sync_recordsTheFirstRelease_fromThePage_whenTheWholeHistoryWasSeen() {
+        givenService(true);
+        Plugin fiefs = plugin("fiefs", "https://github.com/Dans-Plugins/Fiefs");
+        when(pluginRepository.findAll()).thenReturn(List.of(fiefs));
+        // Two releases against a window of three: the page is the whole history,
+        // so the oldest release on it is the first release, and GitHub's last
+        // page need not be asked for.
+        when(gitHubReleaseClient.releases("Dans-Plugins/Fiefs", MAX_RELEASES)).thenReturn(Optional.of(List.of(
+                release("v1.1.0", "2026-02-01T00:00:00Z"),
+                release("v1.0.0", "2026-01-01T00:00:00Z"))));
+        when(pluginVersionRepository.findByPluginAndTag(any(), anyString())).thenReturn(Optional.empty());
+        when(pluginVersionRepository.findByPluginOrderByPublishedAtDesc(fiefs)).thenReturn(List.of());
+        savesWhatItIsGiven();
+
+        service.sync();
+
+        assertThat(fiefs.getFirstReleasedAt()).isEqualTo(Instant.parse("2026-01-01T00:00:00Z"));
+        verify(pluginRepository).save(fiefs);
+        verify(gitHubReleaseClient, never()).oldestRelease(anyString());
+    }
+
+    @Test
+    void sync_asksGitHubForTheOldestRelease_whenThePageWasFull() {
+        givenService(true);
+        Plugin fiefs = plugin("fiefs", "https://github.com/Dans-Plugins/Fiefs");
+        when(pluginRepository.findAll()).thenReturn(List.of(fiefs));
+        // A full page means older releases exist that it never saw, so the
+        // oldest release on the page proves nothing about the first release.
+        when(gitHubReleaseClient.releases("Dans-Plugins/Fiefs", MAX_RELEASES)).thenReturn(Optional.of(List.of(
+                release("v1.4.0", "2026-03-01T00:00:00Z"),
+                release("v1.3.0", "2026-02-01T00:00:00Z"),
+                release("v1.2.0", "2026-01-01T00:00:00Z"))));
+        when(gitHubReleaseClient.oldestRelease("Dans-Plugins/Fiefs"))
+                .thenReturn(Optional.of(List.of(release("v0.1.0", "2021-06-15T00:00:00Z"))));
+        when(pluginVersionRepository.findByPluginAndTag(any(), anyString())).thenReturn(Optional.empty());
+        when(pluginVersionRepository.findByPluginOrderByPublishedAtDesc(fiefs)).thenReturn(List.of());
+        savesWhatItIsGiven();
+
+        service.sync();
+
+        assertThat(fiefs.getFirstReleasedAt()).isEqualTo(Instant.parse("2021-06-15T00:00:00Z"));
+        verify(pluginRepository).save(fiefs);
+    }
+
+    @Test
+    void sync_doesNotAskAgain_onceTheFirstReleaseIsKnown() {
+        givenService(true);
+        Plugin fiefs = plugin("fiefs", "https://github.com/Dans-Plugins/Fiefs");
+        fiefs.setFirstReleasedAt(Instant.parse("2021-06-15T00:00:00Z"));
+        when(pluginRepository.findAll()).thenReturn(List.of(fiefs));
+        when(gitHubReleaseClient.releases("Dans-Plugins/Fiefs", MAX_RELEASES)).thenReturn(Optional.of(List.of(
+                release("v1.4.0", "2026-03-01T00:00:00Z"),
+                release("v1.3.0", "2026-02-01T00:00:00Z"),
+                release("v1.2.0", "2026-01-01T00:00:00Z"))));
+        when(pluginVersionRepository.findByPluginAndTag(any(), anyString())).thenReturn(Optional.empty());
+        when(pluginVersionRepository.findByPluginOrderByPublishedAtDesc(fiefs)).thenReturn(List.of());
+        savesWhatItIsGiven();
+
+        service.sync();
+
+        verify(gitHubReleaseClient, never()).oldestRelease(anyString());
+        verify(pluginRepository, never()).save(any(Plugin.class));
+        assertThat(fiefs.getFirstReleasedAt()).isEqualTo(Instant.parse("2021-06-15T00:00:00Z"));
+    }
+
+    @Test
+    void sync_leavesTheFirstReleaseUnset_whenGitHubsLastPageCannotBeReached() {
+        givenService(true);
+        Plugin fiefs = plugin("fiefs", "https://github.com/Dans-Plugins/Fiefs");
+        when(pluginRepository.findAll()).thenReturn(List.of(fiefs));
+        when(gitHubReleaseClient.releases("Dans-Plugins/Fiefs", MAX_RELEASES)).thenReturn(Optional.of(List.of(
+                release("v1.4.0", "2026-03-01T00:00:00Z"),
+                release("v1.3.0", "2026-02-01T00:00:00Z"),
+                release("v1.2.0", "2026-01-01T00:00:00Z"))));
+        when(gitHubReleaseClient.oldestRelease("Dans-Plugins/Fiefs")).thenReturn(Optional.empty());
+        when(pluginVersionRepository.findByPluginAndTag(any(), anyString())).thenReturn(Optional.empty());
+        when(pluginVersionRepository.findByPluginOrderByPublishedAtDesc(fiefs)).thenReturn(List.of());
+        savesWhatItIsGiven();
+
+        service.sync();
+
+        // The releases were still mirrored; only the date waits for the next pass.
+        verify(pluginVersionRepository, times(3)).save(any(PluginVersion.class));
+        assertThat(fiefs.getFirstReleasedAt()).isNull();
+        verify(pluginRepository, never()).save(any(Plugin.class));
+    }
+
     private static PluginVersion argThatVersion(java.util.function.Predicate<PluginVersion> predicate) {
         return org.mockito.ArgumentMatchers.argThat(predicate::test);
     }

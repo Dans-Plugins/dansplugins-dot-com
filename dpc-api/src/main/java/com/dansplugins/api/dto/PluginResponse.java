@@ -3,6 +3,8 @@ package com.dansplugins.api.dto;
 import com.dansplugins.api.entity.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.Instant;
+
 @Schema(description = "A plugin in the DPC catalogue")
 public record PluginResponse(
         String slug,
@@ -11,7 +13,10 @@ public record PluginResponse(
         String githubUrl,
         String spigotmcUrl,
         String bstatsId,
-        String iconPath
+        String iconPath,
+        @Schema(description = "When the plugin's first release was published on GitHub; null for a plugin "
+                + "with no releases, and until the release sync has recorded it", nullable = true)
+        Instant firstReleasedAt
 ) {
     /**
      * The internal UUID is deliberately absent: the slug is the public
@@ -26,7 +31,8 @@ public record PluginResponse(
                 plugin.getGithubUrl(),
                 plugin.getSpigotmcUrl(),
                 plugin.getBstatsId(),
-                plugin.getIconPath()
+                plugin.getIconPath(),
+                plugin.getFirstReleasedAt()
         );
     }
 }

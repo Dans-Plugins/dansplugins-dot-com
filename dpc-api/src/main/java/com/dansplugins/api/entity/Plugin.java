@@ -63,6 +63,11 @@ public class Plugin {
     @Column(name = "icon_path", length = 256)
     private String iconPath;
 
+    // When the first release was published, recorded once by the release sync
+    // (see V18); null until it has been, and for a plugin with no releases.
+    @Column(name = "first_released_at")
+    private Instant firstReleasedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;

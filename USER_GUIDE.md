@@ -19,7 +19,7 @@ No special software is required to use the website. Simply visit [https://danspl
 1. Visit the [home page](https://dansplugins.com).
 2. Browse the plugin cards displayed on the page, or narrow them down:
    - Type in the **Search plugins…** box to filter by plugin name or description. A "Showing N of M plugins" count appears while a search is active, and the ✕ clears it.
-   - Use the **By Popularity** / **Most Liked** / **Alphabetical** buttons to reorder the catalogue.
+   - Use the **By Popularity** / **Most Liked** / **Most Downloaded** / **Alphabetical** buttons to reorder the catalogue. Popularity is by bStats server count; Most Downloaded is by downloads made through this site.
 3. A card may carry a few small chips between the description and the buttons, each shown only when the figure behind it is available:
    - **N servers** — how many servers are running the plugin, as reported by bStats. Plugins with no bStats project, or none reporting yet, show no such chip.
    - **Latest: vX.Y.Z** — the plugin's newest release. A plugin that has published no release, or whose releases have not yet been mirrored from GitHub, shows no such chip.
@@ -38,7 +38,7 @@ No special software is required to use the website. Simply visit [https://danspl
 ### Viewing a Plugin's Page
 
 1. From the home page, click a plugin's name or its **Details** button (or visit `/resources/<plugin>` directly — for example `/resources/medieval-factions`).
-2. The page shows the plugin's description, how many servers are running it, its latest release version, and how many times its mirrored releases have been downloaded from GitHub, along with the heart to like it. Below those, a **Downloads** box counts downloads made through this site the way SpigotMC counts its own: the total across every release, and the latest release's.
+2. The page shows the plugin's description, how many servers are running it, its latest release version, how many times its mirrored releases have been downloaded from GitHub, and the Minecraft versions it has been tested on, along with the heart to like it. A line beneath states when the plugin was first released and last updated, as its GitHub releases record it; either half is left out when it is not known. Below those, a **Downloads** box counts downloads made through this site the way SpigotMC counts its own: the total across every release, and the latest release's.
 3. Use the buttons to act on it:
    - **Download** — the plugin's releases on GitHub, where its builds are published. The website does not host plugin files itself.
    - **User guide** — the same guide reachable from the Guides page.
