@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -87,6 +88,59 @@ class UserAuthClientTest {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> client.login("alice", "wrong"));
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+    }
+
+    @Test
+    void refreshReturnsTheRotatedPair() {
+        server.expect(requestTo(BASE + "/token/refresh"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("{\"refreshToken\":\"rt-1\"}"))
+                .andRespond(withSuccess(
+                        "{\"token\":\"jwt-2\",\"tokenType\":\"Bearer\",\"refreshToken\":\"rt-2\"}",
+                        MediaType.APPLICATION_JSON));
+
+        Map<String, Object> result = client.refresh("rt-1");
+
+        assertEquals("jwt-2", result.get("token"));
+        assertEquals("rt-2", result.get("refreshToken"));
+        server.verify();
+    }
+
+    @Test
+    void refreshPropagatesUnauthorized() {
+        server.expect(requestTo(BASE + "/token/refresh"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> client.refresh("stale"));
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+    }
+
+    @Test
+    void resetPasswordPostsTokenAndPassword() {
+        server.expect(requestTo(BASE + "/password/reset"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("{\"token\":\"reset-1\",\"newPassword\":\"NewPassword1!\"}"))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        client.resetPassword("reset-1", "NewPassword1!");
+        server.verify();
+    }
+
+    @Test
+    void resetPasswordPropagatesUnauthorizedAndBadRequest() {
+        server.expect(requestTo(BASE + "/password/reset"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED).body("{\"message\":\"invalid password reset token\"}"));
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> client.resetPassword("bad", "NewPassword1!"));
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        server.reset();
+
+        server.expect(requestTo(BASE + "/password/reset"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST));
+        ResponseStatusException weak = assertThrows(ResponseStatusException.class,
+                () -> client.resetPassword("reset-1", "weak"));
+        assertEquals(HttpStatus.BAD_REQUEST, weak.getStatusCode());
     }
 
     @Test

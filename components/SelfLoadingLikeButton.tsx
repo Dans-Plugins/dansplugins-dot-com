@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import LikeButton from './LikeButton';
 import {getLikeCounts, getMyLikes, LikeTargetType} from '../services/likeService';
+import {getSessionToken} from '../utils/session';
 
 /**
  * A {@link LikeButton} that loads its own state: the target's public like count
@@ -22,12 +23,18 @@ const SelfLoadingLikeButton: React.FC<SelfLoadingLikeButtonProps> = ({targetType
 
     useEffect(() => {
         getLikeCounts(targetType).then((counts) => setCount(counts[targetId] || 0));
-        const saved = typeof window !== 'undefined' ? window.localStorage.getItem('dpc-token') : null;
-        setToken(saved);
-        if (saved) {
-            getMyLikes(saved).then((likes) =>
-                setLiked(likes.some((l) => l.targetType === targetType && l.targetId === targetId)));
-        }
+        let active = true;
+        getSessionToken().then((saved) => {
+            if (!active) return;
+            setToken(saved);
+            if (saved) {
+                getMyLikes(saved).then((likes) =>
+                    setLiked(likes.some((l) => l.targetType === targetType && l.targetId === targetId)));
+            }
+        });
+        return () => {
+            active = false;
+        };
     }, [targetType, targetId]);
 
     return <LikeButton targetType={targetType} targetId={targetId} count={count} liked={liked} token={token}/>;

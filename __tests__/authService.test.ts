@@ -38,9 +38,14 @@ afterEach(() => {
 });
 
 describe('login', () => {
-    it('resolves to authenticated with the token on a 200 response', async () => {
+    it('resolves to authenticated with the token pair on a 200 response', async () => {
+        stubFetch({ok: true, status: 200, json: async () => ({token: 'jwt-123', refreshToken: 'rt-123'})});
+        expect(await login('dan', 'hunter22')).toEqual({status: 'authenticated', token: 'jwt-123', refreshToken: 'rt-123'});
+    });
+
+    it('carries a null refresh token when the API issues none (an older dpc-api)', async () => {
         stubFetch({ok: true, status: 200, json: async () => ({token: 'jwt-123'})});
-        expect(await login('dan', 'hunter22')).toEqual({status: 'authenticated', token: 'jwt-123'});
+        expect(await login('dan', 'hunter22')).toEqual({status: 'authenticated', token: 'jwt-123', refreshToken: null});
     });
 
     it('posts the credentials as JSON to the login endpoint with a timeout signal', async () => {
@@ -127,8 +132,8 @@ describe('login', () => {
 
 describe('register', () => {
     it('resolves to authenticated with the token on a 201 response', async () => {
-        stubFetch({ok: true, status: 201, json: async () => ({token: 'jwt-new'})});
-        expect(await register('dan', 'hunter22')).toEqual({status: 'authenticated', token: 'jwt-new'});
+        stubFetch({ok: true, status: 201, json: async () => ({token: 'jwt-new', refreshToken: 'rt-new'})});
+        expect(await register('dan', 'hunter22')).toEqual({status: 'authenticated', token: 'jwt-new', refreshToken: 'rt-new'});
     });
 
     it('posts the credentials to the register endpoint', async () => {

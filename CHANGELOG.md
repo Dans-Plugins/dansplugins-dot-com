@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- A **password reset** page at `/account/reset`, reached from **Forgot your password?** on the login form. The site sends no email, so the flow starts with an admin: they issue a one-time, thirty-minute reset token on the server (UserAuth `POST /password/reset/issue`, new in UserAuth #171) and hand it over, usually as a link with `?token=` filled in; the page redeems it through a new `POST /api/v1/auth/password/reset` proxy, checks the password policy before the round trip, and — because a reset signs the account out everywhere, this browser included — ends by offering the sign-in form. Bad, expired and used tokens get one explanation; a rate limit and an outage get their own.
+
+### Changed
+
+- **Sessions now last.** UserAuth has always issued a thirty-day refresh token beside its one-hour access token, but neither `dpc-api` nor the site used it, so every visitor was signed out an hour after signing in. `dpc-api` gains `POST /api/v1/auth/refresh` (proxying UserAuth `POST /token/refresh`), the site keeps the refresh token beside the access token, and `utils/session.ts` — which every page and component that sends a token now goes through — renews an access token with under five minutes left before handing it out, one exchange at a time however many callers ask. A refresh the API refuses (expired, revoked by a logout elsewhere, or consumed by a password reset) ends the session cleanly; an API that is merely unwell leaves the current token in place. The top bar still reads the stored token for display only.
+
 - An admin edits the plugin catalogue on the site at **`/admin/plugins`** (#87, step 3): pick a plugin to change its title, description, links, icon path and tags, or add a new one — the slug is chosen once and becomes the URL. The page reads `GET /api/v1/profile/me` for the `admin` flag and says "admins only" to anyone else, but the API is the gate (#328); it is the courtesy. Field errors from the API land on the field that caused them; a saved entry reaches the public pages on their next render. The **Account** page links to the editor for an admin, and `robots.txt` disallows `/admin`. No delete, for the reason the API gives.
 
 ### Changed

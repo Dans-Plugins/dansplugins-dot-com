@@ -89,10 +89,20 @@ No special software is required to use the website. Simply visit [https://danspl
 ### Managing Your Account
 
 1. Click **Account** in the top navigation bar (or visit `/account`).
-2. Register a new account, or log in with an existing username and password.
+2. Register a new account, or log in with an existing username and password. You stay signed in on that browser for up to thirty days: the site renews its session in the background, and only a logout (or a password reset) ends it sooner.
 3. Once logged in, create or delete the API keys used to connect a server to the DPC community data API.
 4. The **My likes** section lists the plugins and guides you've liked, linking to each one — your personal toolbox.
 5. Click **View your public profile** to see your profile as other people see it (display name, avatar, bio, join date, badges, and likes). Anyone can view a user's public profile at `/u/<username>`. Badges are earned automatically — for example, **Server Owner** appears once you have created an API key for a server.
+
+### Resetting a Forgotten Password
+
+The site sends no email, so a password reset starts with an admin rather than a form: ask on the community Discord, and once the admin has confirmed it is you, they issue a one-time reset token — usually as a link straight to `/account/reset` with the token filled in. The token works once and for thirty minutes.
+
+1. Open the link (or visit `/account/reset` and paste the token — the login form's **Forgot your password?** points there).
+2. Choose a new password (8–128 characters with a lowercase letter, an uppercase letter, a digit and a special character) and confirm it.
+3. **Set new password.** Every session on the account is signed out, this one included, so the next step is signing in with the new password.
+
+Admins issue tokens on the server, not on the site — see `dpc-api/README.md` and the UserAuth README's `POST /password/reset/issue`.
 
 ### Editing the Plugin Catalogue (admins)
 
