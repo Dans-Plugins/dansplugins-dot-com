@@ -86,7 +86,7 @@ Configuration is managed via environment variables:
 | `DPC_RELEASE_SYNC_ENABLED` | `true` | Set to `false` for local runs that should not call the real GitHub API |
 | `DPC_RELEASE_SYNC_MAX_RELEASES` | `20` | How many releases per plugin the mirror keeps, and the point past which the sync stops assuming it has seen a plugin's whole release history (see [Plugin versions](#plugin-versions)) |
 | `DPC_CLAIMS_AUTO_RELEASE_DAYS` | `30` | A dev-portal claim with no activity for this many days is released automatically |
-| `DPC_ADMIN_USERNAMES` | *(empty)* | Comma-separated UserAuth usernames allowed to convert a feature request into a real GitHub issue. Empty by default, which means **nobody** can convert until it is set. |
+| `DPC_ADMIN_USERNAMES` | *(empty)* | Comma-separated UserAuth usernames allowed to edit the plugin catalogue and to convert a feature request into a real GitHub issue. Empty by default, which means **nobody** can do either until it is set. `GET /api/v1/profile/me` reports the flag as `admin`. |
 | `DPC_FEATURE_REQUEST_GITHUB_TOKEN` | *(falls back to `DPC_BACKLOG_GITHUB_TOKEN`)* | Classic PAT used to create the GitHub issue a converted feature request becomes. Creating an issue is a write, so this one needs at least the `public_repo` scope — unlike the read-only backlog token it falls back to. |
 
 The Docker Compose file also supports the `API_PORT` variable (default `45345`) to control the published host port for the API.
@@ -174,10 +174,31 @@ migration rather than over HTTP, so there is no write path to authenticate.
 |---|---|---|---|
 | `GET` | `/api/v1/plugins` | Public | The whole catalogue, alphabetically by title |
 | `GET` | `/api/v1/plugins/{slug}` | Public | One plugin, or `404` if the slug is unknown |
+| `POST` | `/api/v1/plugins` | Bearer, admin | Add a plugin to the catalogue; `201`, or `409` if the slug is taken |
+| `PUT` | `/api/v1/plugins/{slug}` | Bearer, admin | Replace a catalogue entry — every field is taken from the body, so an optional left out is cleared |
 
 ```bash
 curl http://localhost:45345/api/v1/plugins/medieval-factions
 ```
+
+Until the write endpoints existed the catalogue changed only by Flyway migration
+(`V15`, `V19`); an admin (see `DPC_ADMIN_USERNAMES`) can now add or replace an
+entry with the same body shape, `PluginUpsertRequest`:
+
+```bash
+curl -X PUT http://localhost:45345/api/v1/plugins/wild-pets \
+  -H "Authorization: Bearer <UserAuth token>" -H "Content-Type: application/json" \
+  -d '{"title":"Wild Pets","description":"Allows players to tame any entity and keep them as a pet.",
+       "githubUrl":"https://github.com/Dans-Plugins/Wild-Pets",
+       "spigotmcUrl":"https://www.spigotmc.org/resources/wild-pets.95800/",
+       "bstatsId":"12332","iconPath":"/icons/wp.png","tags":["survival","mobs"]}'
+```
+
+A `PUT` replaces the whole entry, so the form that drives it sends every field.
+`""` and `null` both mean "none" for the optional fields and are stored as null.
+There is deliberately no `DELETE`: a plugin row anchors mirrored versions,
+download counters and every like pointing at it, so removing one stays a
+migration. A signed-in non-admin gets `403`; no token gets `401`.
 
 ```json
 {
