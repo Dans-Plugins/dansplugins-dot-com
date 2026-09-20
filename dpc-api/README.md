@@ -107,7 +107,9 @@ keeps a local profile mirror that owns each user's API keys.
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `POST` | `/api/v1/auth/register` | Public | Register (proxied to UserAuth) and return a token |
-| `POST` | `/api/v1/auth/login` | Public | Login (proxied to UserAuth) and return a token |
+| `POST` | `/api/v1/auth/login` | Public | Login (proxied to UserAuth) and return a token — and a refresh token, which the site keeps to renew the session silently |
+| `POST` | `/api/v1/auth/refresh` | Public | `{refreshToken}` → a new token and a rotated refresh token (proxied to UserAuth `POST /token/refresh`); `401` when the refresh token is expired, revoked or already used |
+| `POST` | `/api/v1/auth/password/reset` | Public | `{token, newPassword}` → `204`; redeems an operator-issued UserAuth reset token and ends every session of the account (proxied to UserAuth `POST /password/reset`); `401` for a bad token, `400` for a weak password |
 | `POST` | `/api/v1/auth/logout` | Bearer | Revoke the current token |
 | `GET` | `/api/v1/profile/me` | Bearer | Get the current user's profile and API keys |
 | `GET` | `/api/v1/profile/{username}` | Public | Get a user's public profile (display name, avatar, bio, join date, badges, liked plugins/guides; no id or API keys) |

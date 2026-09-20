@@ -109,6 +109,43 @@ public class UserAuthClient {
     }
 
     /**
+     * Proxy UserAuth {@code POST /token/refresh}: exchange a refresh token for a new access
+     * token and a rotated refresh token. A 401 (unknown, expired, or already-used refresh
+     * token) is propagated as 401, which the site treats as "sign in again".
+     */
+    public Map<String, Object> refresh(String refreshToken) {
+        HttpEntity<Map<String, String>> entity =
+                jsonEntity(Map.of("refreshToken", refreshToken == null ? "" : refreshToken));
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    userAuthUrl + "/token/refresh", HttpMethod.POST, entity, Map.class);
+            return castBody(response.getBody());
+        } catch (HttpClientErrorException e) {
+            throw new ResponseStatusException(e.getStatusCode(), messageFrom(e));
+        } catch (RestClientException e) {
+            throw unavailable(e);
+        }
+    }
+
+    /**
+     * Proxy UserAuth {@code POST /password/reset}: redeem an operator-issued reset token for a
+     * new password. UserAuth answers 204 on success; a 401 (bad, expired or used token) and a
+     * 400 (password policy) are propagated as they are.
+     */
+    public void resetPassword(String token, String newPassword) {
+        HttpEntity<Map<String, String>> entity = jsonEntity(Map.of(
+                "token", token == null ? "" : token,
+                "newPassword", newPassword == null ? "" : newPassword));
+        try {
+            restTemplate.exchange(userAuthUrl + "/password/reset", HttpMethod.POST, entity, Map.class);
+        } catch (HttpClientErrorException e) {
+            throw new ResponseStatusException(e.getStatusCode(), messageFrom(e));
+        } catch (RestClientException e) {
+            throw unavailable(e);
+        }
+    }
+
+    /**
      * Revoke a bearer token via UserAuth {@code POST /logout}. Idempotent on the UserAuth side.
      */
     public void logout(String token) {

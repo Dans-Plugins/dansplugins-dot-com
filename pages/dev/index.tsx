@@ -35,6 +35,7 @@ import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles
 import {relativeTimeFrom} from '../../utils/relativeTime'
 import {getBacklogItems, getBacklogSummary, BacklogItem, RepoSummary} from '../../services/backlogService'
 import {getLikeCounts, getMyLikes} from '../../services/likeService'
+import {getSessionToken} from '../../utils/session'
 import {getActiveClaims} from '../../services/claimService'
 import {getFeatureRequests} from '../../services/featureRequestService'
 
@@ -243,12 +244,13 @@ const DevPortalPage: NextPage = () => {
 
     useEffect(() => {
         getLikeCounts('issue').then(setInterestCounts)
-        const saved = window.localStorage.getItem('dpc-token')
-        setToken(saved)
-        if (saved) {
-            getMyLikes(saved).then((likes) =>
-                setInterestedSet(new Set(likes.filter((l) => l.targetType === 'issue').map((l) => l.targetId))))
-        }
+        getSessionToken().then((saved) => {
+            setToken(saved)
+            if (saved) {
+                getMyLikes(saved).then((likes) =>
+                    setInterestedSet(new Set(likes.filter((l) => l.targetType === 'issue').map((l) => l.targetId))))
+            }
+        })
         getActiveClaims().then((claims) =>
             setClaimants(Object.fromEntries(claims.map((c) => [c.targetId, c.claimantUsername]))))
     }, [])

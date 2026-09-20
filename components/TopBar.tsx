@@ -25,6 +25,7 @@ import {NextLinkComposed} from './NextLinkComposed';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {isActiveNavLink} from '../utils/nav';
 import {usernameFromToken} from '../utils/authToken';
+import {getStoredToken} from '../utils/session';
 
 import {
     appBarStyle,
@@ -193,7 +194,9 @@ const TopBar: React.FC = () => {
     const [signedIn, setSignedIn] = useState<boolean | null>(null);
     const [username, setUsername] = useState<string | null>(null);
     useEffect(() => {
-        const token = window.localStorage.getItem('dpc-token');
+        // Display only: the stored token as it is. Pages that send it go
+        // through getSessionToken(), which renews it first.
+        const token = getStoredToken();
         setSignedIn(!!token);
         setUsername(usernameFromToken(token));
     }, []);

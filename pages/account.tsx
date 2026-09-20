@@ -31,6 +31,7 @@ import {getMyLikes, type LikedTarget} from '../services/likeService'
 import {login, logout, register} from '../services/authService'
 import {resolveLikedItems} from '../utils/likedItems'
 import {fetchCatalogueInBrowser, type CataloguePlugin} from '../services/pluginCatalogueService'
+import {clearSession, getSessionToken, saveSession} from '../utils/session'
 import {badgeLabel} from '../utils/badges'
 import {getApiBaseUrl} from '../utils/apiBase'
 import {absoluteDateFrom} from '../utils/relativeTime'
@@ -92,9 +93,16 @@ const AccountPage: NextPage = () => {
     // victim's own API keys", the simpler localStorage path is acceptable.
     // Reconsider if this site ever stores higher-value credentials.
     useEffect(() => {
-        const saved = localStorage.getItem('dpc-token')
-        if (saved) {
-            setToken(saved)
+        // Renews a token about to expire (utils/session.ts), so a returning
+        // visitor is still signed in a day later rather than an hour later.
+        let active = true
+        getSessionToken().then((saved) => {
+            if (active && saved) {
+                setToken(saved)
+            }
+        })
+        return () => {
+            active = false
         }
     }, [])
 
@@ -133,7 +141,7 @@ const AccountPage: NextPage = () => {
                 setBio(data.bio ?? '')
             } else if (res.status === 401) {
                 setToken(null)
-                localStorage.removeItem('dpc-token')
+                clearSession()
                 setError('Session expired. Please log in again.')
             } else {
                 setProfile(null)
@@ -157,13 +165,11 @@ const AccountPage: NextPage = () => {
     // modes, or a browser set to refuse site data) setItem throws, and the
     // session then simply lasts until the page is reloaded rather than failing
     // a login that succeeded.
-    const startSession = (jwt: string) => {
+    const startSession = (jwt: string, refreshToken: string | null) => {
         setToken(jwt)
-        try {
-            localStorage.setItem('dpc-token', jwt)
-        } catch {
-            // ignore: the in-memory token above keeps this visit signed in
-        }
+        // Best-effort storage (see utils/session.ts): with site data blocked the
+        // in-memory token above keeps this visit signed in.
+        saveSession({token: jwt, refreshToken})
     }
 
     // After authenticating, send the user back to wherever they came from — e.g. a
@@ -185,7 +191,7 @@ const AccountPage: NextPage = () => {
         try {
             const result = await register(username, password)
             if (result.status === 'authenticated') {
-                startSession(result.token)
+                startSession(result.token, result.refreshToken)
                 setSuccess('Account created successfully!')
                 setUsername('')
                 setPassword('')
@@ -214,7 +220,7 @@ const AccountPage: NextPage = () => {
         try {
             const result = await login(username, password)
             if (result.status === 'authenticated') {
-                startSession(result.token)
+                startSession(result.token, result.refreshToken)
                 setSuccess('Logged in!')
                 setUsername('')
                 setPassword('')
@@ -236,7 +242,7 @@ const AccountPage: NextPage = () => {
         setToken(null)
         setProfile(null)
         setLikes([])
-        localStorage.removeItem('dpc-token')
+        clearSession()
         setSuccess('Logged out.')
     }
 
@@ -383,6 +389,12 @@ const AccountPage: NextPage = () => {
                                                 startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
                                             Login
                                         </Button>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Forgot your password?{' '}
+                                            <Box component={NextLinkComposed} to="/account/reset" sx={{color: 'primary.main'}}>
+                                                Reset it with a token from an admin
+                                            </Box>
+                                        </Typography>
                                     </Box>
                                 </CardContent>
                             </Card>

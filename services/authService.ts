@@ -35,7 +35,7 @@ export const AUTH_REQUEST_TIMEOUT_MS = 8000;
 export const REGISTER_REQUEST_TIMEOUT_MS = 30000;
 
 export type AuthResult =
-    | {status: 'authenticated'; token: string}
+    | {status: 'authenticated'; token: string; refreshToken: string | null}
     /**
      * Registration created the account but dpc-api could not log it in
      * (a transient UserAuth error): the response is 201 with no token and
@@ -78,12 +78,17 @@ const isTimeout = (e: unknown): boolean =>
  */
 const isUnavailableStatus = (status: number): boolean => status >= 500 || status === 429;
 
-const readToken = async (res: Response): Promise<string | null> => {
+// The issued pair. dpc-api passes UserAuth's login body through, so the refresh
+// token rides alongside the access token; an API older than that has none, and
+// the session then lasts as long as the access token, as it always did.
+const readTokens = async (res: Response): Promise<{token: string; refreshToken: string | null} | null> => {
     try {
         const data: unknown = await res.json();
         if (typeof data === 'object' && data !== null && 'token' in data) {
-            const token = (data as {token: unknown}).token;
-            return typeof token === 'string' && token.length > 0 ? token : null;
+            const {token, refreshToken} = data as {token: unknown; refreshToken?: unknown};
+            if (typeof token === 'string' && token.length > 0) {
+                return {token, refreshToken: typeof refreshToken === 'string' && refreshToken ? refreshToken : null};
+            }
         }
         return null;
     } catch {
@@ -117,8 +122,8 @@ const post = async (
         return {status: 'unavailable', message: isTimeout(e) ? timeoutMessage : UNREACHABLE_MESSAGE};
     }
     if (res.ok) {
-        const token = await readToken(res);
-        return token ? {status: 'authenticated', token} : onOkWithoutToken;
+        const tokens = await readTokens(res);
+        return tokens ? {status: 'authenticated', ...tokens} : onOkWithoutToken;
     }
     if (isUnavailableStatus(res.status)) {
         return {status: 'unavailable', message: SERVICE_UNAVAILABLE_MESSAGE};

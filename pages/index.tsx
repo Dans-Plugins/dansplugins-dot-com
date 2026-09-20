@@ -16,6 +16,7 @@ import { getSpigotListingsWithRateLimit, shownRating, spigotResourceId } from '.
 import { getLatestVersionsBySlug } from '../services/pluginVersionService';
 import { getCatalogue, type CataloguePlugin } from '../services/pluginCatalogueService';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
+import { getSessionToken } from '../utils/session';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
 import { allTags, allTestedVersions, filterPlugins, isFilterActive } from '../utils/catalogueFilter';
 import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience';
@@ -99,12 +100,13 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
 
     React.useEffect(() => {
         getLikeCounts('plugin').then(setLikeCounts);
-        const saved = typeof window !== 'undefined' ? window.localStorage.getItem('dpc-token') : null;
-        setToken(saved);
-        if (saved) {
-            getMyLikes(saved).then((likes) =>
-                setLikedSet(new Set(likes.filter((l) => l.targetType === 'plugin').map((l) => l.targetId))));
-        }
+        getSessionToken().then((saved) => {
+            setToken(saved);
+            if (saved) {
+                getMyLikes(saved).then((likes) =>
+                    setLikedSet(new Set(likes.filter((l) => l.targetType === 'plugin').map((l) => l.targetId))));
+            }
+        });
     }, []);
 
     const handleSortChange = (

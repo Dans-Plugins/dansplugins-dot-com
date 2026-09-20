@@ -37,12 +37,13 @@ afterEach(() => {
 });
 
 describe('admin plugins page gates', () => {
-    it('asks a signed-out visitor to sign in, without calling the API', () => {
+    it('asks a signed-out visitor to sign in, without calling the API', async () => {
         window.localStorage.removeItem('dpc-token');
         const fetchMock = stubApi({admin: true});
         vi.stubGlobal('fetch', fetchMock);
         render(<AdminPluginsPage/>);
-        expect(screen.getByText(/needs a signed-in admin/)).toBeTruthy();
+        // The session is resolved asynchronously (utils/session.ts), even when empty.
+        await waitFor(() => expect(screen.getByText(/needs a signed-in admin/)).toBeTruthy());
         expect(fetchMock).not.toHaveBeenCalled();
     });
 

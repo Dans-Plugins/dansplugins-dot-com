@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -60,6 +61,28 @@ public class AuthController {
         String password = request.get("password");
         requireCredentials(username, password);
         return userAuthClient.login(username.trim(), password);
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Exchange a refresh token for a new access token (and a rotated refresh token)")
+    public Map<String, Object> refresh(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "refreshToken is required");
+        }
+        return userAuthClient.refresh(refreshToken.trim());
+    }
+
+    @PostMapping("/password/reset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Set a new password with an operator-issued reset token; every session of the account is ended")
+    public void resetPassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+        if (token == null || token.isBlank() || newPassword == null || newPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "token and newPassword are required");
+        }
+        userAuthClient.resetPassword(token.trim(), newPassword);
     }
 
     @PostMapping("/logout")

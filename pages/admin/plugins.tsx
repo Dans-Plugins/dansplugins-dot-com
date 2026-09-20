@@ -23,6 +23,7 @@ import BottomBar from '../../components/BottomBar'
 import {NextLinkComposed} from '../../components/NextLinkComposed'
 import {pageStyle, sectionHeaderStyle} from '../../styles/styles'
 import {fetchCatalogueInBrowser, type CataloguePlugin} from '../../services/pluginCatalogueService'
+import {getSessionToken} from '../../utils/session'
 import {
     EMPTY_UPSERT,
     createPlugin,
@@ -69,17 +70,19 @@ const AdminPluginsPage: NextPage = () => {
     }, [])
 
     useEffect(() => {
-        const saved = localStorage.getItem('dpc-token')
-        if (!saved) {
-            setGate('signed-out')
-            return
-        }
-        setToken(saved)
         let active = true
-        Promise.all([fetchIsAdmin(saved), fetchCatalogueInBrowser()]).then(([admin, plugins]) => {
+        getSessionToken().then((saved) => {
             if (!active) return
-            setCatalogue(plugins)
-            setGate(admin === null ? 'unreachable' : admin ? 'admin' : 'not-admin')
+            if (!saved) {
+                setGate('signed-out')
+                return
+            }
+            setToken(saved)
+            Promise.all([fetchIsAdmin(saved), fetchCatalogueInBrowser()]).then(([admin, plugins]) => {
+                if (!active) return
+                setCatalogue(plugins)
+                setGate(admin === null ? 'unreachable' : admin ? 'admin' : 'not-admin')
+            })
         })
         return () => {
             active = false
