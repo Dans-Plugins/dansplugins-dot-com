@@ -1,11 +1,11 @@
-import {readFileSync} from 'node:fs';
+import {readdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import pluginData from '../pages/data/plugins.json';
 
 // Drift guard for the two-step catalogue migration described in RESOURCE_HUB.md.
 // The site still renders from pages/data/plugins.json, while dpc-api serves the
-// plugins table seeded by V15 — so for now the same catalogue is written down
+// plugins table seeded by V15 and extended by later migrations — so for now the same catalogue is written down
 // twice, and the duplication has to be policed rather than trusted.
 //
 // This checks the three load-bearing fields: the slug (which every guide URL,
@@ -16,10 +16,9 @@ import pluginData from '../pages/data/plugins.json';
 // comparison disappears when the site switches to the API and plugins.json is
 // deleted.
 
-const MIGRATION = join(
-    process.cwd(),
-    'dpc-api/src/main/resources/db/migration/V15__create_plugins_table.sql'
-);
+// V15 seeded the table; later migrations (V18 onwards) add rows in the same
+// shape, so every migration is scanned and the union is compared.
+const MIGRATIONS_DIR = join(process.cwd(), 'dpc-api/src/main/resources/db/migration');
 
 // Each seeded row opens with `(gen_random_uuid(), 'slug', 'Title', 'Description',
 // 'https://github.com/...'`, the columns spanning several lines. SQL escapes an
@@ -28,7 +27,11 @@ const MIGRATION = join(
 const unquote = (literal: string): string => literal.replace(/''/g, "'");
 
 const seededPlugins = (): { slug: string; title: string; githubUrl: string }[] => {
-    const sql = readFileSync(MIGRATION, 'utf8');
+    const sql = readdirSync(MIGRATIONS_DIR)
+        .filter((name) => name.endsWith('.sql'))
+        .sort()
+        .map((name) => readFileSync(join(MIGRATIONS_DIR, name), 'utf8'))
+        .join('\n');
     const literal = "'((?:[^']|'')*)'";
     const row = new RegExp(`\\(gen_random_uuid\\(\\),\\s*${literal},\\s*${literal},\\s*${literal},\\s*${literal}`, 'g');
     return [...sql.matchAll(row)].map(([, slug, title, , githubUrl]) => ({
