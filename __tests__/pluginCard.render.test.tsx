@@ -99,3 +99,17 @@ describe('PluginCard tested Minecraft versions', () => {
         expect(screen.queryByTestId('tested-versions')).toBeNull();
     });
 });
+
+describe('PluginCard SpigotMC rating', () => {
+    it('shows the star average as a chip, naming SpigotMC and the review count for assistive technology', () => {
+        renderCard({spigotRating: {average: 4.7, count: 45}});
+        const chip = screen.getByTestId('spigot-rating');
+        expect(chip.textContent).toBe('4.7');
+        expect(chip.getAttribute('aria-label')).toBe('Rated 4.7 out of 5 over 45 reviews on SpigotMC');
+    });
+
+    it('is absent when no rating was given', () => {
+        renderCard({spigotRating: null});
+        expect(screen.queryByTestId('spigot-rating')).toBeNull();
+    });
+});

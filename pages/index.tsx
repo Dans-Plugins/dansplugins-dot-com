@@ -12,7 +12,7 @@ import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
-import { getTestedVersionsWithRateLimit, spigotResourceId } from '../utils/spigot';
+import { getSpigotListingsWithRateLimit, shownRating, spigotResourceId } from '../utils/spigot';
 import { getLatestVersionsBySlug } from '../services/pluginVersionService';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
@@ -56,6 +56,7 @@ interface Plugin {
 interface PluginWithServerCount extends Plugin {
     serverCount?: number | null;
     testedVersions?: string[] | null;
+    spigotRating?: { average: number; count: number } | null;
     latestVersion?: string | null;
     latestDownloadUrl?: string | null;
     downloadCount?: number | null;
@@ -82,6 +83,7 @@ const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, like
                     icon={plugin.icon}
                     serverCount={plugin.serverCount}
                     testedVersions={plugin.testedVersions}
+                    spigotRating={plugin.spigotRating}
                     latestVersion={plugin.latestVersion}
                     latestDownloadUrl={plugin.latestDownloadUrl}
                     downloadCount={plugin.downloadCount}
@@ -231,16 +233,16 @@ export const getServerSideProps = async () => {
         .filter((id): id is string => id !== undefined);
 
     // Three independent lookups, so they run together: server counts from
-    // bStats and tested Minecraft versions from Spiget, one call per plugin
-    // with a listing there; and every card's release tag from the mirror
-    // dpc-api keeps, in a single call. Asking GitHub for those tags
+    // bStats and the SpigotMC listing (tested versions, rating) from Spiget,
+    // one call per plugin with a listing there; and every card's release tag
+    // from the mirror dpc-api keeps, in a single call. Asking GitHub for those tags
     // instead cost one call per plugin per render — sixteen against an
     // unauthenticated budget of sixty an hour, which four page loads exhaust.
     // Neither figure is load-bearing: both helpers swallow their own errors, and
     // a missing one hides a chip rather than failing the page.
-    const [serverCountsMap, testedVersionsMap, latestVersionsMap] = await Promise.all([
+    const [serverCountsMap, spigotListings, latestVersionsMap] = await Promise.all([
         getServerCountsWithRateLimit(bStatsIds, 5),
-        getTestedVersionsWithRateLimit(spigotIds, 5),
+        getSpigotListingsWithRateLimit(spigotIds, 5),
         getLatestVersionsBySlug()
     ]);
 
@@ -248,7 +250,9 @@ export const getServerSideProps = async () => {
     const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
         ...plugin,
         serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null,
-        testedVersions: testedVersionsMap.get(spigotResourceId(plugin.spigotmcLink) ?? '') ?? null,
+        testedVersions: spigotListings.get(spigotResourceId(plugin.spigotmcLink) ?? '')?.testedVersions ?? null,
+        // Already past the review threshold, so the card shows what it is given.
+        spigotRating: shownRating(spigotListings.get(spigotResourceId(plugin.spigotmcLink) ?? '')?.rating),
         latestVersion: latestVersionsMap.get(plugin.id)?.tag ?? null,
         latestDownloadUrl: latestVersionsMap.get(plugin.id)?.downloadUrl ?? null,
         downloadCount: latestVersionsMap.get(plugin.id)?.downloadCount ?? null

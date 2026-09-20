@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+    MIN_REVIEWS_FOR_RATING,
     SPIGOT_CACHE_TTL_MS,
-    clearTestedVersionsCache,
+    clearSpigotListingCache,
     formatTestedVersions,
-    getTestedVersions,
-    getTestedVersionsWithRateLimit,
-    spigotResourceId
+    getSpigotListing,
+    getSpigotListingsWithRateLimit,
+    shownRating,
+    spigotResourceId,
+    spigotReviewsUrl
 } from '../utils/spigot';
 
 // Build a minimal fetch Response stub for the Spiget resource endpoint.
@@ -13,10 +16,12 @@ const stubFetch = (response: Partial<Response>) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response as Response));
 };
 
-const resourceWith = (testedVersions: unknown) => ({ ok: true, json: async () => ({ id: 79941, testedVersions }) });
+const resourceWith = (testedVersions: unknown, extra: Record<string, unknown> = {}) =>
+    ({ ok: true, json: async () => ({ id: 79941, testedVersions, ...extra }) });
+const listing = (testedVersions: string[]) => ({ testedVersions, rating: null, downloads: null });
 
 beforeEach(() => {
-    clearTestedVersionsCache();
+    clearSpigotListingCache();
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
@@ -40,41 +45,55 @@ describe('spigotResourceId', () => {
     });
 });
 
-describe('getTestedVersions', () => {
-    it('returns the list Spiget gives, asking only for that field', async () => {
-        stubFetch(resourceWith(['1.18', '1.19', '1.20']));
-        expect(await getTestedVersions('96724')).toEqual(['1.18', '1.19', '1.20']);
+describe('getSpigotListing', () => {
+    it('returns the tested versions, rating and downloads Spiget gives, asking only for those fields', async () => {
+        stubFetch(resourceWith(['1.18', '1.19', '1.20'], { rating: { count: 45, average: 4.7 }, downloads: 63788 }));
+        expect(await getSpigotListing('96724')).toEqual({
+            testedVersions: ['1.18', '1.19', '1.20'],
+            rating: { average: 4.7, count: 45 },
+            downloads: 63788
+        });
         const [url] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
-        expect(url).toBe('https://api.spiget.org/v2/resources/96724?fields=testedVersions');
+        expect(url).toBe('https://api.spiget.org/v2/resources/96724?fields=testedVersions,rating,downloads');
     });
 
-    it('drops entries that are not non-empty strings', async () => {
+    it('drops tested-version entries that are not non-empty strings', async () => {
         stubFetch(resourceWith(['1.21', 7, '', null]));
-        expect(await getTestedVersions('1')).toEqual(['1.21']);
+        expect((await getSpigotListing('1'))?.testedVersions).toEqual(['1.21']);
     });
 
-    it('returns undefined on a non-OK response, a missing field, or a rejected fetch', async () => {
+    it('reads a missing or malformed rating or download count as null, and missing versions as none', async () => {
+        stubFetch({ ok: true, json: async () => ({ id: 1, rating: { count: 'many' }, downloads: '5' }) });
+        expect(await getSpigotListing('1')).toEqual({ testedVersions: [], rating: null, downloads: null });
+    });
+
+    it('keeps a zero-review rating as figures, so the threshold decides rather than absence', async () => {
+        stubFetch(resourceWith([], { rating: { count: 0, average: 0 } }));
+        expect((await getSpigotListing('1'))?.rating).toEqual({ average: 0, count: 0 });
+    });
+
+    it('returns undefined on a non-OK response, a non-object body, or a rejected fetch', async () => {
         stubFetch({ ok: false, status: 404, statusText: 'Not Found' });
-        expect(await getTestedVersions('1')).toBeUndefined();
-        clearTestedVersionsCache();
-        stubFetch({ ok: true, json: async () => ({ id: 1 }) });
-        expect(await getTestedVersions('1')).toBeUndefined();
-        clearTestedVersionsCache();
+        expect(await getSpigotListing('1')).toBeUndefined();
+        clearSpigotListingCache();
+        stubFetch({ ok: true, json: async () => null });
+        expect(await getSpigotListing('1')).toBeUndefined();
+        clearSpigotListingCache();
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
-        expect(await getTestedVersions('1')).toBeUndefined();
+        expect(await getSpigotListing('1')).toBeUndefined();
     });
 
     it('bounds every Spiget request with an abort signal', async () => {
         stubFetch(resourceWith(['1.21']));
-        await getTestedVersions('1');
+        await getSpigotListing('1');
         const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
         expect(init.signal).toBeInstanceOf(AbortSignal);
     });
 
     it('serves a cached list without asking Spiget again inside the TTL', async () => {
         stubFetch(resourceWith(['1.21']));
-        expect(await getTestedVersions('1')).toEqual(['1.21']);
-        expect(await getTestedVersions('1')).toEqual(['1.21']);
+        expect(await getSpigotListing('1')).toEqual(listing(['1.21']));
+        expect(await getSpigotListing('1')).toEqual(listing(['1.21']));
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
@@ -82,14 +101,14 @@ describe('getTestedVersions', () => {
         vi.useFakeTimers();
         try {
             stubFetch(resourceWith(['1.21']));
-            expect(await getTestedVersions('1')).toEqual(['1.21']);
+            expect(await getSpigotListing('1')).toEqual(listing(['1.21']));
             vi.advanceTimersByTime(SPIGOT_CACHE_TTL_MS + 1);
             vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('timeout')));
-            expect(await getTestedVersions('1')).toEqual(['1.21']);
+            expect(await getSpigotListing('1')).toEqual(listing(['1.21']));
             expect(fetch).toHaveBeenCalledTimes(1);
             // The failure re-stamped the entry, so the next render is served
             // from cache instead of paying the timeout again.
-            expect(await getTestedVersions('1')).toEqual(['1.21']);
+            expect(await getSpigotListing('1')).toEqual(listing(['1.21']));
             expect(fetch).toHaveBeenCalledTimes(1);
         } finally {
             vi.useRealTimers();
@@ -97,7 +116,7 @@ describe('getTestedVersions', () => {
     });
 });
 
-describe('getTestedVersionsWithRateLimit', () => {
+describe('getSpigotListingsWithRateLimit', () => {
     it('maps every id, keeping undefined for the ones that failed', async () => {
         vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
             if (url.includes('/resources/1?')) {
@@ -105,14 +124,14 @@ describe('getTestedVersionsWithRateLimit', () => {
             }
             return Promise.resolve({ ok: false, status: 503, statusText: 'Service Unavailable' } as Response);
         }));
-        const result = await getTestedVersionsWithRateLimit(['1', '2'], 1);
-        expect(result.get('1')).toEqual(['1.20']);
+        const result = await getSpigotListingsWithRateLimit(['1', '2'], 1);
+        expect(result.get('1')).toEqual(listing(['1.20']));
         expect(result.get('2')).toBeUndefined();
     });
 
     it('makes no request for an empty list', async () => {
         vi.stubGlobal('fetch', vi.fn());
-        expect((await getTestedVersionsWithRateLimit([])).size).toBe(0);
+        expect((await getSpigotListingsWithRateLimit([])).size).toBe(0);
         expect(fetch).not.toHaveBeenCalled();
     });
 });
@@ -141,5 +160,28 @@ describe('formatTestedVersions', () => {
 
     it('passes an unfamiliar spelling through rather than dropping it', () => {
         expect(formatTestedVersions(['1.20', '1.20.4-pre', ' '])).toBe('1.20, 1.20.4-pre');
+    });
+});
+
+describe('shownRating', () => {
+    it('withholds a rating below the review threshold, and one that is absent', () => {
+        expect(shownRating({ average: 5, count: MIN_REVIEWS_FOR_RATING - 1 })).toBeNull();
+        expect(shownRating({ average: 0, count: 0 })).toBeNull();
+        expect(shownRating(null)).toBeNull();
+        expect(shownRating(undefined)).toBeNull();
+    });
+
+    it('shows a rating at the threshold, rounded to one decimal as SpigotMC displays it', () => {
+        expect(shownRating({ average: 4.666, count: MIN_REVIEWS_FOR_RATING })).toEqual({ average: 4.7, count: MIN_REVIEWS_FOR_RATING });
+        expect(shownRating({ average: 5, count: 45 })).toEqual({ average: 5, count: 45 });
+    });
+});
+
+describe('spigotReviewsUrl', () => {
+    it('points at the reviews tab whether or not the listing link has a trailing slash', () => {
+        expect(spigotReviewsUrl('https://www.spigotmc.org/resources/medieval-factions.79941/'))
+            .toBe('https://www.spigotmc.org/resources/medieval-factions.79941/reviews');
+        expect(spigotReviewsUrl('https://www.spigotmc.org/resources/medieval-factions.79941'))
+            .toBe('https://www.spigotmc.org/resources/medieval-factions.79941/reviews');
     });
 });
