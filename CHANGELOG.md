@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- An admin edits the plugin catalogue on the site at **`/admin/plugins`** (#87, step 3): pick a plugin to change its title, description, links, icon path and tags, or add a new one — the slug is chosen once and becomes the URL. The page reads `GET /api/v1/profile/me` for the `admin` flag and says "admins only" to anyone else, but the API is the gate (#328); it is the courtesy. Field errors from the API land on the field that caused them; a saved entry reaches the public pages on their next render. The **Account** page links to the editor for an admin, and `robots.txt` disallows `/admin`. No delete, for the reason the API gives.
+
 ### Changed
 
 - The site renders its plugin catalogue from `dpc-api` (`GET /api/v1/plugins`) instead of the checked-in `pages/data/plugins.json`, which is deleted along with the drift guard that policed the two copies (#87, step 2). `services/pluginCatalogueService.ts` reads the table once per server process, caches it for five minutes, and keeps serving the last good copy through an outage, so an API blip never blanks the home page; a process that has never reached the API at all shows "The plugin catalogue could not be loaded right now" on the home and Guides pages rather than an empty grid, and a resource or guide page it cannot look up is a 404, the same as for a slug the catalogue does not have. The account and profile pages, which name liked items by looking their ids up in the catalogue, now fetch it in the browser. Every field an admin can now edit through the API (#328) — title, description, links, icon path, tags — reaches the page on the next render; adding a plugin no longer needs a pull request or a migration. The icon test now checks the paths the migrations seed rather than the deleted file.

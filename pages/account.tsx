@@ -55,6 +55,8 @@ interface AccountProfile {
     createdAt: string
     badges: string[]
     apiKeys: ApiKeyInfo[]
+    // Whether the API will let this user edit the catalogue (DPC_ADMIN_USERNAMES).
+    admin?: boolean
 }
 
 const AccountPage: NextPage = () => {
@@ -437,6 +439,14 @@ const AccountPage: NextPage = () => {
                                             View your public profile
                                         </Box>
                                     </Typography>
+                                    {profile.admin && (
+                                        <Alert severity="info" sx={{mb: 2}} data-testid="admin-link">
+                                            You are an admin.{' '}
+                                            <Box component={NextLinkComposed} to="/admin/plugins" sx={{color: 'inherit', fontWeight: 600}}>
+                                                Edit the plugin catalogue
+                                            </Box>
+                                        </Alert>
+                                    )}
                                     {profile.badges.length > 0 && (
                                         <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1}}>
                                             {profile.badges.map((badge) => (

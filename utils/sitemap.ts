@@ -33,7 +33,7 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
 // is a request, not access control — nothing here is private. Public profiles
 // (`/u/[username]`) stay crawlable — they are public — but are left out of the
 // sitemap, since the set of usernames is not ours to enumerate.
-export const DISALLOWED_CRAWL_PATHS: readonly string[] = ['/account', '/dev', '/api/'];
+export const DISALLOWED_CRAWL_PATHS: readonly string[] = ['/account', '/admin', '/dev', '/api/'];
 
 // Escape the five characters XML reserves. Today's paths are plain slugs, but a
 // future path carrying a query string or an ampersand would otherwise emit
