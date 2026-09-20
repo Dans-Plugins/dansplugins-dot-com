@@ -8,6 +8,7 @@ vi.mock('../services/visitService', () => ({
 }));
 
 import {getServerSideProps} from '../pages/index';
+import {clearTestedVersionsCache} from '../utils/spigot';
 
 interface HomePropsShape {
     props: {
@@ -18,11 +19,15 @@ interface HomePropsShape {
             serverCount?: number | null;
             latestVersion?: string | null;
             latestDownloadUrl?: string | null;
+            testedVersions?: string[] | null;
         }>;
     };
 }
 
 beforeEach(() => {
+    // Tested versions are cached across renders (utils/spigot.ts); start each
+    // test from an empty cache or a list leaks from the previous one.
+    clearTestedVersionsCache();
     // Simulate bStats being unreachable so every server-count lookup resolves
     // to undefined inside getServerCount — the worst case for serialization.
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('bstats unreachable')));
@@ -34,6 +39,27 @@ describe('home getServerSideProps serialization', () => {
         const result = await getServerSideProps() as HomePropsShape;
         const undefinedCounts = result.props.pluginsWithCounts.filter((p) => p.serverCount === undefined);
         expect(undefinedCounts).toEqual([]);
+    });
+
+    it('never returns an undefined testedVersions, and null for a plugin with no SpigotMC page', async () => {
+        const result = await getServerSideProps() as HomePropsShape;
+        expect(result.props.pluginsWithCounts.filter((p) => p.testedVersions === undefined)).toEqual([]);
+        const cookery = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-cookery');
+        expect(cookery?.testedVersions).toBeNull();
+    });
+
+    it('labels each card with the versions Spiget lists for its SpigotMC resource', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+            if (url.includes('api.spiget.org/v2/resources/79941?')) {
+                return Promise.resolve({ok: true, json: async () => ({testedVersions: ['1.21']})} as Response);
+            }
+            return Promise.reject(new Error('upstream unreachable'));
+        }));
+
+        const result = await getServerSideProps() as HomePropsShape;
+
+        expect(result.props.pluginsWithCounts.find((p) => p.id === 'medieval-factions')?.testedVersions).toEqual(['1.21']);
+        expect(result.props.pluginsWithCounts.find((p) => p.id === 'fiefs')?.testedVersions).toBeNull();
     });
 
     it('uses null for a plugin that has no bStatsId', async () => {

@@ -85,3 +85,17 @@ describe('PluginCard download count', () => {
         expect(screen.getByRole('link', {name: 'Download Fiefs v1.2.0'}).getAttribute('rel')).toBe('nofollow');
     });
 });
+
+describe('PluginCard tested Minecraft versions', () => {
+    it('shows the range SpigotMC lists as a chip', () => {
+        renderCard({testedVersions: ['1.18', '1.19', '1.20']});
+        expect(screen.getByTestId('tested-versions').textContent).toBe('MC 1.18–1.20');
+    });
+
+    it('is absent when the plugin has no SpigotMC page or Spiget said nothing', () => {
+        renderCard({testedVersions: null});
+        expect(screen.queryByTestId('tested-versions')).toBeNull();
+        renderCard({testedVersions: []});
+        expect(screen.queryByTestId('tested-versions')).toBeNull();
+    });
+});

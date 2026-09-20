@@ -3,6 +3,7 @@ import type {GetServerSidePropsContext} from 'next';
 
 import {getServerSideProps} from '../pages/resources/[slug]';
 import {clearServerCountCache} from '../utils/bstats';
+import {clearTestedVersionsCache} from '../utils/spigot';
 import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
 interface ResourcePropsShape {
@@ -49,15 +50,21 @@ const mirroredVersion = (tag: string): PluginVersion => ({
     assets: [],
 });
 
-// Route the four upstreams the page calls by URL, so a test can fail one
+// Route the five upstreams the page calls by URL, so a test can fail one
 // without affecting the others.
-const stubUpstreams = ({servers, tag, versions, downloads}: {
+const stubUpstreams = ({servers, tag, versions, downloads, tested}: {
     servers?: number;
     tag?: string;
     versions?: PluginVersion[];
     downloads?: PluginDownloads;
+    tested?: string[];
 }) => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        if (url.includes('api.spiget.org')) {
+            return tested === undefined
+                ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
+                : {ok: true, json: async () => ({testedVersions: tested})} as unknown as Response;
+        }
         if (url.includes('bstats.org')) {
             return servers === undefined
                 ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
@@ -86,9 +93,10 @@ beforeEach(() => {
     // Server counts are cached across renders (utils/bstats.ts); each test
     // must start from an empty cache or a count leaks from the previous one.
     clearServerCountCache();
+    clearTestedVersionsCache();
     // The default case is the one that matters most: an unmirrored plugin, where
     // the latest tag still comes from the live GitHub call.
-    stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: []});
+    stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.18', '1.19', '1.20']});
 });
 
 describe('resource page getServerSideProps', () => {
@@ -114,9 +122,38 @@ describe('resource page getServerSideProps', () => {
             icon: '/icons/at.png',
             serverCount: 1234,
             latestVersion: 'v1.2.3',
+            testedVersions: ['1.18', '1.19', '1.20'],
             versions: [],
             downloads: null
         });
+    });
+
+    it('asks Spiget for the resource id in the catalogue\'s SpigotMC link, and nothing more', async () => {
+        await getServerSideProps(contextWithSlug(KNOWN_SLUG));
+
+        const spigetCalls = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls
+            .map(([url]) => url as string)
+            .filter((url) => url.includes('api.spiget.org'));
+        expect(spigetCalls).toEqual(['https://api.spiget.org/v2/resources/96724?fields=testedVersions']);
+    });
+
+    it('serves null tested versions, and makes no Spiget call, for a plugin with no SpigotMC page', async () => {
+        const result = await getServerSideProps(contextWithSlug(SLUG_WITHOUT_OPTIONAL_LINKS)) as ResourcePropsShape;
+
+        expect(result.props.testedVersions).toBeNull();
+        const spigetCalls = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls
+            .map(([url]) => url as string)
+            .filter((url) => url.includes('api.spiget.org'));
+        expect(spigetCalls).toEqual([]);
+    });
+
+    it('still serves the page, without tested versions, when Spiget is unavailable', async () => {
+        stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: []});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.testedVersions).toBeNull();
+        expect(result.props.serverCount).toBe(1234);
     });
 
     it('serves the site\'s own download figures when dpc-api has them', async () => {

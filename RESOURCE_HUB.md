@@ -34,6 +34,7 @@ as resource pages.
 | Resource listing | `pages/data/plugins.json` rendered as a `PluginCard` grid on `/`, with search and sort (`utils/sortPlugins.ts`) |
 | Download / version | Latest GitHub release tag on each card (`utils/github.ts`) |
 | Install count | bStats server counts (`utils/bstats.ts`) |
+| Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |
 | Likes | `likes(target_type, target_id)` — already polymorphic over `plugin`, `guide`, `issue`, `feature_request` |
 | Accounts | UserAuth (external) plus a local `users` mirror holding display name, avatar and bio |
 | Member profile | `/u/[username]`, with badges and likes |
