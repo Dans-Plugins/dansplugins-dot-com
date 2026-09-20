@@ -168,13 +168,22 @@ than it started.
    overview pages, cards link to them, sitemap covers them.
 2. **Version history** — release mirror, per-version changelogs, download
    counts, download button.
-3. **Reviews** — ratings, aggregates, author responses, sort-by-rating in the
+3. **Discovery** — tested Minecraft versions, tags and categories,
+   Minecraft-version filters, sort by downloads, first-release and last-update
+   dates, faceted search across the catalogue.
+4. **Reviews** — ratings, aggregates, author responses, sort-by-rating in the
    catalogue. Not verified marks: those wait on the install signal above.
-4. **Discussion** — threaded comments, reporting, moderation queue.
-5. **Updates** — per-resource author posts, syndicated into `/news`; watching
+5. **Discussion** — threaded comments, reporting, moderation queue.
+6. **Updates** — per-resource author posts, syndicated into `/news`; watching
    and notification.
-6. **Discovery** — tags and categories, Minecraft-version filters, faceted
-   search across the catalogue.
+
+Discovery was originally last. It moved ahead of the community phases once
+phases 1 and 2 had shipped and a parity check against a SpigotMC resource page
+showed that everything about *getting* a plugin was at or above parity while
+the listing still could not answer "does this run on my server?". Discovery is
+metadata: it closes that practical gap at no moderation cost, and much of it is
+a rendering change over data the release mirror already holds. Reviews and
+discussion cost ongoing attention from the day they ship, so they come after.
 
 ## Risks
 
