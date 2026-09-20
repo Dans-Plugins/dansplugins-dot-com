@@ -1,10 +1,12 @@
-export type SortOption = 'popularity' | 'most-liked' | 'alphabetical'
+export type SortOption = 'popularity' | 'most-liked' | 'most-downloaded' | 'alphabetical'
 
 /** The minimal plugin shape the catalogue sort needs. */
 export interface SortablePlugin {
     id: string
     title: string
     serverCount?: number | null
+    // Downloads through the site, every release summed; missing counts as 0.
+    downloadCount?: number | null
 }
 
 const byTitle = (a: SortablePlugin, b: SortablePlugin): number => a.title.localeCompare(b.title)
@@ -17,6 +19,8 @@ const byTitle = (a: SortablePlugin, b: SortablePlugin): number => a.title.locale
  *   to alphabetical.
  * - `most-liked`: like count descending (a missing count counts as 0), ties
  *   alphabetical.
+ * - `most-downloaded`: downloads through the site descending (a missing count
+ *   counts as 0), ties alphabetical.
  * - `alphabetical`: title ascending.
  */
 export const sortPlugins = <T extends SortablePlugin>(
@@ -33,6 +37,9 @@ export const sortPlugins = <T extends SortablePlugin>(
             const likesB = likeCounts[b.id] ?? 0
             return likesB - likesA || byTitle(a, b)
         })
+    }
+    if (sortBy === 'most-downloaded') {
+        return [...plugins].sort((a, b) => (b.downloadCount ?? 0) - (a.downloadCount ?? 0) || byTitle(a, b))
     }
     // popularity (server count)
     return [...plugins].sort((a, b) => {

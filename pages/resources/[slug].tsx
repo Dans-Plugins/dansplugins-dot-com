@@ -19,6 +19,7 @@ import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import PluginVersionList from '../../components/PluginVersionList';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {
+    getPlugin,
     getPluginDownloads,
     getPluginVersions,
     latestStableTag,
@@ -31,6 +32,7 @@ import {getServerCount} from '../../utils/bstats';
 import {formatTestedVersions, getTestedVersions, spigotResourceId} from '../../utils/spigot';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
+import {absoluteDateFrom} from '../../utils/relativeTime';
 import {resourceDescription, resourcePath} from '../../utils/resources';
 
 const version = require('../../package.json').version;
@@ -74,6 +76,13 @@ interface ResourcePageProps {
     // the pair a SpigotMC resource page shows. Null when the API can't be
     // reached, and the figures are omitted rather than shown as zeros.
     downloads: PluginDownloads | null;
+    // The two dates a SpigotMC resource page states. The last update is the
+    // newest mirrored release; the first release is what dpc-api has recorded
+    // (see PluginRecord) — the mirror's oldest row would be wrong for any
+    // plugin with more releases than the mirror keeps, so it is not used. Null
+    // hides the line, never guesses.
+    firstReleasedAt: string | null;
+    lastUpdatedAt: string | null;
 }
 
 // Treat the catalogue's empty strings as the absences they are.
@@ -90,7 +99,9 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
     // asking at all: a mirrored release list already names the latest tag, and
     // the whole point of mirroring is that a page render doesn't spend a call
     // on GitHub's rate limit to learn something dpc-api already knows.
-    const [versions, downloads] = await Promise.all([getPluginVersions(slug), getPluginDownloads(slug)]);
+    const [versions, downloads, record] = await Promise.all([
+        getPluginVersions(slug), getPluginDownloads(slug), getPlugin(slug)
+    ]);
     const mirroredLatest = latestStableTag(versions);
 
     // Neither figure is load-bearing: a bStats outage or a GitHub rate limit
@@ -115,7 +126,9 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             latestVersion: mirroredLatest ?? latestFromGithub ?? null,
             testedVersions: testedVersions ?? null,
             versions,
-            downloads
+            downloads,
+            firstReleasedAt: record?.firstReleasedAt ?? null,
+            lastUpdatedAt: versions[0]?.publishedAt ?? null
         }
     };
 };
@@ -131,8 +144,12 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     latestVersion,
     testedVersions,
     versions,
-    downloads
+    downloads,
+    firstReleasedAt,
+    lastUpdatedAt
 }) => {
+    const firstReleased = firstReleasedAt ? absoluteDateFrom(firstReleasedAt) : '';
+    const lastUpdated = lastUpdatedAt ? absoluteDateFrom(lastUpdatedAt) : '';
     const testedLabel = testedVersions && testedVersions.length > 0 ? formatTestedVersions(testedVersions) : null;
     const releases = releasesUrl(githubLink);
     // GitHub's figure, kept as a second number beside the site's own: only what
@@ -177,7 +194,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                 </Stack>
 
                 {serverCount || latestVersion || githubDownloadCount || testedLabel ? (
-                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: downloads ? 2 : 3}}>
+                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: firstReleased || lastUpdated ? 1 : downloads ? 2 : 3}}>
                         {serverCount ? (
                             <Chip
                                 size="small"
@@ -214,6 +231,14 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                             />
                         ) : null}
                     </Stack>
+                ) : null}
+
+                {firstReleased || lastUpdated ? (
+                    <Typography variant="body2" color="text.secondary" sx={{mb: downloads ? 2 : 3}} data-testid="release-dates">
+                        {firstReleased ? `First released ${firstReleased}` : ''}
+                        {firstReleased && lastUpdated ? ' · ' : ''}
+                        {lastUpdated ? `Last updated ${lastUpdated}` : ''}
+                    </Typography>
                 ) : null}
 
                 {downloads ? (

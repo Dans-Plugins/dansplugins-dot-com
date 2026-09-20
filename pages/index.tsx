@@ -175,6 +175,9 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                     <ToggleButton value="most-liked" aria-label="sort by most liked">
                         Most Liked
                     </ToggleButton>
+                    <ToggleButton value="most-downloaded" aria-label="sort by most downloaded">
+                        Most Downloaded
+                    </ToggleButton>
                     <ToggleButton value="alphabetical" aria-label="sort alphabetically">
                         Alphabetical
                     </ToggleButton>

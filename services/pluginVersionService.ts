@@ -119,6 +119,40 @@ export const getPluginVersions = async (slug: string): Promise<PluginVersion[]> 
     }
 };
 
+/** The catalogue row `/api/v1/plugins/{slug}` serves, as far as the site reads it. */
+export interface PluginRecord {
+    slug: string;
+    // When the first release was published, recorded by the release sync; null
+    // for a plugin with no releases, and until the sync has learned it. The
+    // mirror alone cannot say: it keeps only the newest releases, so its
+    // oldest row is not the first release of any plugin with a longer history.
+    firstReleasedAt: string | null;
+}
+
+/**
+ * One plugin's catalogue row from dpc-api, or null for anything short of a
+ * successful response. Read for the dates a resource page states; like the
+ * version history, its absence hides a line rather than failing the page.
+ */
+export const getPlugin = async (slug: string): Promise<PluginRecord | null> => {
+    try {
+        const res = await fetch(`${getApiBaseUrl()}/api/v1/plugins/${encodeURIComponent(slug)}`);
+        if (!res.ok) {
+            return null;
+        }
+        const plugin = await res.json();
+        if (!plugin || typeof plugin.slug !== 'string') {
+            return null;
+        }
+        return {
+            slug: plugin.slug,
+            firstReleasedAt: typeof plugin.firstReleasedAt === 'string' ? plugin.firstReleasedAt : null
+        };
+    } catch {
+        return null;
+    }
+};
+
 /** One plugin's latest mirrored release, as `/api/v1/plugins/versions/latest` serves it. */
 export interface PluginLatestVersion {
     slug: string;

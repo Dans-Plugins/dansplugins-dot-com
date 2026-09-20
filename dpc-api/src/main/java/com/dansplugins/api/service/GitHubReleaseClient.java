@@ -15,6 +15,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Reads one repository's releases from the GitHub REST API — the counterpart to
@@ -32,6 +34,8 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class GitHubReleaseClient {
+
+    private static final Pattern LAST_LINK = Pattern.compile("<([^>]+)>;\\s*rel=\"last\"");
 
     private final RestTemplate restTemplate;
     private final ReleaseSyncProperties properties;
@@ -52,9 +56,47 @@ public class GitHubReleaseClient {
      * @param limit how many releases to ask for (GitHub caps a page at 100)
      * @return the release list, or empty if GitHub could not be reached
      */
-    @SuppressWarnings("unchecked")
     public Optional<List<Map<String, Object>>> releases(String repo, int limit) {
-        String url = "https://api.github.com/repos/" + repo + "/releases?per_page=" + Math.min(limit, 100);
+        return page("https://api.github.com/repos/" + repo + "/releases?per_page=" + Math.min(limit, 100), repo)
+                .map(ReleasePage::releases);
+    }
+
+    /**
+     * The oldest release of {@code owner/repo}, found the way GitHub's own
+     * paging does: a page of one, then the page its {@code Link: rel="last"}
+     * header points at. Two requests, or one for a repository with a single
+     * release; the caller is expected to record the answer and not ask again.
+     *
+     * @return a one-element list holding the oldest release, an empty list
+     *         for a repository with no releases, or empty if GitHub could not
+     *         be reached
+     */
+    public Optional<List<Map<String, Object>>> oldestRelease(String repo) {
+        Optional<ReleasePage> first = page("https://api.github.com/repos/" + repo + "/releases?per_page=1", repo);
+        if (first.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<String> lastPageUrl = lastPageUrl(first.get().link());
+        if (lastPageUrl.isEmpty()) {
+            return Optional.of(first.get().releases());
+        }
+        return page(lastPageUrl.get(), repo).map(ReleasePage::releases);
+    }
+
+    /** The {@code rel="last"} target of a GitHub {@code Link} header, if it names one. */
+    static Optional<String> lastPageUrl(String linkHeader) {
+        if (linkHeader == null) {
+            return Optional.empty();
+        }
+        Matcher matcher = LAST_LINK.matcher(linkHeader);
+        return matcher.find() ? Optional.of(matcher.group(1)) : Optional.empty();
+    }
+
+    private record ReleasePage(List<Map<String, Object>> releases, String link) {
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<ReleasePage> page(String url, String repo) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/vnd.github+json");
         headers.set("User-Agent", "dpc-api-release-sync");
@@ -67,7 +109,8 @@ public class GitHubReleaseClient {
             List<Map<String, Object>> body = response.getBody();
             // A repository with no releases answers 200 with [], which is an
             // answer — distinct from the empty Optional returned on failure.
-            return Optional.of(body == null ? List.of() : body);
+            return Optional.of(new ReleasePage(body == null ? List.of() : body,
+                    response.getHeaders().getFirst(HttpHeaders.LINK)));
         } catch (RestClientException e) {
             log.warn("GitHub release request failed for {}: {}", repo, e.getMessage());
             return Optional.empty();

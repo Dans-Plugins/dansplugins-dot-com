@@ -187,12 +187,16 @@ curl http://localhost:45345/api/v1/plugins/medieval-factions
   "githubUrl": "https://github.com/Dans-Plugins/Medieval-Factions",
   "spigotmcUrl": "https://www.spigotmc.org/resources/medieval-factions.79941/",
   "bstatsId": "8929",
-  "iconPath": "/icons/mf.png"
+  "iconPath": "/icons/mf.png",
+  "firstReleasedAt": "2020-08-02T18:41:07Z"
 }
 ```
 
 `spigotmcUrl`, `bstatsId` and `iconPath` are `null` for plugins that have no
-SpigotMC page, no bStats project, or no icon. The internal UUID is not exposed:
+SpigotMC page, no bStats project, or no icon. `firstReleasedAt` is when the
+plugin's first GitHub release was published, recorded once by the release sync
+(see [Plugin versions](#plugin-versions)); it is `null` for a plugin with no
+releases, and until the sync has recorded it. The internal UUID is not exposed:
 the slug is the public identifier.
 
 The website still renders its catalogue from the checked-in
@@ -282,6 +286,15 @@ and because only the newest `DPC_RELEASE_SYNC_MAX_RELEASES` releases are fetched
 a full page of results limits pruning to versions at least as new as the oldest
 release in that page. An outage, a rate limit, or a long release history can
 therefore leave the mirror stale, but never wrongly empty.
+
+Because the mirror holds only the newest releases, its oldest row is not a
+plugin's first release. The sync records that separately, once per plugin, on
+`plugins.first_released_at`: from the page it fetched when that page held the
+whole history, otherwise by asking GitHub for the last page of the plugin's
+releases (a page of one, then the page its `Link: rel="last"` header names —
+two requests, made only until the value is known, since a first release does
+not move). A plugin whose date could not be learned in one pass is asked about
+again the next.
 
 ##### Every plugin's latest release
 

@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
     getLatestVersionsBySlug,
     downloadsLabel,
+    getPlugin,
     getPluginDownloads,
     getPluginVersions,
     latestStableTag,
@@ -282,6 +283,38 @@ describe('siteDownloadUrl', () => {
         expect(siteDownloadUrl({downloadUrl: asset.downloadUrl})).toBe(asset.downloadUrl);
         expect(siteDownloadUrl({downloadUrl: asset.downloadUrl, downloadPath: null})).toBe(asset.downloadUrl);
         expect(siteDownloadUrl({downloadUrl: asset.downloadUrl, downloadPath: ''})).toBe(asset.downloadUrl);
+    });
+});
+
+describe('getPlugin', () => {
+    it('returns the slug and first-release date on a 200 response', async () => {
+        stubFetch({ok: true, json: async () => ({slug: 'fiefs', title: 'Fiefs', firstReleasedAt: '2021-06-15T12:00:00Z'})});
+        expect(await getPlugin('fiefs')).toEqual({slug: 'fiefs', firstReleasedAt: '2021-06-15T12:00:00Z'});
+    });
+
+    it('requests the catalogue row for the given slug', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({ok: true, json: async () => ({slug: 'medieval-factions', firstReleasedAt: null})} as Response);
+        vi.stubGlobal('fetch', fetchMock);
+
+        await getPlugin('medieval-factions');
+
+        expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/v1\/plugins\/medieval-factions$/);
+    });
+
+    it('reads a missing or non-string date as null, so an older API hides the line rather than breaking it', async () => {
+        stubFetch({ok: true, json: async () => ({slug: 'fiefs'})});
+        expect(await getPlugin('fiefs')).toEqual({slug: 'fiefs', firstReleasedAt: null});
+        stubFetch({ok: true, json: async () => ({slug: 'fiefs', firstReleasedAt: 12345})});
+        expect(await getPlugin('fiefs')).toEqual({slug: 'fiefs', firstReleasedAt: null});
+    });
+
+    it('is null on a non-ok response, a body without a slug, or a rejected fetch', async () => {
+        stubFetch({ok: false, status: 404, statusText: 'Not Found'});
+        expect(await getPlugin('nope')).toBeNull();
+        stubFetch({ok: true, json: async () => ({})});
+        expect(await getPlugin('fiefs')).toBeNull();
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('down')));
+        expect(await getPlugin('fiefs')).toBeNull();
     });
 });
 
