@@ -16,7 +16,7 @@ import pluginData from '../pages/data/plugins.json';
 // comparison disappears when the site switches to the API and plugins.json is
 // deleted.
 
-// V15 seeded the table; later migrations (V18 onwards) add rows in the same
+// V15 seeded the table; later migrations (V19 onwards) add rows in the same
 // shape, so every migration is scanned and the union is compared.
 const MIGRATIONS_DIR = join(process.cwd(), 'dpc-api/src/main/resources/db/migration');
 
