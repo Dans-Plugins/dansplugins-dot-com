@@ -35,6 +35,7 @@ as resource pages.
 | Download / version | Latest GitHub release tag on each card (`utils/github.ts`) |
 | Install count | bStats server counts (`utils/bstats.ts`) |
 | Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |
+| Rating | SpigotMC's, bridged through the same Spiget listing and labelled as theirs, until reviews of the site's own exist |
 | Likes | `likes(target_type, target_id)` — already polymorphic over `plugin`, `guide`, `issue`, `feature_request` |
 | Accounts | UserAuth (external) plus a local `users` mirror holding display name, avatar and bio |
 | Member profile | `/u/[username]`, with badges and likes |
@@ -174,6 +175,8 @@ than it started.
    dates, faceted search across the catalogue.
 4. **Reviews** — ratings, aggregates, author responses, sort-by-rating in the
    catalogue. Not verified marks: those wait on the install signal above.
+   Decides what becomes of the bridged SpigotMC rating: retired, or kept as
+   a second figure the way "downloads on GitHub" is kept beside the site's.
 5. **Discussion** — threaded comments, reporting, moderation queue.
 6. **Updates** — per-resource author posts, syndicated into `/news`; watching
    and notification.

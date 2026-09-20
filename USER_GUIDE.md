@@ -25,6 +25,7 @@ No special software is required to use the website. Simply visit [https://danspl
    - **Latest: vX.Y.Z** — the plugin's newest release. A plugin that has published no release, or whose releases have not yet been mirrored from GitHub, shows no such chip.
    - **N downloads** — how many times the plugin has been downloaded through this site, once it has been.
    - **MC 1.18–1.20** — the Minecraft versions the plugin has been tested on, as listed on its SpigotMC page. An unbroken run is shown as a range; versions with a gap between them are listed separately, so "1.16, 1.21" means exactly those two. A plugin with no SpigotMC page shows no such chip.
+   - **★ 4.7** — the plugin's average rating on SpigotMC, shown once it has at least three reviews there. Hover the chip for the number of reviews. This is SpigotMC's figure, not this site's; the plugin's own page links to the reviews behind it.
 
    These figures are repeated on the plugin's own page (see below), so there is no need to open it just to read them.
 4. Once you have found a plugin, use the buttons on its card:
@@ -38,7 +39,7 @@ No special software is required to use the website. Simply visit [https://danspl
 ### Viewing a Plugin's Page
 
 1. From the home page, click a plugin's name or its **Details** button (or visit `/resources/<plugin>` directly — for example `/resources/medieval-factions`).
-2. The page shows the plugin's description, how many servers are running it, its latest release version, how many times its mirrored releases have been downloaded from GitHub, and the Minecraft versions it has been tested on, along with the heart to like it. A line beneath states when the plugin was first released and last updated, as its GitHub releases record it; either half is left out when it is not known. Below those, a **Downloads** box counts downloads made through this site the way SpigotMC counts its own: the total across every release, and the latest release's.
+2. The page shows the plugin's description, how many servers are running it, its latest release version, how many times its mirrored releases have been downloaded from GitHub, the Minecraft versions it has been tested on, and — for plugins with at least three reviews on SpigotMC — their SpigotMC rating and download count, along with the heart to like it. The rating chip opens the reviews on SpigotMC; it is their figure, shown here until this site has reviews of its own. A line beneath states when the plugin was first released and last updated, as its GitHub releases record it; either half is left out when it is not known. Below those, a **Downloads** box counts downloads made through this site the way SpigotMC counts its own: the total across every release, and the latest release's.
 3. Use the buttons to act on it:
    - **Download** — the plugin's releases on GitHub, where its builds are published. The website does not host plugin files itself.
    - **User guide** — the same guide reachable from the Guides page.

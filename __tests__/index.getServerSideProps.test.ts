@@ -8,7 +8,7 @@ vi.mock('../services/visitService', () => ({
 }));
 
 import {getServerSideProps} from '../pages/index';
-import {clearTestedVersionsCache} from '../utils/spigot';
+import {clearSpigotListingCache} from '../utils/spigot';
 
 interface HomePropsShape {
     props: {
@@ -20,6 +20,7 @@ interface HomePropsShape {
             latestVersion?: string | null;
             latestDownloadUrl?: string | null;
             testedVersions?: string[] | null;
+            spigotRating?: {average: number; count: number} | null;
         }>;
     };
 }
@@ -27,7 +28,7 @@ interface HomePropsShape {
 beforeEach(() => {
     // Tested versions are cached across renders (utils/spigot.ts); start each
     // test from an empty cache or a list leaks from the previous one.
-    clearTestedVersionsCache();
+    clearSpigotListingCache();
     // Simulate bStats being unreachable so every server-count lookup resolves
     // to undefined inside getServerCount — the worst case for serialization.
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('bstats unreachable')));
@@ -51,15 +52,19 @@ describe('home getServerSideProps serialization', () => {
     it('labels each card with the versions Spiget lists for its SpigotMC resource', async () => {
         vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
             if (url.includes('api.spiget.org/v2/resources/79941?')) {
-                return Promise.resolve({ok: true, json: async () => ({testedVersions: ['1.21']})} as Response);
+                return Promise.resolve({ok: true, json: async () => ({testedVersions: ['1.21'], rating: {count: 45, average: 4.7}, downloads: 63788})} as Response);
             }
             return Promise.reject(new Error('upstream unreachable'));
         }));
 
         const result = await getServerSideProps() as HomePropsShape;
 
-        expect(result.props.pluginsWithCounts.find((p) => p.id === 'medieval-factions')?.testedVersions).toEqual(['1.21']);
-        expect(result.props.pluginsWithCounts.find((p) => p.id === 'fiefs')?.testedVersions).toBeNull();
+        const mf = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-factions');
+        expect(mf?.testedVersions).toEqual(['1.21']);
+        expect(mf?.spigotRating).toEqual({average: 4.7, count: 45});
+        const fiefs = result.props.pluginsWithCounts.find((p) => p.id === 'fiefs');
+        expect(fiefs?.testedVersions).toBeNull();
+        expect(fiefs?.spigotRating).toBeNull();
     });
 
     it('uses null for a plugin that has no bStatsId', async () => {

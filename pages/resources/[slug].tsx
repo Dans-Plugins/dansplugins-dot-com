@@ -10,6 +10,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import StarIcon from '@mui/icons-material/Star';
 import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
@@ -29,7 +30,7 @@ import {
 } from '../../services/pluginVersionService';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {getServerCount} from '../../utils/bstats';
-import {formatTestedVersions, getTestedVersions, spigotResourceId} from '../../utils/spigot';
+import {formatTestedVersions, getSpigotListing, shownRating, spigotResourceId, spigotReviewsUrl} from '../../utils/spigot';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
 import {absoluteDateFrom} from '../../utils/relativeTime';
@@ -68,6 +69,12 @@ interface ResourcePageProps {
     // Spiget. Null for a plugin with no SpigotMC page, and when Spiget can't
     // be reached; the chip is omitted either way.
     testedVersions: string[] | null;
+    // SpigotMC's rating and download count, from the same listing — a bridge
+    // until the site has reviews of its own, shown as SpigotMC's figures and
+    // linked there. The rating is null below the review threshold as well as
+    // when unknown; either figure being null omits its chip.
+    spigotRating: {average: number; count: number} | null;
+    spigotDownloads: number | null;
     // The release history dpc-api mirrors from GitHub. Empty for a plugin that
     // publishes no releases, and also whenever the API can't be reached — the
     // page hides the section either way rather than failing.
@@ -108,9 +115,9 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
     // must degrade the page, never fail it. Both helpers already swallow their
     // own errors and resolve to undefined.
     const spigotId = spigotResourceId(plugin.spigotmcLink);
-    const [serverCount, testedVersions, latestFromGithub] = await Promise.all([
+    const [serverCount, spigotListing, latestFromGithub] = await Promise.all([
         plugin.bStatsId ? getServerCount(plugin.bStatsId) : Promise.resolve(undefined),
-        spigotId ? getTestedVersions(spigotId) : Promise.resolve(undefined),
+        spigotId ? getSpigotListing(spigotId) : Promise.resolve(undefined),
         mirroredLatest ? Promise.resolve(undefined) : getLatestRelease(plugin.githubLink)
     ]);
 
@@ -124,7 +131,9 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             icon: orNull(plugin.icon),
             serverCount: serverCount ?? null,
             latestVersion: mirroredLatest ?? latestFromGithub ?? null,
-            testedVersions: testedVersions ?? null,
+            testedVersions: spigotListing?.testedVersions ?? null,
+            spigotRating: shownRating(spigotListing?.rating),
+            spigotDownloads: spigotListing?.downloads ?? null,
             versions,
             downloads,
             firstReleasedAt: record?.firstReleasedAt ?? null,
@@ -143,6 +152,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     serverCount,
     latestVersion,
     testedVersions,
+    spigotRating,
+    spigotDownloads,
     versions,
     downloads,
     firstReleasedAt,
@@ -193,7 +204,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     <SelfLoadingLikeButton targetType="plugin" targetId={slug}/>
                 </Stack>
 
-                {serverCount || latestVersion || githubDownloadCount || testedLabel ? (
+                {serverCount || latestVersion || githubDownloadCount || testedLabel || spigotRating || spigotDownloads ? (
                     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: firstReleased || lastUpdated ? 1 : downloads ? 2 : 3}}>
                         {serverCount ? (
                             <Chip
@@ -228,6 +239,31 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                                 label={`Tested on Minecraft ${testedLabel}`}
                                 title="Minecraft versions the plugin has been tested on, as listed on its SpigotMC page"
                                 data-testid="tested-versions"
+                            />
+                        ) : null}
+                        {spigotRating && spigotmcLink ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                clickable
+                                component="a"
+                                href={spigotReviewsUrl(spigotmcLink)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                icon={<StarIcon/>}
+                                label={`${spigotRating.average.toFixed(1)} · ${spigotRating.count.toLocaleString()} ${spigotRating.count === 1 ? 'review' : 'reviews'} on SpigotMC`}
+                                title="SpigotMC's rating of this plugin; opens its reviews there"
+                                data-testid="spigot-rating"
+                            />
+                        ) : null}
+                        {spigotDownloads ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<CloudDownloadIcon/>}
+                                label={`${spigotDownloads.toLocaleString()} downloads on SpigotMC`}
+                                title="SpigotMC's count of downloads from its listing"
+                                data-testid="spigot-downloads"
                             />
                         ) : null}
                     </Stack>

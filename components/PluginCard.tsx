@@ -6,6 +6,7 @@ import DnsIcon from '@mui/icons-material/Dns';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import StarIcon from '@mui/icons-material/Star';
 import LikeButton from './LikeButton';
 import {NextLinkComposed} from './NextLinkComposed';
 import {
@@ -39,6 +40,10 @@ interface PluginCardProps {
     // page, mirrored through Spiget (utils/spigot.ts). Absent or empty hides
     // the chip; a plugin with no SpigotMC page never has one.
     testedVersions?: string[] | null;
+    // SpigotMC's star rating, already past the review threshold (see
+    // shownRating in utils/spigot.ts); null hides the chip. A bridge until
+    // the site has reviews of its own, and labelled as SpigotMC's.
+    spigotRating?: { average: number; count: number } | null;
     likeCount: number;
     liked: boolean;
     token: string | null;
@@ -56,6 +61,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
     latestDownloadUrl,
     downloadCount,
     testedVersions,
+    spigotRating,
     likeCount,
     liked,
     token
@@ -106,7 +112,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 </Typography>
             </CardContent>
 
-            {(serverCount && serverCount > 0) || latestVersion || (downloadCount && downloadCount > 0) || testedLabel ? (
+            {(serverCount && serverCount > 0) || latestVersion || (downloadCount && downloadCount > 0) || testedLabel || spigotRating ? (
                 <Box sx={{px: 2, pb: 1}}>
                     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1}}>
                         {serverCount && serverCount > 0 ? (
@@ -143,6 +149,17 @@ const PluginCard: React.FC<PluginCardProps> = ({
                                 label={`MC ${testedLabel}`}
                                 title="Minecraft versions the plugin has been tested on, as listed on SpigotMC"
                                 data-testid="tested-versions"
+                            />
+                        ) : null}
+                        {spigotRating ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<StarIcon/>}
+                                label={spigotRating.average.toFixed(1)}
+                                title={`Rated ${spigotRating.average.toFixed(1)} out of 5 over ${spigotRating.count.toLocaleString()} reviews on SpigotMC`}
+                                aria-label={`Rated ${spigotRating.average.toFixed(1)} out of 5 over ${spigotRating.count.toLocaleString()} reviews on SpigotMC`}
+                                data-testid="spigot-rating"
                             />
                         ) : null}
                     </Stack>

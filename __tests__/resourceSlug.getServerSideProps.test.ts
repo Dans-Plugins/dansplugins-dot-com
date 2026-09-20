@@ -3,7 +3,7 @@ import type {GetServerSidePropsContext} from 'next';
 
 import {getServerSideProps} from '../pages/resources/[slug]';
 import {clearServerCountCache} from '../utils/bstats';
-import {clearTestedVersionsCache} from '../utils/spigot';
+import {clearSpigotListingCache} from '../utils/spigot';
 import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
 interface ResourcePropsShape {
@@ -19,6 +19,8 @@ interface ResourcePropsShape {
         versions: PluginVersion[];
         downloads: PluginDownloads | null;
         testedVersions: string[] | null;
+        spigotRating: {average: number; count: number} | null;
+        spigotDownloads: number | null;
         firstReleasedAt: string | null;
         lastUpdatedAt: string | null;
     };
@@ -55,12 +57,14 @@ const mirroredVersion = (spec: string | {tag: string; publishedAt: string}): Plu
 
 // Route the six upstreams the page calls by URL, so a test can fail one
 // without affecting the others.
-const stubUpstreams = ({servers, tag, versions, downloads, tested, firstReleasedAt}: {
+const stubUpstreams = ({servers, tag, versions, downloads, tested, rating, spigotDownloads, firstReleasedAt}: {
     servers?: number;
     tag?: string;
     versions?: PluginVersion[];
     downloads?: PluginDownloads;
     tested?: string[];
+    rating?: {count: number; average: number};
+    spigotDownloads?: number;
     // The catalogue row: absent fails that request, null is "not yet recorded".
     firstReleasedAt?: string | null;
 }) => {
@@ -73,7 +77,7 @@ const stubUpstreams = ({servers, tag, versions, downloads, tested, firstReleased
         if (url.includes('api.spiget.org')) {
             return tested === undefined
                 ? {ok: false, status: 503, statusText: 'Service Unavailable'} as Response
-                : {ok: true, json: async () => ({testedVersions: tested})} as unknown as Response;
+                : {ok: true, json: async () => ({testedVersions: tested, rating, downloads: spigotDownloads})} as unknown as Response;
         }
         if (url.includes('bstats.org')) {
             return servers === undefined
@@ -103,7 +107,7 @@ beforeEach(() => {
     // Server counts are cached across renders (utils/bstats.ts); each test
     // must start from an empty cache or a count leaks from the previous one.
     clearServerCountCache();
-    clearTestedVersionsCache();
+    clearSpigotListingCache();
     // The default case is the one that matters most: an unmirrored plugin, where
     // the latest tag still comes from the live GitHub call.
     stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.18', '1.19', '1.20'], firstReleasedAt: null});
@@ -133,11 +137,33 @@ describe('resource page getServerSideProps', () => {
             serverCount: 1234,
             latestVersion: 'v1.2.3',
             testedVersions: ['1.18', '1.19', '1.20'],
+            spigotRating: null,
+            spigotDownloads: null,
             versions: [],
             downloads: null,
             firstReleasedAt: null,
             lastUpdatedAt: null
         });
+    });
+
+    it('serves SpigotMC\'s rating and download count once the listing has enough reviews', async () => {
+        stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.21'],
+            rating: {count: 45, average: 4.7}, spigotDownloads: 63788, firstReleasedAt: null});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.spigotRating).toEqual({average: 4.7, count: 45});
+        expect(result.props.spigotDownloads).toBe(63788);
+    });
+
+    it('withholds a SpigotMC rating below the review threshold but still serves the download count', async () => {
+        stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.21'],
+            rating: {count: 1, average: 5}, spigotDownloads: 715, firstReleasedAt: null});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.spigotRating).toBeNull();
+        expect(result.props.spigotDownloads).toBe(715);
     });
 
     it('states the first release as dpc-api recorded it, and the last update as the newest mirrored release', async () => {
@@ -185,7 +211,7 @@ describe('resource page getServerSideProps', () => {
         const spigetCalls = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls
             .map(([url]) => url as string)
             .filter((url) => url.includes('api.spiget.org'));
-        expect(spigetCalls).toEqual(['https://api.spiget.org/v2/resources/96724?fields=testedVersions']);
+        expect(spigetCalls).toEqual(['https://api.spiget.org/v2/resources/96724?fields=testedVersions,rating,downloads']);
     });
 
     it('serves null tested versions, and makes no Spiget call, for a plugin with no SpigotMC page', async () => {
