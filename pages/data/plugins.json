@@ -19,6 +19,15 @@
       "icon": "/icons/aaf.png"
     },
     {
+      "id": "conquest-recipes",
+      "title": "Conquest Recipes",
+      "description": "Adds recipes for the item textures that the Conquest Resource Pack adds to the game.",
+      "githubLink": "https://github.com/Dans-Plugins/Conquest-Recipes",
+      "spigotmcLink": "https://www.spigotmc.org/resources/conquest-recipes.83594/",
+      "bStatsId": "",
+      "icon": "/icons/cr.png"
+    },
+    {
       "id": "currencies",
       "title": "Currencies",
       "description": "An expansion for Medieval Factions that allows faction owners to create and mint local currencies.",
@@ -37,6 +46,24 @@
       "icon": "/icons/de.png"
     },
     {
+      "id": "dans-plugin-manager",
+      "title": "Dan's Plugin Manager",
+      "description": "Lets operators download the community's plugins in-game or from the server console.",
+      "githubLink": "https://github.com/Dans-Plugins/Dans-Plugin-Manager",
+      "spigotmcLink": "https://www.spigotmc.org/resources/dans-plugin-manager-early-access.100279/",
+      "bStatsId": "",
+      "icon": "/icons/dpm.png"
+    },
+    {
+      "id": "dans-set-home",
+      "title": "Dan's Set Home",
+      "description": "Allows players to set and teleport to home locations.",
+      "githubLink": "https://github.com/Dans-Plugins/Dans-Set-Home",
+      "spigotmcLink": "https://www.spigotmc.org/resources/dans-set-home.79986/",
+      "bStatsId": "12126",
+      "icon": "/icons/dsh.png"
+    },
+    {
       "id": "dans-spawn-system",
       "title": "Dan's Spawn System",
       "description": "Allows players to use signs to select a custom spawn in their world.",
@@ -44,6 +71,15 @@
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-spawn-system.82697/",
       "bStatsId": "12161",
       "icon": "/icons/dss.png"
+    },
+    {
+      "id": "easy-links",
+      "title": "Easy Links",
+      "description": "Lets players view relevant links with simple commands.",
+      "githubLink": "https://github.com/Dans-Plugins/Easy-Links",
+      "spigotmcLink": "https://www.spigotmc.org/resources/easylinks-early-access.98040/",
+      "bStatsId": "",
+      "icon": "/icons/el.png"
     },
     {
       "id": "fiefs",
@@ -79,6 +115,15 @@
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Cookery",
       "spigotmcLink": "",
       "bStatsId": ""
+    },
+    {
+      "id": "medieval-economy",
+      "title": "Medieval Economy",
+      "description": "Provides a virtual coinpurse and a physical currency item for simulating an economy.",
+      "githubLink": "https://github.com/Dans-Plugins/Medieval-Economy",
+      "spigotmcLink": "https://www.spigotmc.org/resources/medieval-economy.81836/",
+      "bStatsId": "8998",
+      "icon": "/icons/me.png"
     },
     {
       "id": "medieval-factions",
@@ -124,6 +169,15 @@
       "spigotmcLink": "https://www.spigotmc.org/resources/nomorecreepers.97946/",
       "bStatsId": "13432",
       "icon": "/icons/nmc.png"
+    },
+    {
+      "id": "player-lore",
+      "title": "PlayerLore",
+      "description": "Allows players to add lore to their items.",
+      "githubLink": "https://github.com/Dans-Plugins/PlayerLore",
+      "spigotmcLink": "https://www.spigotmc.org/resources/playerlore.98602/",
+      "bStatsId": "",
+      "icon": "/icons/pl.png"
     },
     {
       "id": "simple-skills",
