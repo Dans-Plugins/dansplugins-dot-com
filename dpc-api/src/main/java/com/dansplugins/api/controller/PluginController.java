@@ -3,6 +3,15 @@ package com.dansplugins.api.controller;
 import com.dansplugins.api.dto.PluginDownloadsResponse;
 import com.dansplugins.api.dto.PluginLatestVersionResponse;
 import com.dansplugins.api.dto.PluginResponse;
+import java.security.Principal;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.dansplugins.api.service.PluginCatalogueService;
+import com.dansplugins.api.dto.PluginUpsertRequest;
 import com.dansplugins.api.dto.PluginVersionResponse;
 import com.dansplugins.api.entity.Plugin;
 import com.dansplugins.api.exception.ResourceNotFoundException;
@@ -56,6 +65,7 @@ public class PluginController {
     private final PluginVersionRepository pluginVersionRepository;
     private final PluginVersionQueryService pluginVersionQueryService;
     private final PluginDownloadService pluginDownloadService;
+    private final PluginCatalogueService pluginCatalogueService;
 
     @GetMapping
     @Operation(summary = "List every plugin in the catalogue, alphabetically by title")
@@ -67,6 +77,22 @@ public class PluginController {
     @Operation(summary = "Get one plugin by its catalogue slug")
     public PluginResponse get(@PathVariable String slug) {
         return PluginResponse.from(findPlugin(slug));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Add a plugin to the catalogue (admin-only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    public PluginResponse create(Principal principal, @Valid @RequestBody PluginUpsertRequest request) {
+        return PluginResponse.from(pluginCatalogueService.create(principal.getName(), request));
+    }
+
+    @PutMapping("/{slug}")
+    @Operation(summary = "Replace a catalogue entry (admin-only); every field is taken from the body",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    public PluginResponse update(Principal principal, @PathVariable String slug,
+                                 @Valid @RequestBody PluginUpsertRequest request) {
+        return PluginResponse.from(pluginCatalogueService.update(principal.getName(), slug, request));
     }
 
     /**

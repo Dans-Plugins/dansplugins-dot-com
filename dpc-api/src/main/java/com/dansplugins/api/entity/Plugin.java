@@ -82,6 +82,12 @@ public class Plugin {
     @Setter(lombok.AccessLevel.NONE)
     private Set<String> tags = new HashSet<>();
 
+    /** Replaces the tag set in place, so Hibernate keeps tracking the same collection. */
+    public void replaceTags(java.util.Collection<String> newTags) {
+        tags.clear();
+        tags.addAll(newTags);
+    }
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;

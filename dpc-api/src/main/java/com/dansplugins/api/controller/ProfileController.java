@@ -1,5 +1,6 @@
 package com.dansplugins.api.controller;
 
+import com.dansplugins.api.config.AdminProperties;
 import com.dansplugins.api.dto.CreateApiKeyRequest;
 import com.dansplugins.api.dto.CreateApiKeyResponse;
 import com.dansplugins.api.dto.ProfileResponse;
@@ -45,13 +46,15 @@ public class ProfileController {
     private final UserService userService;
     private final LikeService likeService;
     private final BadgeService badgeService;
+    private final AdminProperties adminProperties;
 
     @GetMapping("/me")
     @Operation(summary = "Get the current user's profile", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<ProfileResponse> getProfile(Principal principal) {
         User user = currentUser(principal);
         return ResponseEntity.ok(ProfileResponse.from(
-                user, badgeService.badgesFor(user), userService.getApiKeys(user)));
+                user, badgeService.badgesFor(user), userService.getApiKeys(user),
+                adminProperties.isAdmin(user.getUserauthUsername())));
     }
 
     @GetMapping("/{username}")
@@ -73,7 +76,8 @@ public class ProfileController {
         User user = currentUser(principal);
         userService.updateProfile(user, request.displayName(), request.avatarUrl(), request.bio());
         return ResponseEntity.ok(ProfileResponse.from(
-                user, badgeService.badgesFor(user), userService.getApiKeys(user)));
+                user, badgeService.badgesFor(user), userService.getApiKeys(user),
+                adminProperties.isAdmin(user.getUserauthUsername())));
     }
 
     @PostMapping("/me/api-keys")

@@ -32,7 +32,10 @@ public record ProfileResponse(
         List<Badge> badges,
 
         @Schema(description = "API keys owned by this user")
-        List<ApiKeyInfo> apiKeys
+        List<ApiKeyInfo> apiKeys,
+
+        @Schema(description = "Whether this user may edit the catalogue and convert feature requests (AdminProperties)")
+        boolean admin
 ) {
 
     @Schema(description = "Summary of an API key (hash not exposed)")
@@ -44,7 +47,7 @@ public record ProfileResponse(
     ) {
     }
 
-    public static ProfileResponse from(User user, List<Badge> badges, List<ApiKey> keys) {
+    public static ProfileResponse from(User user, List<Badge> badges, List<ApiKey> keys, boolean admin) {
         return new ProfileResponse(
                 user.getId(),
                 user.getUserauthUsername(),
@@ -55,7 +58,8 @@ public record ProfileResponse(
                 badges,
                 keys.stream()
                         .map(k -> new ApiKeyInfo(k.getId(), k.getKeyPrefix(), k.getServerName(), k.getCreatedAt()))
-                        .toList()
+                        .toList(),
+                admin
         );
     }
 }

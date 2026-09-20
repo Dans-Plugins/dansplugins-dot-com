@@ -39,7 +39,11 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             "/api/v1/profile/",
             "/api/v1/likes",
             "/api/v1/claims",
-            "/api/v1/feature-requests"
+            "/api/v1/feature-requests",
+            // Catalogue edits are admin actions by a signed-in user, gated in
+            // PluginCatalogueService; the download redirect and every read
+            // under /plugins are GETs this filter never touched anyway.
+            "/api/v1/plugins"
     );
 
     private final ApiKeyService apiKeyService;

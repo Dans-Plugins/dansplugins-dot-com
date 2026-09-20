@@ -103,6 +103,10 @@ public class SecurityConfig {
                         // Only POST reaches here for feature requests — GET was already permitted above
                         .requestMatchers("/api/v1/feature-requests", "/api/v1/feature-requests/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").authenticated()
+                        // Catalogue edits need a signed-in user; PluginCatalogueService
+                        // then requires that user to be an admin (AdminProperties).
+                        .requestMatchers(HttpMethod.POST, "/api/v1/plugins").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/plugins/*").authenticated()
                         // API key auth for faction writes is enforced by ApiKeyAuthFilter (returns 401
                         // before this authorization layer runs); permitAll here avoids a double-reject.
                         .requestMatchers(HttpMethod.POST, "/api/v1/factions").permitAll()
