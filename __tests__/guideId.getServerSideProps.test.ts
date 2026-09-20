@@ -1,5 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {GetServerSidePropsContext} from 'next';
+import {clearCatalogueCache} from '../services/pluginCatalogueService';
+import {catalogueResponse} from './fixtures/catalogue';
 
 import {getServerSideProps} from '../pages/guides/[id]';
 
@@ -21,17 +23,24 @@ interface NotFoundShape {
 const contextWithId = (id?: string): GetServerSidePropsContext =>
     ({params: id === undefined ? {} : {id}} as GetServerSidePropsContext);
 
-// A real id/githubLink pair from pages/data/plugins.json, so the lookup
-// exercises the actual catalogue rather than a fixture that could drift from it.
+// An id/githubLink pair from the catalogue fixture the API stub serves.
 const KNOWN_ID = 'activity-tracker';
 const KNOWN_GITHUB_LINK = 'https://github.com/Dans-Plugins/Activity-Tracker';
 
+// The catalogue is read from dpc-api and cached per process (see
+// services/pluginCatalogueService.ts); each test starts from an empty cache and
+// a fetch that answers the catalogue and leaves the guide fetch to the test.
+const guideFetch = (answer: (url: string) => Promise<Response>) =>
+    vi.fn((url: string) => url.includes('/api/v1/plugins') ? Promise.resolve(catalogueResponse()) : answer(url));
+
 beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
+    clearCatalogueCache();
+    vi.stubGlobal('fetch', guideFetch(() => Promise.reject(new Error('guide fetch not stubbed'))));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 describe('guide page getServerSideProps', () => {
-    it('returns notFound for an id absent from plugins.json', async () => {
+    it('returns notFound for an id absent from the catalogue', async () => {
         const result = await getServerSideProps(contextWithId('not-a-real-plugin')) as NotFoundShape;
         expect(result).toEqual({notFound: true});
     });
@@ -42,7 +51,7 @@ describe('guide page getServerSideProps', () => {
     });
 
     it('returns the fetched markdown when the raw USER_GUIDE.md fetch succeeds', async () => {
-        vi.mocked(fetch).mockResolvedValue({ok: true, text: () => Promise.resolve('# Hello')} as Response);
+        vi.stubGlobal('fetch', guideFetch(() => Promise.resolve({ok: true, text: () => Promise.resolve('# Hello')} as Response)));
 
         const result = await getServerSideProps(contextWithId(KNOWN_ID)) as GuidePropsShape;
 
@@ -55,7 +64,7 @@ describe('guide page getServerSideProps', () => {
     });
 
     it('falls back to null markdown when the fetch response is not ok', async () => {
-        vi.mocked(fetch).mockResolvedValue({ok: false, text: () => Promise.resolve('')} as Response);
+        vi.stubGlobal('fetch', guideFetch(() => Promise.resolve({ok: false, text: () => Promise.resolve('')} as Response)));
 
         const result = await getServerSideProps(contextWithId(KNOWN_ID)) as GuidePropsShape;
 
@@ -64,7 +73,7 @@ describe('guide page getServerSideProps', () => {
     });
 
     it('falls back to null markdown when the fetch throws (network failure)', async () => {
-        vi.mocked(fetch).mockRejectedValue(new Error('network unreachable'));
+        vi.stubGlobal('fetch', guideFetch(() => Promise.reject(new Error('network unreachable'))));
 
         const result = await getServerSideProps(contextWithId(KNOWN_ID)) as GuidePropsShape;
 

@@ -223,9 +223,9 @@ the slug is the public identifier. `tags` are short lower-case words saying
 what the plugin is for, sorted, from the `plugin_tags` table `V20` seeds from
 the site's catalogue file; an untagged plugin has `[]`.
 
-The website still renders its catalogue from the checked-in
-`pages/data/plugins.json` and will switch to these endpoints when the catalogue
-becomes editable — see `RESOURCE_HUB.md` in the repository root.
+The website renders its catalogue from these endpoints
+(`services/pluginCatalogueService.ts`), cached per server process and served
+stale through an outage — see `RESOURCE_HUB.md` in the repository root.
 
 #### Plugin versions
 
@@ -365,8 +365,8 @@ Assets are deliberately not served here: a caller that wants files wants the ful
 
 ### Likes
 
-Likes on plugins and guides. A target is keyed by the plugin `id` from the
-website's `plugins.json` (a guide's id is its plugin's id). Liking is
+Likes on plugins and guides. A target is keyed by the plugin's catalogue slug
+(a guide's id is its plugin's slug). Liking is
 idempotent; counts are public.
 
 | Method | Path | Auth | Description |

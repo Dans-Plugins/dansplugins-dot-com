@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import pluginData from '../pages/data/plugins.json';
+import {API_CATALOGUE} from './fixtures/catalogue';
 import {AVATAR_COLORS, colorForTitle} from '../utils/pluginAvatar';
 
 describe('colorForTitle', () => {
     it('always picks a colour from the palette', () => {
-        const offPalette = pluginData.plugins
+        const offPalette = API_CATALOGUE
             .map((plugin) => colorForTitle(plugin.title))
             .filter((color) => !AVATAR_COLORS.includes(color));
 

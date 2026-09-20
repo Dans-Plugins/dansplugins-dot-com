@@ -24,9 +24,9 @@ interface PluginCardProps {
     title: string;
     description: string;
     githubLink: string;
-    spigotmcLink?: string;
-    bStatsId?: string;
-    icon?: string;
+    spigotmcLink?: string | null;
+    bStatsId?: string | null;
+    icon?: string | null;
     serverCount?: number | null;
     latestVersion?: string | null;
     // Where Download sends the visitor — dpc-api's counting link for the

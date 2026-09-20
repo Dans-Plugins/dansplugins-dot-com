@@ -31,7 +31,7 @@ as resource pages.
 
 | SpigotMC concept | Where it already lives in DPC |
 | --- | --- |
-| Resource listing | `pages/data/plugins.json` rendered as a `PluginCard` grid on `/`, with search and sort (`utils/sortPlugins.ts`) |
+| Resource listing | The `plugins` table, read through `services/pluginCatalogueService.ts` and rendered as a `PluginCard` grid on `/`, with search, sort and filters |
 | Download / version | Latest GitHub release tag on each card (`utils/github.ts`) |
 | Install count | bStats server counts (`utils/bstats.ts`) |
 | Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |
@@ -121,25 +121,27 @@ Until step 2 has shipped in enough plugins to be meaningful, reviews ship
 **without** the verified mark. Building reviews around a badge that only ever
 appears on Medieval Factions would be worse than not having it.
 
-### The catalogue moves into the database, in two steps
+### The catalogue moved into the database, in two steps
 
-`pages/data/plugins.json` is a build-time file, so nothing on the site can add
-a tag, a rating aggregate or a version row to a plugin. The catalogue has to
-become a table.
+The catalogue began as `pages/data/plugins.json`, a build-time file, so nothing
+on the site could add a tag, a rating aggregate or a version row to a plugin.
+It had to become a table, and doing that in one step would have meant changing
+the schema, the API, the rendering path and the editing UI at once. Instead:
 
-Doing that in one step would mean changing the schema, the API, the rendering
-path and the editing UI at once. Instead:
+1. `V15__create_plugins_table.sql` created `plugins` and seeded it from the
+   file; `dpc-api` served it read-only while the site kept rendering from the
+   file, and a drift guard failed the build if the two disagreed. Later
+   migrations (`V19`, `V20`) added rows and tags the same way.
+2. `services/pluginCatalogueService.ts` now reads the table through
+   `GET /api/v1/plugins` — cached per process and served stale through an
+   outage, so an API blip never blanks the home page, and an admin edits the
+   catalogue on the site (`POST`/`PUT /api/v1/plugins`, gated on
+   `DPC_ADMIN_USERNAMES`) rather than by pull request or migration. The file
+   and its drift guard are gone; the table is the one source.
 
-1. `V15__create_plugins_table.sql` creates `plugins` and seeds it from the
-   current catalogue. `dpc-api` serves it read-only. The site keeps rendering
-   from `plugins.json`, so the switchover carries no risk of a blank home page.
-   `__tests__/pluginCatalogue.test.ts` fails if the table and the file disagree
-   on which plugins exist, what they are called, or which repository they point
-   at — the three fields that break links and lookups if they drift.
-   Descriptions and icons are not compared; they are cosmetic, and the whole
-   comparison is deleted in step 2.
-2. The "Editable Plugin Catalogue" phase flips rendering to the API, adds the
-   admin editing UI, and deletes `plugins.json` along with its drift guard.
+A page that has never reached the API says the catalogue is unavailable rather
+than rendering an empty grid — an empty catalogue and an unreachable one must
+not look alike.
 
 Slugs are the plugin ids already in use (`medieval-factions`), so existing
 `/guides/[id]` URLs and every `likes.target_id` row stay valid.

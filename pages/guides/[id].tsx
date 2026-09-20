@@ -11,16 +11,9 @@ import GuideMarkdown from '../../components/GuideMarkdown';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {userGuideUrl, userGuideRawUrl} from '../../utils/guides';
+import {getCataloguePlugin} from '../../services/pluginCatalogueService';
 
 const version = require('../../package.json').version;
-
-interface GuidePlugin {
-    id: string;
-    title: string;
-    githubLink: string;
-}
-
-const pluginData = require('../data/plugins.json') as { plugins: GuidePlugin[] };
 
 interface GuidePageProps {
     id: string;
@@ -33,7 +26,7 @@ interface GuidePageProps {
 
 export const getServerSideProps: GetServerSideProps<GuidePageProps> = async ({params}) => {
     const id = typeof params?.id === 'string' ? params.id : '';
-    const plugin = pluginData.plugins.find((p) => p.id === id);
+    const plugin = id ? await getCataloguePlugin(id) : null;
     if (!plugin) {
         return {notFound: true};
     }
@@ -55,7 +48,7 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
             title={`${title} Guide`}
             description={`User guide for the ${title} plugin from Dan's Plugins Community.`}
             // Unlike /u/[username], the id needs no encoding: getServerSideProps
-            // only serves ids that match an entry in the plugins.json catalogue,
+            // only serves ids that match an entry in the catalogue,
             // and those are plain slugs.
             path={`/guides/${id}`}
         />

@@ -4,7 +4,7 @@
 // and utils/sitemap.ts, so the URL shape can be unit-tested and there is exactly
 // one definition of it for links, the sitemap and canonical URLs to share.
 //
-// The slug is the plugin id already used by pages/data/plugins.json and by
+// The slug is the plugin id the catalogue (dpc-api's `plugins` table) uses and
 // `likes.target_id`, so a resource URL, a guide URL and a like target all name a
 // plugin the same way. See RESOURCE_HUB.md.
 

@@ -14,18 +14,12 @@ import { getVisits, incrementVisits } from '../services/visitService';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
 import { getSpigotListingsWithRateLimit, shownRating, spigotResourceId } from '../utils/spigot';
 import { getLatestVersionsBySlug } from '../services/pluginVersionService';
+import { getCatalogue, type CataloguePlugin } from '../services/pluginCatalogueService';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
 import { allTags, allTestedVersions, filterPlugins, isFilterActive } from '../utils/catalogueFilter';
 import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience';
 
-interface PluginData {
-    mostPopular: string[];
-    plugins: Plugin[];
-}
-
-// Add type assertion for your imported data
-const pluginData = require('./data/plugins.json') as PluginData;
 
 // Import styles
 import {
@@ -44,18 +38,7 @@ const SectionDivider: React.FC = () => (
 // pull version from package.json
 const version = require('../package.json').version
 
-interface Plugin {
-    id: string;
-    title: string;
-    description: string;
-    githubLink: string;
-    spigotmcLink?: string;
-    bStatsId?: string;
-    icon?: string;
-    tags?: string[];
-}
-
-interface PluginWithServerCount extends Plugin {
+interface PluginWithServerCount extends CataloguePlugin {
     serverCount?: number | null;
     testedVersions?: string[] | null;
     spigotRating?: { average: number; count: number } | null;
@@ -255,7 +238,11 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                 </Typography>
             )}
 
-            {visiblePlugins.length > 0 ? (
+            {initialPlugins.length === 0 ? (
+                <Typography color="text.secondary" align="center" sx={{ py: 4 }} data-testid="catalogue-unavailable">
+                    The plugin catalogue could not be loaded right now. Please try again shortly.
+                </Typography>
+            ) : visiblePlugins.length > 0 ? (
                 <PluginSection
                     plugins={visiblePlugins}
                     likeCounts={likeCounts}
@@ -296,11 +283,17 @@ export const getServerSideProps = async () => {
         console.error('Failed to load visit data; hiding the visit counter.', error);
     }
 
-    const bStatsIds = pluginData.plugins
-        .filter(plugin => plugin.bStatsId)
-        .map(plugin => plugin.bStatsId as string);
+    // The catalogue itself comes from dpc-api. An empty list here means it
+    // could not be read (the service keeps the last good copy through an
+    // outage, so this is a process that has never reached the API), and the
+    // page says so rather than showing an empty grid.
+    const catalogue = await getCatalogue();
 
-    const spigotIds = pluginData.plugins
+    const bStatsIds = catalogue
+        .map(plugin => plugin.bStatsId)
+        .filter((id): id is string => id !== null);
+
+    const spigotIds = catalogue
         .map(plugin => spigotResourceId(plugin.spigotmcLink))
         .filter((id): id is string => id !== undefined);
 
@@ -319,7 +312,7 @@ export const getServerSideProps = async () => {
     ]);
 
     // Create plugins with server counts and latest release versions
-    const pluginsWithCounts: PluginWithServerCount[] = pluginData.plugins.map(plugin => ({
+    const pluginsWithCounts: PluginWithServerCount[] = catalogue.map(plugin => ({
         ...plugin,
         serverCount: (plugin.bStatsId ? serverCountsMap.get(plugin.bStatsId) : undefined) ?? null,
         testedVersions: spigotListings.get(spigotResourceId(plugin.spigotmcLink) ?? '')?.testedVersions ?? null,
