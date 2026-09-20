@@ -44,6 +44,10 @@ interface PluginCardProps {
     // shownRating in utils/spigot.ts); null hides the chip. A bridge until
     // the site has reviews of its own, and labelled as SpigotMC's.
     spigotRating?: { average: number; count: number } | null;
+    // What the plugin is for, from the catalogue. Clicking one filters the
+    // catalogue by it when the page offers that (the home page does).
+    tags?: string[] | null;
+    onTagClick?: (tag: string) => void;
     likeCount: number;
     liked: boolean;
     token: string | null;
@@ -62,6 +66,8 @@ const PluginCard: React.FC<PluginCardProps> = ({
     downloadCount,
     testedVersions,
     spigotRating,
+    tags,
+    onTagClick,
     likeCount,
     liked,
     token
@@ -110,6 +116,21 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 >
                     {description}
                 </Typography>
+                {tags && tags.length > 0 ? (
+                    <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5, mt: 1.5}} aria-label="Tags">
+                        {tags.map((tag) => (
+                            <Chip
+                                key={tag}
+                                label={tag}
+                                size="small"
+                                variant="outlined"
+                                sx={{height: 22, fontSize: '0.7rem'}}
+                                {...(onTagClick ? {clickable: true, onClick: () => onTagClick(tag)} : {})}
+                                data-testid="plugin-tag"
+                            />
+                        ))}
+                    </Stack>
+                ) : null}
             </CardContent>
 
             {(serverCount && serverCount > 0) || latestVersion || (downloadCount && downloadCount > 0) || testedLabel || spigotRating ? (

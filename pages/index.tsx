@@ -1,4 +1,4 @@
-import {Box, Container, Grid, IconButton, InputAdornment, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Box, Button, Chip, Container, FormControl, Grid, IconButton, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import type {NextPage} from 'next'
@@ -16,6 +16,7 @@ import { getSpigotListingsWithRateLimit, shownRating, spigotResourceId } from '.
 import { getLatestVersionsBySlug } from '../services/pluginVersionService';
 import { getLikeCounts, getMyLikes } from '../services/likeService';
 import { sortPlugins, type SortOption } from '../utils/sortPlugins';
+import { allTags, allTestedVersions, filterPlugins, isFilterActive } from '../utils/catalogueFilter';
 import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience';
 
 interface PluginData {
@@ -51,6 +52,7 @@ interface Plugin {
     spigotmcLink?: string;
     bStatsId?: string;
     icon?: string;
+    tags?: string[];
 }
 
 interface PluginWithServerCount extends Plugin {
@@ -67,9 +69,10 @@ interface PluginSectionProps {
     likeCounts: Record<string, number>;
     likedSet: Set<string>;
     token: string | null;
+    onTagClick: (tag: string) => void;
 }
 
-const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, likedSet, token }) => (
+const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, likedSet, token, onTagClick }) => (
     <Grid container {...gridContainerStyle}>
         {plugins.map((plugin) => (
             <Grid item {...gridItemStyle} key={plugin.id}>
@@ -84,6 +87,8 @@ const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, like
                     serverCount={plugin.serverCount}
                     testedVersions={plugin.testedVersions}
                     spigotRating={plugin.spigotRating}
+                    tags={plugin.tags}
+                    onTagClick={onTagClick}
                     latestVersion={plugin.latestVersion}
                     latestDownloadUrl={plugin.latestDownloadUrl}
                     downloadCount={plugin.downloadCount}
@@ -103,6 +108,8 @@ interface PluginsSectionProps {
 const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
     const [query, setQuery] = React.useState('');
+    const [tag, setTag] = React.useState<string | null>(null);
+    const [version, setVersion] = React.useState<string | null>(null);
     const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>({});
     const [likedSet, setLikedSet] = React.useState<Set<string>>(new Set());
     const [token, setToken] = React.useState<string | null>(null);
@@ -128,12 +135,18 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
 
     const sortedPlugins = sortPlugins(initialPlugins, sortBy, likeCounts);
 
-    const normalizedQuery = query.trim().toLowerCase();
-    const visiblePlugins = normalizedQuery
-        ? sortedPlugins.filter((plugin) =>
-            plugin.title.toLowerCase().includes(normalizedQuery) ||
-            plugin.description.toLowerCase().includes(normalizedQuery))
-        : sortedPlugins;
+    // The facets are computed from the catalogue rather than hard-coded, so
+    // the tag row and the version menu offer only choices that match something.
+    const tags = allTags(initialPlugins);
+    const versions = allTestedVersions(initialPlugins);
+    const filter = { query, tag, version };
+    const filtering = isFilterActive(filter);
+    const visiblePlugins = filterPlugins(sortedPlugins, filter);
+    const clearFilters = () => {
+        setQuery('');
+        setTag(null);
+        setVersion(null);
+    };
 
     return (
         <Box id="plugins" sx={pluginsBoxStyle}>
@@ -186,18 +199,77 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
                 </ToggleButtonGroup>
             </Box>
 
-            {normalizedQuery && (
+            <Stack
+                direction="row"
+                spacing={1}
+               
+                sx={{ justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', rowGap: 1, marginBottom: 3 }}
+                role="group"
+                aria-label="Filter plugins"
+            >
+                <Chip
+                    label="All"
+                    size="small"
+                    clickable
+                    color={tag === null ? 'primary' : 'default'}
+                    variant={tag === null ? 'filled' : 'outlined'}
+                    onClick={() => setTag(null)}
+                    aria-pressed={tag === null}
+                />
+                {tags.map((t) => (
+                    <Chip
+                        key={t}
+                        label={t}
+                        size="small"
+                        clickable
+                        color={tag === t ? 'primary' : 'default'}
+                        variant={tag === t ? 'filled' : 'outlined'}
+                        onClick={() => setTag(tag === t ? null : t)}
+                        aria-pressed={tag === t}
+                        data-testid={`tag-filter-${t}`}
+                    />
+                ))}
+                {versions.length > 0 ? (
+                    <FormControl size="small" sx={{ minWidth: 200, ml: { sm: 1 } }}>
+                        <InputLabel id="version-filter-label">Minecraft version</InputLabel>
+                        <Select
+                            labelId="version-filter-label"
+                            label="Minecraft version"
+                            value={version ?? ''}
+                            onChange={(e) => setVersion(e.target.value === '' ? null : String(e.target.value))}
+                            inputProps={{ 'aria-label': 'Filter by tested Minecraft version' }}
+                        >
+                            <MenuItem value="">Any version</MenuItem>
+                            {versions.map((v) => (
+                                <MenuItem key={v} value={v}>{v}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                ) : null}
+            </Stack>
+
+            {filtering && (
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
                     Showing {visiblePlugins.length} of {initialPlugins.length} plugins
+                    {version ? ` tested on Minecraft ${version}` : ''}
                 </Typography>
             )}
 
             {visiblePlugins.length > 0 ? (
-                <PluginSection plugins={visiblePlugins} likeCounts={likeCounts} likedSet={likedSet} token={token} />
+                <PluginSection
+                    plugins={visiblePlugins}
+                    likeCounts={likeCounts}
+                    likedSet={likedSet}
+                    token={token}
+                    onTagClick={setTag}
+                />
             ) : (
-                <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
-                    No plugins match your search.
-                </Typography>
+                <Box sx={{ py: 4, textAlign: 'center' }}>
+                    <Typography color="text.secondary" gutterBottom>
+                        No plugins match your filters.
+                    </Typography>
+                    <Button size="small" onClick={clearFilters}>Clear filters</Button>
+                </Box>
             )}
         </Box>
     );

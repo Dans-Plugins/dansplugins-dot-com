@@ -36,6 +36,7 @@ as resource pages.
 | Install count | bStats server counts (`utils/bstats.ts`) |
 | Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |
 | Rating | SpigotMC's, bridged through the same Spiget listing and labelled as theirs, until reviews of the site's own exist |
+| Tags, categories | Hand-curated `tags` per plugin in `plugins.json`, mirrored into `plugin_tags` (`V20`) under the same drift guard; filters on `/`, related plugins on a resource page |
 | Likes | `likes(target_type, target_id)` — already polymorphic over `plugin`, `guide`, `issue`, `feature_request` |
 | Accounts | UserAuth (external) plus a local `users` mirror holding display name, avatar and bio |
 | Member profile | `/u/[username]`, with badges and likes |

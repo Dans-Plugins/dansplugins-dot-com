@@ -1,6 +1,10 @@
 package com.dansplugins.api.entity;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +17,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -67,6 +73,14 @@ public class Plugin {
     // (see V18); null until it has been, and for a plugin with no releases.
     @Column(name = "first_released_at")
     private Instant firstReleasedAt;
+
+    // What the plugin is for, as a set of short lower-case words (V20). Read
+    // eagerly: the catalogue is sixteen rows and every listing wants them.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "plugin_tags", joinColumns = @JoinColumn(name = "plugin_id"))
+    @Column(name = "tag", nullable = false, length = 32)
+    @Setter(lombok.AccessLevel.NONE)
+    private Set<String> tags = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
