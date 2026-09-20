@@ -83,8 +83,8 @@
     },
     {
       "title": "Catalogue Discovery",
-      "description": "Tags, categories, Minecraft-version filters, and sort-by-downloads so the catalogue stays browsable as it grows — pulled ahead of reviews because it closes the practical gap with SpigotMC at no moderation cost.",
-      "status": "Planned"
+      "description": "Tags on every plugin, a tag filter and a Minecraft-version filter on the home page that compose with search and sort, and related plugins on each resource page.",
+      "status": "Completed"
     },
     {
       "title": "Plugin Reviews",
@@ -108,8 +108,8 @@
     },
     {
       "title": "Editable Plugin Catalogue",
-      "description": "Allow the plugin cards data to be edited from the website instead of by hand, replacing the checked-in catalogue file with the database table that now holds the same plugins.",
-      "status": "Planned"
+      "description": "The plugin catalogue lives in the community API rather than a file in the website's source, and an admin adds or edits plugins on the site at /admin/plugins — title, description, links, icon and tags — without a pull request or a migration.",
+      "status": "Completed"
     },
     {
       "title": "Following & Activity Feed",
