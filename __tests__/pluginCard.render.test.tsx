@@ -113,3 +113,19 @@ describe('PluginCard SpigotMC rating', () => {
         expect(screen.queryByTestId('spigot-rating')).toBeNull();
     });
 });
+
+describe('PluginCard tags', () => {
+    it('lists the plugin\'s tags, and clicking one reports it when the page filters by tag', () => {
+        const onTagClick = vi.fn();
+        renderCard({tags: ['medieval', 'factions'], onTagClick});
+        const chips = screen.getAllByTestId('plugin-tag');
+        expect(chips.map((chip) => chip.textContent)).toEqual(['medieval', 'factions']);
+        chips[1].click();
+        expect(onTagClick).toHaveBeenCalledWith('factions');
+    });
+
+    it('renders no tag row for an untagged plugin', () => {
+        renderCard({tags: []});
+        expect(screen.queryByTestId('plugin-tag')).toBeNull();
+    });
+});

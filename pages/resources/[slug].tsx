@@ -35,6 +35,7 @@ import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
 import {absoluteDateFrom} from '../../utils/relativeTime';
 import {resourceDescription, resourcePath} from '../../utils/resources';
+import {relatedPlugins} from '../../utils/catalogueFilter';
 
 const version = require('../../package.json').version;
 
@@ -46,6 +47,7 @@ interface CataloguePlugin {
     spigotmcLink?: string;
     bStatsId?: string;
     icon?: string;
+    tags?: string[];
 }
 
 const pluginData = require('../data/plugins.json') as { plugins: CataloguePlugin[] };
@@ -90,6 +92,19 @@ interface ResourcePageProps {
     // hides the line, never guesses.
     firstReleasedAt: string | null;
     lastUpdatedAt: string | null;
+    // From the catalogue: what the plugin is for, and the plugins sharing a
+    // tag with it (most in common first). Currencies and Fiefs both call
+    // themselves expansions of Medieval Factions; this is where the site
+    // finally says so.
+    tags: string[];
+    related: RelatedPlugin[];
+}
+
+interface RelatedPlugin {
+    slug: string;
+    title: string;
+    description: string;
+    icon: string | null;
 }
 
 // Treat the catalogue's empty strings as the absences they are.
@@ -137,7 +152,14 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             versions,
             downloads,
             firstReleasedAt: record?.firstReleasedAt ?? null,
-            lastUpdatedAt: versions[0]?.publishedAt ?? null
+            lastUpdatedAt: versions[0]?.publishedAt ?? null,
+            tags: plugin.tags ?? [],
+            related: relatedPlugins(plugin, pluginData.plugins).map((other) => ({
+                slug: other.id,
+                title: other.title,
+                description: other.description,
+                icon: orNull(other.icon)
+            }))
         }
     };
 };
@@ -157,7 +179,9 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     versions,
     downloads,
     firstReleasedAt,
-    lastUpdatedAt
+    lastUpdatedAt,
+    tags,
+    related
 }) => {
     const firstReleased = firstReleasedAt ? absoluteDateFrom(firstReleasedAt) : '';
     const lastUpdated = lastUpdatedAt ? absoluteDateFrom(lastUpdatedAt) : '';
@@ -304,9 +328,24 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     </Paper>
                 ) : null}
 
-                <Typography variant="body1" color="text.secondary" sx={{mb: 3, lineHeight: 1.7}}>
+                <Typography variant="body1" color="text.secondary" sx={{mb: tags.length > 0 ? 1.5 : 3, lineHeight: 1.7}}>
                     {description}
                 </Typography>
+
+                {tags.length > 0 ? (
+                    <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5, mb: 3}} aria-label="Tags">
+                        {tags.map((tag) => (
+                            <Chip
+                                key={tag}
+                                label={tag}
+                                size="small"
+                                variant="outlined"
+                                sx={{height: 22, fontSize: '0.7rem'}}
+                                data-testid="plugin-tag"
+                            />
+                        ))}
+                    </Stack>
+                ) : null}
 
                 <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: 4}}>
                     {releases ? (
@@ -358,6 +397,41 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                 <Divider sx={{mb: 3}}/>
 
                 <PluginVersionList versions={versions} releasesUrl={releases}/>
+
+                {related.length > 0 ? (
+                    <Box component="section" aria-labelledby="related-heading" sx={{mb: 4}} data-testid="related-plugins">
+                        <Typography id="related-heading" variant="h6" component="h2" gutterBottom>
+                            Related plugins
+                        </Typography>
+                        <Stack spacing={1}>
+                            {related.map((other) => (
+                                <Paper
+                                    key={other.slug}
+                                    variant="outlined"
+                                    component={NextLinkComposed}
+                                    to={resourcePath(other.slug)}
+                                    sx={{p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, textDecoration: 'none', color: 'inherit'}}
+                                >
+                                    <Avatar
+                                        variant="rounded"
+                                        {...(other.icon ? {src: other.icon, alt: ''} : {'aria-hidden': true})}
+                                        sx={{bgcolor: colorForTitle(other.title), width: 32, height: 32, fontSize: '0.9rem'}}
+                                    >
+                                        {other.title.charAt(0).toUpperCase()}
+                                    </Avatar>
+                                    <Box sx={{minWidth: 0}}>
+                                        <Typography variant="subtitle2" component="span" sx={{display: 'block'}}>
+                                            {other.title}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{display: 'block'}}>
+                                            {other.description}
+                                        </Typography>
+                                    </Box>
+                                </Paper>
+                            ))}
+                        </Stack>
+                    </Box>
+                ) : null}
 
                 <Paper elevation={0} sx={{p: 2.5, bgcolor: 'action.hover'}}>
                     <Typography variant="h6" component="h2" gutterBottom>

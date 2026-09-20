@@ -20,6 +20,13 @@ import pluginData from '../pages/data/plugins.json';
 // shape, so every migration is scanned and the union is compared.
 const MIGRATIONS_DIR = join(process.cwd(), 'dpc-api/src/main/resources/db/migration');
 
+// Tags live in their own table, seeded by V20 from the same catalogue file
+// under the same arrangement, so they are policed the same way.
+const TAGS_MIGRATION = join(
+    process.cwd(),
+    'dpc-api/src/main/resources/db/migration/V20__create_plugin_tags_table.sql'
+);
+
 // Each seeded row opens with `(gen_random_uuid(), 'slug', 'Title', 'Description',
 // 'https://github.com/...'`, the columns spanning several lines. SQL escapes an
 // apostrophe by doubling it ("Dan''s Essentials"), so the literal pattern has to
@@ -40,6 +47,37 @@ const seededPlugins = (): { slug: string; title: string; githubUrl: string }[] =
         githubUrl: unquote(githubUrl)
     }));
 };
+
+// Each seeded tag is one `('slug', 'tag')` pair in V20's VALUES list.
+const seededTags = (): Map<string, string[]> => {
+    const sql = readFileSync(TAGS_MIGRATION, 'utf8');
+    const tags = new Map<string, string[]>();
+    for (const [, slug, tag] of sql.matchAll(/\('([a-z0-9-]+)',\s*'([a-z0-9-]+)'\)/g)) {
+        tags.set(slug, [...(tags.get(slug) ?? []), tag]);
+    }
+    return tags;
+};
+
+describe('plugin tag seed', () => {
+    it('parses the seeded pairs out of the migration', () => {
+        expect(seededTags().size).toBeGreaterThan(0);
+        expect(seededTags().get('medieval-factions')).toContain('factions');
+    });
+
+    it('gives every plugin the same tags in both places', () => {
+        const seeded = seededTags();
+        const mismatched = pluginData.plugins
+            .filter((plugin) => [...(plugin.tags ?? [])].sort().join(',') !== [...(seeded.get(plugin.id) ?? [])].sort().join(','))
+            .map((plugin) => `${plugin.id}: [${(plugin.tags ?? []).join(', ')}] vs [${(seeded.get(plugin.id) ?? []).join(', ')}]`);
+
+        expect(mismatched).toEqual([]);
+    });
+
+    it('seeds tags only for plugins the site renders', () => {
+        const rendered = new Set(pluginData.plugins.map((plugin) => plugin.id));
+        expect([...seededTags().keys()].filter((slug) => !rendered.has(slug))).toEqual([]);
+    });
+});
 
 describe('plugin catalogue seed', () => {
     it('parses the seeded rows out of the migration', () => {

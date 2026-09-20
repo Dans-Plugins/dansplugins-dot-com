@@ -188,7 +188,8 @@ curl http://localhost:45345/api/v1/plugins/medieval-factions
   "spigotmcUrl": "https://www.spigotmc.org/resources/medieval-factions.79941/",
   "bstatsId": "8929",
   "iconPath": "/icons/mf.png",
-  "firstReleasedAt": "2020-08-02T18:41:07Z"
+  "firstReleasedAt": "2020-08-02T18:41:07Z",
+  "tags": ["factions", "medieval"]
 }
 ```
 
@@ -197,7 +198,9 @@ SpigotMC page, no bStats project, or no icon. `firstReleasedAt` is when the
 plugin's first GitHub release was published, recorded once by the release sync
 (see [Plugin versions](#plugin-versions)); it is `null` for a plugin with no
 releases, and until the sync has recorded it. The internal UUID is not exposed:
-the slug is the public identifier.
+the slug is the public identifier. `tags` are short lower-case words saying
+what the plugin is for, sorted, from the `plugin_tags` table `V20` seeds from
+the site's catalogue file; an untagged plugin has `[]`.
 
 The website still renders its catalogue from the checked-in
 `pages/data/plugins.json` and will switch to these endpoints when the catalogue

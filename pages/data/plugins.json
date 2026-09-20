@@ -7,7 +7,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Activity-Tracker",
       "spigotmcLink": "https://www.spigotmc.org/resources/activity-tracker.96724/",
       "bStatsId": "12983",
-      "icon": "/icons/at.png"
+      "icon": "/icons/at.png",
+      "tags": [
+        "admin"
+      ]
     },
     {
       "id": "alternate-account-finder",
@@ -16,7 +19,11 @@
       "githubLink": "https://github.com/Dans-Plugins/AlternateAccountFinder",
       "spigotmcLink": "https://www.spigotmc.org/resources/alternate-account-finder.83290/",
       "bStatsId": "9834",
-      "icon": "/icons/aaf.png"
+      "icon": "/icons/aaf.png",
+      "tags": [
+        "admin",
+        "moderation"
+      ]
     },
     {
       "id": "conquest-recipes",
@@ -25,7 +32,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Conquest-Recipes",
       "spigotmcLink": "https://www.spigotmc.org/resources/conquest-recipes.83594/",
       "bStatsId": "",
-      "icon": "/icons/cr.png"
+      "icon": "/icons/cr.png",
+      "tags": [
+        "recipes"
+      ]
     },
     {
       "id": "currencies",
@@ -34,7 +44,12 @@
       "githubLink": "https://github.com/Dans-Plugins/Currencies",
       "spigotmcLink": "https://www.spigotmc.org/resources/currencies.96381/",
       "bStatsId": "12810",
-      "icon": "/icons/c.png"
+      "icon": "/icons/c.png",
+      "tags": [
+        "medieval",
+        "factions",
+        "economy"
+      ]
     },
     {
       "id": "dans-essentials",
@@ -43,7 +58,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Dans-Essentials",
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-essentials.80513/",
       "bStatsId": "9527",
-      "icon": "/icons/de.png"
+      "icon": "/icons/de.png",
+      "tags": [
+        "admin"
+      ]
     },
     {
       "id": "dans-plugin-manager",
@@ -52,7 +70,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Dans-Plugin-Manager",
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-plugin-manager-early-access.100279/",
       "bStatsId": "",
-      "icon": "/icons/dpm.png"
+      "icon": "/icons/dpm.png",
+      "tags": [
+        "admin"
+      ]
     },
     {
       "id": "dans-set-home",
@@ -61,7 +82,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Dans-Set-Home",
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-set-home.79986/",
       "bStatsId": "12126",
-      "icon": "/icons/dsh.png"
+      "icon": "/icons/dsh.png",
+      "tags": [
+        "world"
+      ]
     },
     {
       "id": "dans-spawn-system",
@@ -70,7 +94,11 @@
       "githubLink": "https://github.com/Dans-Plugins/Dans-Spawn-System",
       "spigotmcLink": "https://www.spigotmc.org/resources/dans-spawn-system.82697/",
       "bStatsId": "12161",
-      "icon": "/icons/dss.png"
+      "icon": "/icons/dss.png",
+      "tags": [
+        "admin",
+        "world"
+      ]
     },
     {
       "id": "easy-links",
@@ -79,7 +107,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Easy-Links",
       "spigotmcLink": "https://www.spigotmc.org/resources/easylinks-early-access.98040/",
       "bStatsId": "",
-      "icon": "/icons/el.png"
+      "icon": "/icons/el.png",
+      "tags": [
+        "utility"
+      ]
     },
     {
       "id": "fiefs",
@@ -88,7 +119,11 @@
       "githubLink": "https://github.com/Dans-Plugins/Fiefs",
       "spigotmcLink": "https://www.spigotmc.org/resources/fiefs-early-access.98559/",
       "bStatsId": "12743",
-      "icon": "/icons/f.png"
+      "icon": "/icons/f.png",
+      "tags": [
+        "medieval",
+        "factions"
+      ]
     },
     {
       "id": "food-spoilage",
@@ -97,7 +132,10 @@
       "githubLink": "https://github.com/Dans-Plugins/FoodSpoilage",
       "spigotmcLink": "https://www.spigotmc.org/resources/food-spoilage.81507/",
       "bStatsId": "8992",
-      "icon": "/icons/fs.png"
+      "icon": "/icons/fs.png",
+      "tags": [
+        "survival"
+      ]
     },
     {
       "id": "mailboxes",
@@ -106,7 +144,10 @@
       "githubLink": "https://github.com/Dans-Plugins/Mailboxes",
       "spigotmcLink": "https://www.spigotmc.org/resources/mailboxes.96611/",
       "bStatsId": "12902",
-      "icon": "/icons/m.png"
+      "icon": "/icons/m.png",
+      "tags": [
+        "messaging"
+      ]
     },
     {
       "id": "medieval-cookery",
@@ -114,7 +155,12 @@
       "description": "Allows server owners to add cooking recipes for an enhanced roleplay experience.",
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Cookery",
       "spigotmcLink": "",
-      "bStatsId": ""
+      "bStatsId": "",
+      "tags": [
+        "medieval",
+        "roleplay",
+        "recipes"
+      ]
     },
     {
       "id": "medieval-economy",
@@ -123,7 +169,11 @@
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Economy",
       "spigotmcLink": "https://www.spigotmc.org/resources/medieval-economy.81836/",
       "bStatsId": "8998",
-      "icon": "/icons/me.png"
+      "icon": "/icons/me.png",
+      "tags": [
+        "medieval",
+        "economy"
+      ]
     },
     {
       "id": "medieval-factions",
@@ -132,7 +182,11 @@
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Factions",
       "spigotmcLink": "https://www.spigotmc.org/resources/medieval-factions.79941/",
       "bStatsId": "8929",
-      "icon": "/icons/mf.png"
+      "icon": "/icons/mf.png",
+      "tags": [
+        "medieval",
+        "factions"
+      ]
     },
     {
       "id": "medieval-roleplay-engine",
@@ -141,7 +195,11 @@
       "githubLink": "https://github.com/Dans-Plugins/Medieval-Roleplay-Engine",
       "spigotmcLink": "https://www.spigotmc.org/resources/medieval-roleplay-engine.79993/",
       "bStatsId": "8996",
-      "icon": "/icons/mre.png"
+      "icon": "/icons/mre.png",
+      "tags": [
+        "medieval",
+        "roleplay"
+      ]
     },
     {
       "id": "more-recipes",
@@ -150,7 +208,10 @@
       "githubLink": "https://github.com/Dans-Plugins/More-Recipes",
       "spigotmcLink": "https://www.spigotmc.org/resources/more-recipes.81832/",
       "bStatsId": "12140",
-      "icon": "/icons/mr.png"
+      "icon": "/icons/mr.png",
+      "tags": [
+        "recipes"
+      ]
     },
     {
       "id": "nether-access-controller",
@@ -159,7 +220,12 @@
       "githubLink": "https://github.com/Dans-Plugins/Nether-Access-Controller",
       "spigotmcLink": "https://www.spigotmc.org/resources/nether-access-controller.95905/",
       "bStatsId": "12673",
-      "icon": "/icons/nac.png"
+      "icon": "/icons/nac.png",
+      "tags": [
+        "admin",
+        "moderation",
+        "world"
+      ]
     },
     {
       "id": "no-more-creepers",
@@ -168,7 +234,11 @@
       "githubLink": "https://github.com/Dans-Plugins/NoMoreCreepers",
       "spigotmcLink": "https://www.spigotmc.org/resources/nomorecreepers.97946/",
       "bStatsId": "13432",
-      "icon": "/icons/nmc.png"
+      "icon": "/icons/nmc.png",
+      "tags": [
+        "survival",
+        "mobs"
+      ]
     },
     {
       "id": "player-lore",
@@ -177,7 +247,10 @@
       "githubLink": "https://github.com/Dans-Plugins/PlayerLore",
       "spigotmcLink": "https://www.spigotmc.org/resources/playerlore.98602/",
       "bStatsId": "",
-      "icon": "/icons/pl.png"
+      "icon": "/icons/pl.png",
+      "tags": [
+        "roleplay"
+      ]
     },
     {
       "id": "simple-skills",
@@ -186,7 +259,10 @@
       "githubLink": "https://github.com/Dans-Plugins/SimpleSkills",
       "spigotmcLink": "https://www.spigotmc.org/resources/simpleskills.98039/",
       "bStatsId": "13470",
-      "icon": "/icons/ss.png"
+      "icon": "/icons/ss.png",
+      "tags": [
+        "progression"
+      ]
     },
     {
       "id": "wild-pets",
@@ -195,7 +271,11 @@
       "githubLink": "https://github.com/Dans-Plugins/Wild-Pets",
       "spigotmcLink": "https://www.spigotmc.org/resources/wild-pets.95800/",
       "bStatsId": "12332",
-      "icon": "/icons/wp.png"
+      "icon": "/icons/wp.png",
+      "tags": [
+        "survival",
+        "mobs"
+      ]
     }
   ],
   "mostPopular": [

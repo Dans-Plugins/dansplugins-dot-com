@@ -59,8 +59,10 @@ class PluginControllerTest {
                 "https://github.com/Dans-Plugins/Wild-Pets",
                 "https://www.spigotmc.org/resources/wild-pets.95800/", "12332", "/icons/wp.png"));
         // No SpigotMC page, no bStats project, no icon — the nullable columns.
-        pluginRepository.save(new Plugin("medieval-cookery", "Medieval Cookery", "Cooking recipes.",
-                "https://github.com/Dans-Plugins/Medieval-Cookery", null, null, null));
+        Plugin cookery = new Plugin("medieval-cookery", "Medieval Cookery", "Cooking recipes.",
+                "https://github.com/Dans-Plugins/Medieval-Cookery", null, null, null);
+        cookery.getTags().addAll(java.util.Set.of("roleplay", "medieval", "recipes"));
+        pluginRepository.save(cookery);
     }
 
     @AfterEach
@@ -140,6 +142,17 @@ class PluginControllerTest {
                 // Present and null until the release sync has recorded it, so
                 // a client can tell "not yet known" from an older API.
                 .andExpect(jsonPath("$.firstReleasedAt").value(nullValue()));
+    }
+
+    @Test
+    void servesAPluginsTags_sorted_andAnEmptyListWhenUntagged() throws Exception {
+        mockMvc.perform(get("/api/v1/plugins/medieval-cookery"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tags").value(org.hamcrest.Matchers.contains("medieval", "recipes", "roleplay")));
+        mockMvc.perform(get("/api/v1/plugins/wild-pets"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tags").isArray())
+                .andExpect(jsonPath("$.tags").isEmpty());
     }
 
     @Test

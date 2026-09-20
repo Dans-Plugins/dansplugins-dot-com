@@ -23,6 +23,8 @@ interface ResourcePropsShape {
         spigotDownloads: number | null;
         firstReleasedAt: string | null;
         lastUpdatedAt: string | null;
+        tags: string[];
+        related: {slug: string; title: string; description: string; icon: string | null}[];
     };
 }
 
@@ -142,8 +144,29 @@ describe('resource page getServerSideProps', () => {
             versions: [],
             downloads: null,
             firstReleasedAt: null,
-            lastUpdatedAt: null
+            lastUpdatedAt: null,
+            tags: ['admin'],
+            // Every other admin plugin shares the one tag, so the order is
+            // alphabetical, and the fifth (Nether Access Controller) is cut.
+            related: [
+                {slug: 'alternate-account-finder', title: 'Alternate Account Finder', description: 'Identifies accounts that have used the same IP address.', icon: '/icons/aaf.png'},
+                {slug: 'dans-essentials', title: 'Dan\'s Essentials', description: 'Provides miscellaneous commands.', icon: '/icons/de.png'},
+                {slug: 'dans-plugin-manager', title: 'Dan\'s Plugin Manager', description: 'Lets operators download the community\'s plugins in-game or from the server console.', icon: '/icons/dpm.png'},
+                {slug: 'dans-spawn-system', title: 'Dan\'s Spawn System', description: 'Allows players to use signs to select a custom spawn in their world.', icon: '/icons/dss.png'}
+            ]
         });
+    });
+
+    it('names the plugins sharing a tag, most in common first', async () => {
+        const result = await getServerSideProps(contextWithSlug('currencies')) as ResourcePropsShape;
+
+        // Currencies is medieval + factions + economy: the other factions
+        // plugins and Medieval Economy share two tags (alphabetical among
+        // themselves), the rest of the medieval line one, and the limit of
+        // four cuts the list after the first of those.
+        expect(result.props.related.map((p) => p.slug)).toEqual([
+            'fiefs', 'medieval-economy', 'medieval-factions', 'medieval-cookery'
+        ]);
     });
 
     it('serves SpigotMC\'s rating and download count once the listing has enough reviews', async () => {
