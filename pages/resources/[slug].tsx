@@ -9,6 +9,7 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
@@ -27,6 +28,7 @@ import {
 } from '../../services/pluginVersionService';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {getServerCount} from '../../utils/bstats';
+import {formatTestedVersions, getTestedVersions, spigotResourceId} from '../../utils/spigot';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
 import {resourceDescription, resourcePath} from '../../utils/resources';
@@ -60,6 +62,10 @@ interface ResourcePageProps {
     // which case the page simply omits that chip rather than showing a zero.
     serverCount: number | null;
     latestVersion: string | null;
+    // Minecraft versions the author lists as tested on SpigotMC, through
+    // Spiget. Null for a plugin with no SpigotMC page, and when Spiget can't
+    // be reached; the chip is omitted either way.
+    testedVersions: string[] | null;
     // The release history dpc-api mirrors from GitHub. Empty for a plugin that
     // publishes no releases, and also whenever the API can't be reached — the
     // page hides the section either way rather than failing.
@@ -90,8 +96,10 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
     // Neither figure is load-bearing: a bStats outage or a GitHub rate limit
     // must degrade the page, never fail it. Both helpers already swallow their
     // own errors and resolve to undefined.
-    const [serverCount, latestFromGithub] = await Promise.all([
+    const spigotId = spigotResourceId(plugin.spigotmcLink);
+    const [serverCount, testedVersions, latestFromGithub] = await Promise.all([
         plugin.bStatsId ? getServerCount(plugin.bStatsId) : Promise.resolve(undefined),
+        spigotId ? getTestedVersions(spigotId) : Promise.resolve(undefined),
         mirroredLatest ? Promise.resolve(undefined) : getLatestRelease(plugin.githubLink)
     ]);
 
@@ -105,6 +113,7 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             icon: orNull(plugin.icon),
             serverCount: serverCount ?? null,
             latestVersion: mirroredLatest ?? latestFromGithub ?? null,
+            testedVersions: testedVersions ?? null,
             versions,
             downloads
         }
@@ -120,9 +129,11 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     icon,
     serverCount,
     latestVersion,
+    testedVersions,
     versions,
     downloads
 }) => {
+    const testedLabel = testedVersions && testedVersions.length > 0 ? formatTestedVersions(testedVersions) : null;
     const releases = releasesUrl(githubLink);
     // GitHub's figure, kept as a second number beside the site's own: only what
     // the mirror has seen, which is the newest releases rather than every
@@ -165,7 +176,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     <SelfLoadingLikeButton targetType="plugin" targetId={slug}/>
                 </Stack>
 
-                {serverCount || latestVersion || githubDownloadCount ? (
+                {serverCount || latestVersion || githubDownloadCount || testedLabel ? (
                     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: downloads ? 2 : 3}}>
                         {serverCount ? (
                             <Chip
@@ -190,6 +201,16 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                                 icon={<CloudDownloadIcon/>}
                                 label={`${githubDownloadCount.toLocaleString()} downloads on GitHub`}
                                 title="GitHub's count of downloads of the mirrored releases, from anywhere"
+                            />
+                        ) : null}
+                        {testedLabel ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<VerifiedIcon/>}
+                                label={`Tested on Minecraft ${testedLabel}`}
+                                title="Minecraft versions the plugin has been tested on, as listed on its SpigotMC page"
+                                data-testid="tested-versions"
                             />
                         ) : null}
                     </Stack>

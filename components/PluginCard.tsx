@@ -5,6 +5,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import DnsIcon from '@mui/icons-material/Dns';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import LikeButton from './LikeButton';
 import {NextLinkComposed} from './NextLinkComposed';
 import {
@@ -15,6 +16,7 @@ import {
 import {colorForTitle} from '../utils/pluginAvatar';
 import {resourcePath} from '../utils/resources';
 import {downloadsLabel} from '../services/pluginVersionService';
+import {formatTestedVersions} from '../utils/spigot';
 
 interface PluginCardProps {
     id: string;
@@ -33,6 +35,10 @@ interface PluginCardProps {
     // Downloads made through this site, every release summed — the figure a
     // SpigotMC listing shows per resource. Absent or zero hides the chip.
     downloadCount?: number | null;
+    // Minecraft versions the author lists as tested on the plugin's SpigotMC
+    // page, mirrored through Spiget (utils/spigot.ts). Absent or empty hides
+    // the chip; a plugin with no SpigotMC page never has one.
+    testedVersions?: string[] | null;
     likeCount: number;
     liked: boolean;
     token: string | null;
@@ -49,10 +55,12 @@ const PluginCard: React.FC<PluginCardProps> = ({
     latestVersion,
     latestDownloadUrl,
     downloadCount,
+    testedVersions,
     likeCount,
     liked,
     token
 }) => {
+    const testedLabel = testedVersions && testedVersions.length > 0 ? formatTestedVersions(testedVersions) : null;
     return (
         <Card sx={pluginCardStyle}>
             <CardContent sx={pluginCardContentStyle}>
@@ -98,7 +106,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
                 </Typography>
             </CardContent>
 
-            {(serverCount && serverCount > 0) || latestVersion || (downloadCount && downloadCount > 0) ? (
+            {(serverCount && serverCount > 0) || latestVersion || (downloadCount && downloadCount > 0) || testedLabel ? (
                 <Box sx={{px: 2, pb: 1}}>
                     <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1}}>
                         {serverCount && serverCount > 0 ? (
@@ -125,6 +133,16 @@ const PluginCard: React.FC<PluginCardProps> = ({
                                 label={downloadsLabel(downloadCount)}
                                 title="Downloads through dansplugins.com"
                                 data-testid="download-count"
+                            />
+                        ) : null}
+                        {testedLabel ? (
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                icon={<VerifiedIcon/>}
+                                label={`MC ${testedLabel}`}
+                                title="Minecraft versions the plugin has been tested on, as listed on SpigotMC"
+                                data-testid="tested-versions"
                             />
                         ) : null}
                     </Stack>

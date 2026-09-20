@@ -68,8 +68,8 @@
     },
     {
       "title": "Minecraft-Version Compatibility",
-      "description": "Answering a server owner's first question — will this run on my server? — on the card itself. The latest release is now shown per plugin; the supported Minecraft versions still are not, and that half remains open.",
-      "status": "In Progress"
+      "description": "Answering a server owner's first question — will this run on my server? — on the card itself: the latest release, and the Minecraft versions the plugin has been tested on, as listed on its SpigotMC page.",
+      "status": "Completed"
     },
     {
       "title": "Badges & Roles on Profiles",
