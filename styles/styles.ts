@@ -293,10 +293,15 @@ export const navDrawerDividerStyle = {
 };
 
 /**
- * Plugin card layout with fixed height
+ * Plugin card layout. Grows with its content rather than holding a fixed
+ * height: a fixed height let a card with several tags (or a wrapped actions
+ * row) push Details/Download past the bottom edge, out of reach. Filling the
+ * grid item keeps every card in a row as tall as the tallest one, and the
+ * min height keeps sparse cards from collapsing.
  */
 export const pluginCardStyle = {
-    height: '18rem',
+    height: '100%',
+    minHeight: '18rem',
     display: 'flex',
     flexDirection: 'column',
 };
