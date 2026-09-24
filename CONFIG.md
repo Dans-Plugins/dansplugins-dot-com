@@ -71,6 +71,26 @@ Treat it as a secret: keep it out of version control, and use a distinct value i
 JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 ```
 
+### `USAGE_REPORTING_KEY`
+
+**Type:** string  
+**Default:** *unset — no usage is reported*  
+**Description:** The [trace](https://trace.danielstephenson.dev) write key for the `dansplugins-dot-com` program. With it set, the Next.js server reports one `page-view` event per HTML page served, carrying the path and the site version only (see [Usage reporting](README.md#usage-reporting)). It is read at runtime by `middleware.ts` only: never inlined at build time, never exposed to the browser, and never committed — keep it in the deployment's environment. Without it, nothing is sent and nothing is logged.
+
+### `USAGE_REPORTING_ENABLED`
+
+**Type:** boolean  
+**Default:** `true`  
+**Description:** Set to `false` to stop reporting page views even when a key is set. `TRACE_USAGE_REPORTING=off` and `DO_NOT_TRACK=1` do the same, and win over it.
+
+### `USAGE_REPORTING_ENDPOINT`
+
+**Type:** string  
+**Default:** `https://trace.danielstephenson.dev`  
+**Description:** The trace server page views are sent to.
+
+A new page under `pages/` must also be added to `PAGE_ROUTES` in [`utils/page-view-policy.ts`](utils/page-view-policy.ts) to be counted; a test fails until it is.
+
 ## Docker Compose Configuration
 
 When running the stack with Docker Compose, variables can be set in the shell or placed in a **`.env`** file in the project root. Compose reads `.env` for `${VAR}` substitution in `compose.yml`; it does not read `.env.local`, and no env file is copied into the website image (see the `COPY` lines in `Dockerfile`), so `.env.local` has no effect on a Compose run.

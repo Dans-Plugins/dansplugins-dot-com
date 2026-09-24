@@ -16,5 +16,8 @@ export default defineConfig({
         // (data/visits.json), so run test files serially to avoid cross-file
         // races on that file.
         fileParallelism: false,
+        // No test ever reports to trace: the ones that exercise reporting build
+        // their own client against a stub.
+        env: { USAGE_REPORTING_ENABLED: 'false' },
     },
 });

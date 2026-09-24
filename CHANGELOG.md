@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Page views are reported to [trace](https://trace.danielstephenson.dev) as the program
+  `dansplugins-dot-com`: one `page-view` event per HTML page served, tagged with the path and the site version
+  only, sent server-side from `middleware.ts` (trace decision 0002). Crawlers, monitors,
+  prefetches, assets and 404s are skipped; nothing about the visitor is sent. The key is read from
+  `USAGE_REPORTING_KEY` only, and reporting is off without it, with `USAGE_REPORTING_ENABLED=false`,
+  `TRACE_USAGE_REPORTING=off` or `DO_NOT_TRACK=1`. The client is `trace-client.ts` 0.1.0 vendored
+  unmodified from `Stephenson-Software/trace-client-js`.
+
 - A **password reset** page at `/account/reset`, reached from **Forgot your password?** on the login form. The site sends no email, so the flow starts with an admin: they issue a one-time, thirty-minute reset token on the server (UserAuth `POST /password/reset/issue`, new in UserAuth #171) and hand it over, usually as a link with `?token=` filled in; the page redeems it through a new `POST /api/v1/auth/password/reset` proxy, checks the password policy before the round trip, and — because a reset signs the account out everywhere, this browser included — ends by offering the sign-in form. Bad, expired and used tokens get one explanation; a rate limit and an outage get their own.
 
 ### Changed
