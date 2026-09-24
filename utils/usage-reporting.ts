@@ -11,6 +11,7 @@
 // Runs in the Edge runtime, so it uses nothing beyond what trace-client.ts does.
 import pkg from '../package.json';
 import { TraceClient } from './trace-client';
+import type { Environment } from './trace-client';
 
 /** The trace program this site reports as; the key in USAGE_REPORTING_KEY is issued for it. */
 export const PROGRAM_NAME = 'dansplugins-dot-com';
@@ -36,8 +37,6 @@ export interface UsageReportingEnv {
 /** Why nothing is sent; null when reporting is on. First match wins, in this order. */
 export type DisabledReason = 'environment' | 'USAGE_REPORTING_ENABLED' | 'no key';
 
-const TRACE_OFF = new Set(['off', 'false', '0', 'no']);
-const DO_NOT_TRACK_ON = new Set(['1', 'true', 'yes']);
 const ENABLED_OFF = new Set(['false', '0', 'no', 'off']);
 
 function normalised(value: string | undefined): string {
@@ -45,14 +44,22 @@ function normalised(value: string | undefined): string {
 }
 
 /**
+ * The two fleet-wide opt-outs from `env`, in the shape trace-client.ts reads
+ * them. Passed to the client explicitly so it never falls back to process.env:
+ * `env` stays the one source, as it is in tests.
+ */
+function traceEnvironment(env: UsageReportingEnv): Environment {
+    return { TRACE_USAGE_REPORTING: env.TRACE_USAGE_REPORTING, DO_NOT_TRACK: env.DO_NOT_TRACK };
+}
+
+/**
  * Why reporting is off for `env`, or null when it is on. The fleet-wide
  * opt-outs (`TRACE_USAGE_REPORTING=off`, `DO_NOT_TRACK=1`) win over the site's
- * own `USAGE_REPORTING_ENABLED=false`, which wins over a missing key.
+ * own `USAGE_REPORTING_ENABLED=false`, which wins over a missing key. The
+ * fleet-wide check is trace-client.ts's own (`TraceClient.environmentOptsOut`).
  */
 export function disabledReason(env: UsageReportingEnv): DisabledReason | null {
-    if (TRACE_OFF.has(normalised(env.TRACE_USAGE_REPORTING)) || DO_NOT_TRACK_ON.has(normalised(env.DO_NOT_TRACK))) {
-        return 'environment';
-    }
+    if (TraceClient.environmentOptsOut(traceEnvironment(env))) return 'environment';
     if (ENABLED_OFF.has(normalised(env.USAGE_REPORTING_ENABLED))) return 'USAGE_REPORTING_ENABLED';
     if (!(env.USAGE_REPORTING_KEY ?? '').trim()) return 'no key';
     return null;
@@ -82,6 +89,7 @@ export function createUsageReporting(
     if (disabledReason(env)) return TraceClient.disabled();
     return new TraceClient(endpointOf(env), PROGRAM_NAME, {
         key: env.USAGE_REPORTING_KEY,
+        env: traceEnvironment(env),
         fetch: options.fetch,
         debug: options.debug,
     });

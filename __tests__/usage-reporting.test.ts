@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 import pkg from '../package.json';
+import { TraceClient } from '../utils/trace-client';
 import {
     DEFAULT_ENDPOINT,
     DETAILS_URL,
@@ -46,6 +47,32 @@ describe('disabledReason', () => {
         expect(disabledReason({ DO_NOT_TRACK: '1', USAGE_REPORTING_ENABLED: 'false' })).toBe('environment');
         expect(disabledReason({ USAGE_REPORTING_KEY: KEY, DO_NOT_TRACK: '0' })).toBeNull();
         expect(disabledReason({ USAGE_REPORTING_KEY: KEY, TRACE_USAGE_REPORTING: 'on' })).toBeNull();
+    });
+});
+
+describe('the fleet-wide opt-outs come from trace-client.ts', () => {
+    it('agrees with TraceClient.environmentOptsOut for every value', () => {
+        const values = [undefined, '', ' ', 'on', 'off', ' OFF ', 'false', '0', 'no', '1', 'true', 'yes', 'YES', 'maybe'];
+        for (const trace of values) {
+            for (const dnt of values) {
+                const env = { USAGE_REPORTING_KEY: KEY, TRACE_USAGE_REPORTING: trace, DO_NOT_TRACK: dnt };
+                const optsOut = TraceClient.environmentOptsOut({ TRACE_USAGE_REPORTING: trace, DO_NOT_TRACK: dnt });
+                expect(disabledReason(env), `${trace}/${dnt}`).toBe(optsOut ? 'environment' : null);
+            }
+        }
+    });
+
+    it('reads only the env it is given, never process.env', () => {
+        vi.stubEnv('DO_NOT_TRACK', '1');
+        vi.stubEnv('TRACE_USAGE_REPORTING', 'off');
+        try {
+            expect(disabledReason({ USAGE_REPORTING_KEY: KEY })).toBeNull();
+            const client = createUsageReporting({ USAGE_REPORTING_KEY: KEY }, { fetch: okFetch(), log: () => undefined });
+            expect(client.enabled).toBe(true);
+            expect(client.disabledReason).toBeNull();
+        } finally {
+            vi.unstubAllEnvs();
+        }
     });
 });
 
