@@ -151,6 +151,23 @@ describe('createUsageReporting', () => {
         await client.report('page-view', { tags: pageViewTags('/') });
         expect(fetch.mock.calls[0][0]).toBe(DEFAULT_ENDPOINT + '/api/metrics');
     });
+
+    // compose.yml passes every variable through as `${VAR:-}`, so an unset one arrives as ''.
+    it('treats the empty values compose.yml passes through as unset', async () => {
+        const empty = {
+            USAGE_REPORTING_ENABLED: '',
+            USAGE_REPORTING_ENDPOINT: '',
+            TRACE_USAGE_REPORTING: '',
+            DO_NOT_TRACK: '',
+        };
+        expect(disabledReason({ ...empty, USAGE_REPORTING_KEY: '' })).toBe('no key');
+
+        const fetch = okFetch();
+        const client = createUsageReporting({ ...empty, USAGE_REPORTING_KEY: KEY }, { fetch, log: () => undefined });
+        expect(client.enabled).toBe(true);
+        await client.report('page-view', { tags: pageViewTags('/') });
+        expect(fetch.mock.calls[0][0]).toBe(DEFAULT_ENDPOINT + '/api/metrics');
+    });
 });
 
 describe('pageViewTags', () => {

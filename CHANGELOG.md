@@ -18,6 +18,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - A **password reset** page at `/account/reset`, reached from **Forgot your password?** on the login form. The site sends no email, so the flow starts with an admin: they issue a one-time, thirty-minute reset token on the server (UserAuth `POST /password/reset/issue`, new in UserAuth #171) and hand it over, usually as a link with `?token=` filled in; the page redeems it through a new `POST /api/v1/auth/password/reset` proxy, checks the password policy before the round trip, and — because a reset signs the account out everywhere, this browser included — ends by offering the sign-in form. Bad, expired and used tokens get one explanation; a rate limit and an outage get their own.
 
+### Fixed
+
+- Page-view reporting could not be turned on under Docker Compose: `compose.yml` passed none of
+  the usage-reporting variables to the `dpc-website` container, so a `USAGE_REPORTING_KEY` set in
+  the shell or `.env` never reached the server. It now passes through `USAGE_REPORTING_KEY`,
+  `USAGE_REPORTING_ENABLED`, `USAGE_REPORTING_ENDPOINT`, `TRACE_USAGE_REPORTING` and
+  `DO_NOT_TRACK`, each empty by default so reporting stays off until a key is set.
+
 ### Changed
 
 - `utils/trace-client.ts` is re-vendored unmodified from `Stephenson-Software/trace-client-js`
