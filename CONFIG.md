@@ -101,6 +101,8 @@ Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild 
 
 `compose.yml` sets `DPC_API_INTERNAL_URL` to `http://dpc-api:8080` by default, which is how the website container reaches the API on the Compose network. Leave it alone unless the API service is renamed or moved; it does not belong in a `.env` written for `npm run dev`, where the server and the browser are the same machine and `NEXT_PUBLIC_API_URL` already answers for both.
 
+Compose hands the website container only the variables its `environment:` block names, so `compose.yml` also passes through the usage-reporting variables — [`USAGE_REPORTING_KEY`](#usage_reporting_key), [`USAGE_REPORTING_ENABLED`](#usage_reporting_enabled), [`USAGE_REPORTING_ENDPOINT`](#usage_reporting_endpoint), `TRACE_USAGE_REPORTING` and `DO_NOT_TRACK` — from the shell or `.env`. Each defaults to empty, which leaves reporting off. Like `DPC_API_INTERNAL_URL` they are read at runtime, so setting the key needs a restart rather than a rebuild.
+
 **Example `.env`:**
 
 ```env
