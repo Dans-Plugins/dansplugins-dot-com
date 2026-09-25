@@ -17,6 +17,15 @@ services:
       # API need the Compose network name instead. Server-only, so it is read at
       # runtime rather than inlined at build time. See CONFIG.md.
       DPC_API_INTERNAL_URL: ${DPC_API_INTERNAL_URL:-http://dpc-api:8080}
+      # Page-view reporting to trace (middleware.ts). Compose passes only the
+      # variables listed here into the container, so without these lines a key
+      # set in the shell or .env never reaches the server. All empty by default,
+      # which leaves reporting off. Runtime-only, never inlined. See CONFIG.md.
+      USAGE_REPORTING_KEY: ${USAGE_REPORTING_KEY:-}
+      USAGE_REPORTING_ENABLED: ${USAGE_REPORTING_ENABLED:-}
+      USAGE_REPORTING_ENDPOINT: ${USAGE_REPORTING_ENDPOINT:-}
+      TRACE_USAGE_REPORTING: ${TRACE_USAGE_REPORTING:-}
+      DO_NOT_TRACK: ${DO_NOT_TRACK:-}
     volumes:
       - ./node_modules:/app/node_modules
       - ./data:/app/data
