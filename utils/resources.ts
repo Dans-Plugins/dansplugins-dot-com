@@ -19,3 +19,9 @@ export const resourcePath = (slug: string): string => `/resources/${encodeURICom
 // community framing when the description is missing.
 export const resourceDescription = (pluginTitle: string, description: string): string =>
     description.trim() || `${pluginTitle}, a Minecraft plugin from Dan's Plugins Community.`;
+
+// Dan's Plugin Manager's catalogue id. Its resource page carries a one-line note
+// that Dan's Server Hosting (free Minecraft server hosting) preinstalls it on
+// every new server.
+export const DPM_SLUG = 'dans-plugin-manager';
+export const DSH_URL = 'https://dansserverhosting.com';
