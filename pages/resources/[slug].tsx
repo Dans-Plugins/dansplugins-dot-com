@@ -35,7 +35,7 @@ import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
 import {getCatalogue} from '../../services/pluginCatalogueService';
 import {absoluteDateFrom} from '../../utils/relativeTime';
-import {resourceDescription, resourcePath} from '../../utils/resources';
+import {DPM_SLUG, DSH_URL, resourceDescription, resourcePath} from '../../utils/resources';
 import {relatedPlugins} from '../../utils/catalogueFilter';
 
 const version = require('../../package.json').version;
@@ -335,6 +335,16 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                             />
                         ))}
                     </Stack>
+                ) : null}
+
+                {slug === DPM_SLUG ? (
+                    <Typography variant="body2" color="text.secondary" sx={{mb: 3}} data-testid="dsh-note">
+                        Every new server on{' '}
+                        <Link href={DSH_URL} target="_blank" rel="noopener noreferrer">
+                            Dan&apos;s Server Hosting
+                        </Link>
+                        {' '}(free Minecraft server hosting) ships with Dan&apos;s Plugin Manager preinstalled.
+                    </Typography>
                 ) : null}
 
                 <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: 4}}>

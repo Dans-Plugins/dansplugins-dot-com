@@ -1,10 +1,12 @@
-import {AppBar, Box, Button, Toolbar, Typography, useTheme} from '@mui/material';
+import {AppBar, Box, Button, Link, Toolbar, Typography, useTheme} from '@mui/material';
 import React, {useContext} from 'react';
 import {ColorModeToggleSwitch} from './ColorModeToggleSwitch';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {absoluteDateFrom} from '../utils/relativeTime';
 import CodeIcon from '@mui/icons-material/Code';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import DnsIcon from '@mui/icons-material/Dns';
 
 // Import styles
 import {
@@ -79,6 +81,18 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                         >
                             Report a Bug
                         </FooterButton>
+                        <FooterButton
+                            href="https://zettel.dansplugins.com"
+                            icon={<MenuBookIcon/>}
+                        >
+                            Knowledge Base
+                        </FooterButton>
+                        <FooterButton
+                            href="https://dansserverhosting.com"
+                            icon={<DnsIcon/>}
+                        >
+                            Free Server Hosting
+                        </FooterButton>
                     </Box>
                 </Box>
 
@@ -90,6 +104,12 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                     />
                 </Box>
             </Toolbar>
+            <Typography variant="caption" component="p" color="inherit" sx={{textAlign: 'center', opacity: 0.8, pb: 1, px: 2, m: 0}}>
+                More by Daniel Stephenson →{' '}
+                <Link href="https://danielstephenson.dev" color="inherit" underline="hover">
+                    danielstephenson.dev
+                </Link>
+            </Typography>
         </AppBar>
     );
 }

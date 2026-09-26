@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The footer links the Dans-Plugins knowledge base ([zettel.dansplugins.com](https://zettel.dansplugins.com)) and [Dan's Server Hosting](https://dansserverhosting.com) (free Minecraft server hosting), and carries a small "More by Daniel Stephenson → danielstephenson.dev" backlink; Dan's Plugin Manager's resource page notes that Dan's Server Hosting preinstalls it on every new server.
+
 - Page views are reported to [trace](https://trace.danielstephenson.dev) as the program
   `dansplugins-dot-com`: one `page-view` event per HTML page served, tagged with the path and the site version
   only, sent server-side from `middleware.ts` (trace decision 0002). Crawlers, monitors,
