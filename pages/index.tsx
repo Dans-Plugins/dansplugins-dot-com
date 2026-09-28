@@ -1,4 +1,4 @@
-import {Box, Button, Chip, Collapse, Container, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Tooltip, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Box, Button, Chip, Collapse, Container, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import TuneIcon from '@mui/icons-material/Tune'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -118,18 +118,22 @@ export const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }
                         {version ? ` tested on Minecraft ${version}` : ''}
                     </Typography>
                 )}
-                <Tooltip title="Search & filter">
-                    <IconButton
-                        size="small"
-                        aria-label="Search & filter"
-                        aria-expanded={filtersOpen}
-                        aria-controls="plugin-filters"
-                        onClick={() => setFiltersOpen((open) => !open)}
-                        color={filtersOpen || filtering ? 'primary' : 'default'}
-                    >
-                        <TuneIcon fontSize="small" />
-                    </IconButton>
-                </Tooltip>
+                {/* A worded button rather than a bare slider glyph: search is the
+                    main way into a catalogue this size, and an unlabeled icon
+                    in the corner reads as decoration until someone hovers it. */}
+                <Button
+                    size="small"
+                    startIcon={<SearchIcon fontSize="small" />}
+                    endIcon={<TuneIcon fontSize="small" />}
+                    aria-label="Search & filter"
+                    aria-expanded={filtersOpen}
+                    aria-controls="plugin-filters"
+                    onClick={() => setFiltersOpen((open) => !open)}
+                    color={filtersOpen || filtering ? 'primary' : 'inherit'}
+                    sx={{ color: filtersOpen || filtering ? undefined : 'text.secondary' }}
+                >
+                    Search &amp; filter
+                </Button>
             </Box>
 
             <Collapse in={filtersOpen} id="plugin-filters" data-testid="plugin-filters">

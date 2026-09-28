@@ -106,7 +106,9 @@ const BrandName: React.FC = () => (
         color="inherit"
         sx={(theme) => ({...brandNameStyle(theme), display: 'inline-block'})}
     >
-        <Typography variant="h6" color="inherit" component="span">
+        {/* Scaled down on phones so the wordmark, the dark-mode toggle and the
+            menu button share one row instead of the bar wrapping to two. */}
+        <Typography variant="h6" color="inherit" component="span" sx={{fontSize: {xs: '1.05rem', sm: '1.25rem'}, whiteSpace: 'nowrap'}}>
             Dan&apos;s Plugins Community
         </Typography>
     </Link>
@@ -207,8 +209,8 @@ const TopBar: React.FC = () => {
             position="static"
             sx={(theme) => appBarStyle(theme)}
         >
-            <Toolbar sx={(theme) => toolbarStyle(theme)}>
-                <Box sx={(theme) => flexContainerStyle(theme, {flexWrap: 'wrap'})}>
+            <Toolbar sx={(theme) => ({...toolbarStyle(theme), flexWrap: {xs: 'nowrap', md: 'wrap'}})}>
+                <Box sx={(theme) => ({...flexContainerStyle(theme, {flexWrap: 'wrap'}), minWidth: 0})}>
                     <BrandName/>
 
                     {/* Desktop / tablet: inline nav, hidden below the `md` breakpoint. */}
@@ -223,7 +225,7 @@ const TopBar: React.FC = () => {
                     </Box>
                 </Box>
 
-                <Box sx={(theme) => flexContainerStyle(theme, {gap: 1})}>
+                <Box sx={(theme) => ({...flexContainerStyle(theme, {gap: 1}), flexShrink: 0, flexWrap: 'nowrap'})}>
                     <Box sx={toggleSwitchBoxStyle}>
                         <ColorModeToggleSwitch
                             checked={theme.palette.mode === 'dark'}

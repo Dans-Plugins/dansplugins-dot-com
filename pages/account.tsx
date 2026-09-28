@@ -363,20 +363,21 @@ const AccountPage: NextPage = () => {
                 {!token ? (
                     <Box sx={{maxWidth: 460, mx: 'auto', mt: 2}}>
                         <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{mb: 2}}>
-                            <Tab label="Login"/>
-                            <Tab label="Register"/>
+                            <Tab label="Sign in"/>
+                            <Tab label="Create account"/>
                         </Tabs>
 
                         {tab === 0 && (
                             <Card>
                                 <CardContent>
-                                    <Typography variant="h6" gutterBottom>Login</Typography>
+                                    <Typography variant="h6" gutterBottom>Sign in</Typography>
                                     <Box component="form" onSubmit={handleLogin} sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
                                         <TextField
                                             label="Username"
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             required
+                                            inputProps={{autoComplete: 'username'}}
                                         />
                                         <TextField
                                             label="Password"
@@ -384,10 +385,11 @@ const AccountPage: NextPage = () => {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
+                                            inputProps={{autoComplete: 'current-password'}}
                                         />
                                         <Button type="submit" variant="contained" disabled={submitting}
                                                 startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
-                                            Login
+                                            Sign in
                                         </Button>
                                         <Typography variant="body2" color="text.secondary">
                                             Forgot your password?{' '}
@@ -403,7 +405,7 @@ const AccountPage: NextPage = () => {
                         {tab === 1 && (
                             <Card>
                                 <CardContent>
-                                    <Typography variant="h6" gutterBottom>Register</Typography>
+                                    <Typography variant="h6" gutterBottom>Create account</Typography>
                                     <Typography variant="body2" sx={{mb: 2}} color="text.secondary">
                                         Create an account to manage API keys for your Minecraft servers.
                                         You can also register from a Minecraft plugin using the command line.
@@ -415,6 +417,7 @@ const AccountPage: NextPage = () => {
                                             onChange={(e) => setUsername(e.target.value)}
                                             required
                                             helperText="3-32 characters, letters, digits, hyphens, underscores"
+                                            inputProps={{autoComplete: 'username'}}
                                         />
                                         <TextField
                                             label="Password"
@@ -423,10 +426,11 @@ const AccountPage: NextPage = () => {
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                             helperText="8-128 characters"
+                                            inputProps={{autoComplete: 'new-password'}}
                                         />
                                         <Button type="submit" variant="contained" disabled={submitting}
                                                 startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
-                                            Register
+                                            Create account
                                         </Button>
                                     </Box>
                                 </CardContent>

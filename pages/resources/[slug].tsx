@@ -299,13 +299,16 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     <Paper
                         variant="outlined"
                         component="section"
-                        aria-label="Downloads"
+                        aria-label="Downloads from dansplugins.com"
                         data-testid="downloads"
                         sx={{px: 2, py: 1.5, mb: 3, display: 'inline-flex', flexWrap: 'wrap', gap: 3, rowGap: 1}}
                     >
                         <Stack direction="row" spacing={1} alignItems="center">
                             <DownloadIcon fontSize="small" color="action"/>
-                            <Typography variant="body2" color="text.secondary">Downloads</Typography>
+                            {/* Named for where they were counted: the chips above already show
+                                GitHub's and SpigotMC's figures, which are far larger, and an
+                                unqualified "Downloads 84" beside them read as a mistake. */}
+                            <Typography variant="body2" color="text.secondary">Downloads from this site</Typography>
                         </Stack>
                         <Typography variant="body2" data-testid="downloads-total">
                             <Box component="span" sx={{fontWeight: 700}}>{downloads.total.toLocaleString()}</Box>
