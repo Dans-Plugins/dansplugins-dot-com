@@ -1,16 +1,23 @@
 import React from 'react';
-import {Avatar, Box, Link, Paper, Popper} from '@mui/material';
+import {Avatar, Box, IconButton, Link, Paper, Popper, SwipeableDrawer, useMediaQuery} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import PluginDetails, {type PluginDetailsProps} from './PluginDetails';
 import {NextLinkComposed} from './NextLinkComposed';
-import {iconGridStyle, iconTileStyle, pluginDetailsPanelStyle} from '../styles/styles';
+import {
+    iconGridStyle,
+    iconTileStyle,
+    pluginDetailsPanelStyle,
+    pluginDetailsSheetStyle,
+    sheetHandleStyle,
+} from '../styles/styles';
 import {colorForTitle} from '../utils/pluginAvatar';
 import {resourcePath} from '../utils/resources';
 
 // The home page catalogue: one icon per plugin and nothing else. Everything the
 // old cards carried — description, figures, actions — lives in a panel that
-// opens under a tile on hover or keyboard focus. Clicking a tile goes to the
-// plugin's page, which is also what a tap does on a touch screen, where there
-// is no hover to open the panel.
+// opens under a tile on hover or keyboard focus, and clicking a tile goes to
+// the plugin's page. A touch screen has no hover, so there a tap opens the same
+// details in a bottom sheet instead, whose Details button goes on to the page.
 
 export type IconGridPlugin = Omit<PluginDetailsProps, 'likeCount' | 'liked' | 'token' | 'onTagClick' | 'descriptionId'>;
 
@@ -34,6 +41,10 @@ export const OPEN_DELAY_MS = 120;
 // Grace period for the pointer to cross the gap between a tile and its panel.
 export const CLOSE_DELAY_MS = 150;
 
+// A device whose only pointer cannot hover: a phone or tablet. False during
+// server rendering, so the page is rendered for a desktop first.
+export const TOUCH_ONLY_QUERY = '(hover: none)';
+
 interface IconTileProps {
     plugin: IconGridPlugin;
     open: boolean;
@@ -41,10 +52,13 @@ interface IconTileProps {
     onPointerLeave: () => void;
     onOpenNow: () => void;
     onClose: () => void;
+    // Set on a touch screen: the tile opens the bottom sheet instead of
+    // following its link, and hover and focus open nothing.
+    onTap?: (tile: HTMLAnchorElement) => void;
     details: React.ReactNode;
 }
 
-const IconTile: React.FC<IconTileProps> = ({plugin, open, onPointerEnter, onPointerLeave, onOpenNow, onClose, details}) => {
+const IconTile: React.FC<IconTileProps> = ({plugin, open, onPointerEnter, onPointerLeave, onOpenNow, onClose, onTap, details}) => {
     const wrapperRef = React.useRef<HTMLDivElement>(null);
     const tileRef = React.useRef<HTMLAnchorElement | null>(null);
     // The Popper's anchor is kept in state as well as the ref: it is mounted
@@ -63,10 +77,10 @@ const IconTile: React.FC<IconTileProps> = ({plugin, open, onPointerEnter, onPoin
     return (
         <Box
             ref={wrapperRef}
-            onMouseEnter={onPointerEnter}
-            onMouseLeave={onPointerLeave}
+            onMouseEnter={onTap ? undefined : onPointerEnter}
+            onMouseLeave={onTap ? undefined : onPointerLeave}
             onFocus={() => {
-                if (!returningFocus.current) {
+                if (!onTap && !returningFocus.current) {
                     onOpenNow();
                 }
             }}
@@ -93,6 +107,12 @@ const IconTile: React.FC<IconTileProps> = ({plugin, open, onPointerEnter, onPoin
                 to={resourcePath(plugin.id)}
                 underline="none"
                 aria-describedby={descriptionId}
+                // The href stays for crawlers and for a page without script;
+                // with it, a tap shows the details where the pointer is.
+                onClick={onTap ? (e: React.MouseEvent<HTMLAnchorElement>) => {
+                    e.preventDefault();
+                    onTap(e.currentTarget);
+                } : undefined}
                 sx={iconTileStyle}
                 data-testid="plugin-tile"
             >
@@ -140,6 +160,19 @@ const IconTile: React.FC<IconTileProps> = ({plugin, open, onPointerEnter, onPoin
 const PluginIconGrid: React.FC<PluginIconGridProps> = ({plugins, likeCounts, likedSet, token, onTagClick}) => {
     // One panel at a time: the open plugin's id, or null.
     const [openId, setOpenId] = React.useState<string | null>(null);
+    const touchOnly = useMediaQuery(TOUCH_ONLY_QUERY);
+    // The plugin shown in the touch screen's bottom sheet, and the tile that
+    // opened it, which gets focus back when the sheet closes.
+    const [sheetId, setSheetId] = React.useState<string | null>(null);
+    const sheetTile = React.useRef<HTMLAnchorElement | null>(null);
+    const sheetPlugin = plugins.find((plugin) => plugin.id === sheetId) ?? null;
+    // Kept after the sheet closes, so it slides away with its content in it.
+    const shownPlugin = React.useRef<IconGridPlugin | null>(null);
+    if (sheetPlugin) {
+        shownPlugin.current = sheetPlugin;
+    }
+    const sheetContent = shownPlugin.current;
+    const closeSheet = () => setSheetId(null);
     const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const clearTimer = () => {
@@ -178,6 +211,10 @@ const PluginIconGrid: React.FC<PluginIconGridProps> = ({plugins, likeCounts, lik
                     onPointerLeave={() => closeLater(plugin.id)}
                     onOpenNow={() => openNow(plugin.id)}
                     onClose={() => close(plugin.id)}
+                    onTap={touchOnly ? (tile) => {
+                        sheetTile.current = tile;
+                        setSheetId(plugin.id);
+                    } : undefined}
                     details={
                         <PluginDetails
                             {...plugin}
@@ -190,6 +227,49 @@ const PluginIconGrid: React.FC<PluginIconGridProps> = ({plugins, likeCounts, lik
                     }
                 />
             ))}
+            <SwipeableDrawer
+                anchor="bottom"
+                open={sheetPlugin !== null}
+                onClose={closeSheet}
+                // Opened by a tap on a tile only, never by a swipe up from
+                // the bottom edge, which the browser uses for itself.
+                onOpen={() => undefined}
+                disableSwipeToOpen
+                disableRestoreFocus
+                SlideProps={{onExited: () => sheetTile.current?.focus()}}
+                PaperProps={{
+                    role: 'dialog',
+                    'aria-modal': true,
+                    'aria-labelledby': 'plugin-sheet-title',
+                    sx: pluginDetailsSheetStyle,
+                    'data-testid': 'plugin-sheet',
+                } as React.ComponentProps<typeof Paper>}
+            >
+                <Box sx={sheetHandleStyle} aria-hidden/>
+                <IconButton
+                    aria-label="Close"
+                    onClick={closeSheet}
+                    size="small"
+                    sx={{position: 'absolute', top: 8, right: 8}}
+                >
+                    <CloseIcon fontSize="small"/>
+                </IconButton>
+                {sheetContent ? (
+                    <PluginDetails
+                        {...sheetContent}
+                        titleId="plugin-sheet-title"
+                        likeCount={likeCounts[sheetContent.id] || 0}
+                        liked={likedSet.has(sheetContent.id)}
+                        token={token}
+                        // A tag filters the grid behind the sheet, so get the
+                        // sheet out of the way of the result.
+                        onTagClick={(tag) => {
+                            closeSheet();
+                            onTagClick(tag);
+                        }}
+                    />
+                ) : null}
+            </SwipeableDrawer>
         </Box>
     );
 };

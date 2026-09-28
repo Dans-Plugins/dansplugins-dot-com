@@ -19,7 +19,7 @@ vi.mock('../services/likeService', () => ({
 vi.mock('../utils/session', () => ({getSessionToken: vi.fn(async () => null)}));
 vi.mock('next/router', () => ({useRouter: () => ({push: vi.fn()})}));
 
-import PluginIconGrid, {CLOSE_DELAY_MS, OPEN_DELAY_MS, type IconGridPlugin} from '../components/PluginIconGrid';
+import PluginIconGrid, {CLOSE_DELAY_MS, OPEN_DELAY_MS, TOUCH_ONLY_QUERY, type IconGridPlugin} from '../components/PluginIconGrid';
 import {PluginsSection} from '../pages/index';
 
 const PLUGINS: IconGridPlugin[] = [
@@ -158,6 +158,97 @@ describe('PluginIconGrid details panel', () => {
         act(() => tileFor('Medieval Cookery').focus());
         expect(isOpen('Fiefs')).toBe(false);
         expect(isOpen('Medieval Cookery')).toBe(true);
+    });
+});
+
+// A phone or tablet: the one pointer cannot hover. jsdom has no matchMedia,
+// which MUI reads as a desktop, so the other tests need no stand-in.
+const useTouchScreen = () => {
+    Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: (query: string) => ({
+            matches: query === TOUCH_ONLY_QUERY,
+            media: query,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        }),
+    });
+};
+
+const sheet = () => screen.queryByTestId('plugin-sheet');
+
+describe('PluginIconGrid on a touch screen', () => {
+    beforeEach(useTouchScreen);
+    afterEach(() => {
+        delete (window as {matchMedia?: unknown}).matchMedia;
+    });
+
+    it('opens a bottom sheet on a tap instead of following the tile\'s link', () => {
+        renderGrid();
+        expect(sheet()).toBeNull();
+
+        const followed = fireEvent.click(tileFor('Medieval Factions'));
+        expect(followed).toBe(false);
+        // The link itself stays, for crawlers and a page without script.
+        expect(tileFor('Medieval Factions').getAttribute('href')).toBe('/resources/medieval-factions');
+
+        const dialog = screen.getByRole('dialog', {name: 'Medieval Factions'});
+        const inSheet = within(dialog);
+        expect(inSheet.getByText(/feudal, diplomatic, lawful groups/)).toBeTruthy();
+        expect(inSheet.getByRole('link', {name: 'Details'}).getAttribute('href')).toBe('/resources/medieval-factions');
+        expect(inSheet.getByRole('link', {name: 'Guide'}).getAttribute('href')).toBe('/guides/medieval-factions');
+        expect(inSheet.getByRole('link', {name: 'GitHub'})).toBeTruthy();
+        expect(inSheet.getByRole('link', {name: 'SpigotMC'})).toBeTruthy();
+    });
+
+    it('opens no hover panel, on pointer or focus', () => {
+        vi.useFakeTimers();
+        renderGrid();
+        fireEvent.mouseEnter(tileFor('Fiefs').parentElement!);
+        act(() => vi.advanceTimersByTime(OPEN_DELAY_MS));
+        act(() => tileFor('Fiefs').focus());
+        expect(isOpen('Fiefs')).toBe(false);
+    });
+
+    it('closes from its close button and on Escape', () => {
+        renderGrid();
+        fireEvent.click(tileFor('Fiefs'));
+        fireEvent.click(screen.getByRole('button', {name: 'Close'}));
+        expect(screen.queryByRole('dialog')).toBeNull();
+
+        fireEvent.click(tileFor('Fiefs'));
+        fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+        expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('closes when the backdrop is tapped', () => {
+        renderGrid();
+        fireEvent.click(tileFor('Fiefs'));
+        const backdrop = document.querySelector('.MuiBackdrop-root') as HTMLElement;
+        fireEvent.click(backdrop);
+        expect(screen.queryByRole('dialog')).toBeNull();
+    });
+});
+
+describe('PluginIconGrid on a desktop', () => {
+    it('opens no sheet on a click, which follows the tile\'s link', () => {
+        renderGrid();
+        const tile = tileFor('Fiefs');
+        // Stop the event before the router would take it; the tile must not
+        // have cancelled it on the way.
+        let prevented: boolean | null = null;
+        tile.addEventListener('click', (e) => {
+            prevented = e.defaultPrevented;
+            e.preventDefault();
+        });
+        fireEvent.click(tile);
+        expect(prevented).toBe(false);
+        expect(sheet()).toBeNull();
     });
 });
 
