@@ -29,6 +29,7 @@ export const PAGE_ROUTES: readonly string[] = [
     '/guides',
     '/guides/[id]',
     '/leaderboard',
+    '/releases',
     '/news',
     '/resources/[slug]',
     '/roadmap',

@@ -18,6 +18,7 @@ import Seo from '../../components/Seo';
 import BottomBar from '../../components/BottomBar';
 import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import PluginVersionList from '../../components/PluginVersionList';
+import ReleaseVerification from '../../components/ReleaseVerification';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {
     getPlugin,
@@ -398,6 +399,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                 </Stack>
 
                 <Divider sx={{mb: 3}}/>
+
+                <ReleaseVerification versions={versions}/>
 
                 <PluginVersionList versions={versions} releasesUrl={releases}/>
 

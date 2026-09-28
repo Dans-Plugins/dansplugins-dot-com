@@ -1,10 +1,11 @@
-import {Box, Button, Container, Stack, Typography} from '@mui/material';
+import {Box, Button, Container, Link, Stack, Typography} from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import type {NextPage} from 'next';
 import TopBar from '../components/TopBar';
 import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
+import {NextLinkComposed} from '../components/NextLinkComposed';
 
 // Import styles
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -29,6 +30,10 @@ const About: NextPage = () => (
                 Our goal is to give server owners and players reliable, well-documented plugins, and to
                 grow a welcoming community around them. Every project is open source, so anyone can
                 read the code, report issues, or contribute improvements.
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+                Every stable release is started on real Minecraft servers and checked against the data its
+                previous release wrote before it is published: see <Link component={NextLinkComposed} to="/releases">how releases work</Link>.
             </Typography>
             <Typography variant="body1" gutterBottom>
                 Want to get involved? Join the conversation on Discord, support development on Patreon,

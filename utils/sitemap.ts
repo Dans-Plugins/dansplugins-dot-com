@@ -24,6 +24,7 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
     '/guides',
     '/leaderboard',
     '/news',
+    '/releases',
     '/roadmap',
     '/commissions'
 ];
