@@ -377,6 +377,7 @@ const AccountPage: NextPage = () => {
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             required
+                                            inputProps={{autoComplete: 'username'}}
                                         />
                                         <TextField
                                             label="Password"
@@ -384,6 +385,7 @@ const AccountPage: NextPage = () => {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
+                                            inputProps={{autoComplete: 'current-password'}}
                                         />
                                         <Button type="submit" variant="contained" disabled={submitting}
                                                 startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
@@ -415,6 +417,7 @@ const AccountPage: NextPage = () => {
                                             onChange={(e) => setUsername(e.target.value)}
                                             required
                                             helperText="3-32 characters, letters, digits, hyphens, underscores"
+                                            inputProps={{autoComplete: 'username'}}
                                         />
                                         <TextField
                                             label="Password"
@@ -423,6 +426,7 @@ const AccountPage: NextPage = () => {
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                             helperText="8-128 characters"
+                                            inputProps={{autoComplete: 'new-password'}}
                                         />
                                         <Button type="submit" variant="contained" disabled={submitting}
                                                 startIcon={submitting ? <CircularProgress size={16} color="inherit"/> : undefined}>
