@@ -31,7 +31,7 @@ as resource pages.
 
 | SpigotMC concept | Where it already lives in DPC |
 | --- | --- |
-| Resource listing | The `plugins` table, read through `services/pluginCatalogueService.ts` and rendered as a `PluginCard` grid on `/`, with search, sort and filters |
+| Resource listing | The `plugins` table, read through `services/pluginCatalogueService.ts` and rendered as an icon grid on `/` (`components/PluginIconGrid.tsx`, details in a hover/focus panel), with search, sort and filters behind a toggle |
 | Download / version | Latest GitHub release tag on each card (`utils/github.ts`) |
 | Install count | bStats server counts (`utils/bstats.ts`) |
 | Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |

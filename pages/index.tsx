@@ -1,4 +1,5 @@
-import {Box, Button, Chip, Container, FormControl, Grid, IconButton, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Box, Button, Chip, Collapse, Container, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Tooltip, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import TuneIcon from '@mui/icons-material/Tune'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import type {NextPage} from 'next'
@@ -6,7 +7,7 @@ import {useRouter} from 'next/router'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
 import Blurb from '../components/Blurb'
-import PluginCard from '../components/PluginCard'
+import PluginIconGrid from '../components/PluginIconGrid'
 import ExperienceSplash from '../components/ExperienceSplash'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
@@ -24,12 +25,10 @@ import { EXPERIENCE_CHOSEN_KEY, hasChosenExperience } from '../utils/experience'
 
 // Import styles
 import {
-    sectionHeaderStyle,
-    gridContainerStyle,
     sectionDividerStyle,
     pageStyle,
     pluginsBoxStyle,
-    gridItemStyle
+    visuallyHiddenStyle
 } from '../styles/styles';
 
 const SectionDivider: React.FC = () => (
@@ -48,48 +47,11 @@ interface PluginWithServerCount extends CataloguePlugin {
     downloadCount?: number | null;
 }
 
-interface PluginSectionProps {
-    plugins: PluginWithServerCount[];
-    likeCounts: Record<string, number>;
-    likedSet: Set<string>;
-    token: string | null;
-    onTagClick: (tag: string) => void;
-}
-
-const PluginSection: React.FC<PluginSectionProps> = ({ plugins, likeCounts, likedSet, token, onTagClick }) => (
-    <Grid container {...gridContainerStyle}>
-        {plugins.map((plugin) => (
-            <Grid item {...gridItemStyle} key={plugin.id}>
-                <PluginCard
-                    id={plugin.id}
-                    title={plugin.title}
-                    description={plugin.description}
-                    githubLink={plugin.githubLink}
-                    spigotmcLink={plugin.spigotmcLink}
-                    bStatsId={plugin.bStatsId}
-                    icon={plugin.icon}
-                    serverCount={plugin.serverCount}
-                    testedVersions={plugin.testedVersions}
-                    spigotRating={plugin.spigotRating}
-                    tags={plugin.tags}
-                    onTagClick={onTagClick}
-                    latestVersion={plugin.latestVersion}
-                    latestDownloadUrl={plugin.latestDownloadUrl}
-                    downloadCount={plugin.downloadCount}
-                    likeCount={likeCounts[plugin.id] || 0}
-                    liked={likedSet.has(plugin.id)}
-                    token={token}
-                />
-            </Grid>
-        ))}
-    </Grid>
-)
-
 interface PluginsSectionProps {
     initialPlugins: PluginWithServerCount[];
 }
 
-const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
+export const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const [sortBy, setSortBy] = React.useState<SortOption>('popularity');
     const [query, setQuery] = React.useState('');
     const [tag, setTag] = React.useState<string | null>(null);
@@ -97,6 +59,9 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>({});
     const [likedSet, setLikedSet] = React.useState<Set<string>>(new Set());
     const [token, setToken] = React.useState<string | null>(null);
+    // Search, sort and filters sit folded away behind one small button so the
+    // icons are the first thing on the page.
+    const [filtersOpen, setFiltersOpen] = React.useState(false);
 
     React.useEffect(() => {
         getLikeCounts('plugin').then(setLikeCounts);
@@ -127,6 +92,13 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     const filter = { query, tag, version };
     const filtering = isFilterActive(filter);
     const visiblePlugins = filterPlugins(sortedPlugins, filter);
+    // A filter set from outside the controls — a tag clicked in a plugin's
+    // panel — opens them, so what is narrowing the grid is on screen.
+    React.useEffect(() => {
+        if (filtering) {
+            setFiltersOpen(true);
+        }
+    }, [filtering]);
     const clearFilters = () => {
         setQuery('');
         setTag(null);
@@ -134,118 +106,134 @@ const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }) => {
     };
 
     return (
-        <Box id="plugins" sx={pluginsBoxStyle}>
-            <Typography variant="h3" component="div" gutterBottom sx={sectionHeaderStyle}>
+        <Box id="plugins" component="section" aria-labelledby="plugins-heading" sx={pluginsBoxStyle}>
+            <Typography id="plugins-heading" variant="h3" component="h2" sx={visuallyHiddenStyle}>
                 Plugins
             </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap', marginBottom: 3 }}>
-                <TextField
-                    size="small"
-                    placeholder="Search plugins…"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    aria-label="Search plugins"
-                    sx={{ minWidth: 240 }}
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon fontSize="small" />
-                            </InputAdornment>
-                        ),
-                        endAdornment: query ? (
-                            <InputAdornment position="end">
-                                <IconButton size="small" aria-label="Clear search" onClick={() => setQuery('')}>
-                                    <ClearIcon fontSize="small" />
-                                </IconButton>
-                            </InputAdornment>
-                        ) : undefined,
-                    }}
-                />
-                <ToggleButtonGroup
-                    value={sortBy}
-                    exclusive
-                    onChange={handleSortChange}
-                    aria-label="sorting option"
-                    size="small"
-                >
-                    <ToggleButton value="popularity" aria-label="sort by popularity">
-                        By Popularity
-                    </ToggleButton>
-                    <ToggleButton value="most-liked" aria-label="sort by most liked">
-                        Most Liked
-                    </ToggleButton>
-                    <ToggleButton value="most-downloaded" aria-label="sort by most downloaded">
-                        Most Downloaded
-                    </ToggleButton>
-                    <ToggleButton value="alphabetical" aria-label="sort alphabetically">
-                        Alphabetical
-                    </ToggleButton>
-                </ToggleButtonGroup>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, minHeight: 40, mb: 1 }}>
+                {filtering && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mr: 'auto' }} data-testid="filter-summary">
+                        Showing {visiblePlugins.length} of {initialPlugins.length} plugins
+                        {version ? ` tested on Minecraft ${version}` : ''}
+                    </Typography>
+                )}
+                <Tooltip title="Search & filter">
+                    <IconButton
+                        size="small"
+                        aria-label="Search & filter"
+                        aria-expanded={filtersOpen}
+                        aria-controls="plugin-filters"
+                        onClick={() => setFiltersOpen((open) => !open)}
+                        color={filtersOpen || filtering ? 'primary' : 'default'}
+                    >
+                        <TuneIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
             </Box>
 
-            <Stack
-                direction="row"
-                spacing={1}
+            <Collapse in={filtersOpen} id="plugin-filters" data-testid="plugin-filters">
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap', marginBottom: 3 }}>
+                    <TextField
+                        size="small"
+                        placeholder="Search plugins…"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        aria-label="Search plugins"
+                        sx={{ minWidth: 240 }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon fontSize="small" />
+                                </InputAdornment>
+                            ),
+                            endAdornment: query ? (
+                                <InputAdornment position="end">
+                                    <IconButton size="small" aria-label="Clear search" onClick={() => setQuery('')}>
+                                        <ClearIcon fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            ) : undefined,
+                        }}
+                    />
+                    <ToggleButtonGroup
+                        value={sortBy}
+                        exclusive
+                        onChange={handleSortChange}
+                        aria-label="sorting option"
+                        size="small"
+                    >
+                        <ToggleButton value="popularity" aria-label="sort by popularity">
+                            By Popularity
+                        </ToggleButton>
+                        <ToggleButton value="most-liked" aria-label="sort by most liked">
+                            Most Liked
+                        </ToggleButton>
+                        <ToggleButton value="most-downloaded" aria-label="sort by most downloaded">
+                            Most Downloaded
+                        </ToggleButton>
+                        <ToggleButton value="alphabetical" aria-label="sort alphabetically">
+                            Alphabetical
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Stack
+                    direction="row"
+                    spacing={1}
                
-                sx={{ justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', rowGap: 1, marginBottom: 3 }}
-                role="group"
-                aria-label="Filter plugins"
-            >
-                <Chip
-                    label="All"
-                    size="small"
-                    clickable
-                    color={tag === null ? 'primary' : 'default'}
-                    variant={tag === null ? 'filled' : 'outlined'}
-                    onClick={() => setTag(null)}
-                    aria-pressed={tag === null}
-                />
-                {tags.map((t) => (
+                    sx={{ justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', rowGap: 1, marginBottom: 3 }}
+                    role="group"
+                    aria-label="Filter plugins"
+                >
                     <Chip
-                        key={t}
-                        label={t}
+                        label="All"
                         size="small"
                         clickable
-                        color={tag === t ? 'primary' : 'default'}
-                        variant={tag === t ? 'filled' : 'outlined'}
-                        onClick={() => setTag(tag === t ? null : t)}
-                        aria-pressed={tag === t}
-                        data-testid={`tag-filter-${t}`}
+                        color={tag === null ? 'primary' : 'default'}
+                        variant={tag === null ? 'filled' : 'outlined'}
+                        onClick={() => setTag(null)}
+                        aria-pressed={tag === null}
                     />
-                ))}
-                {versions.length > 0 ? (
-                    <FormControl size="small" sx={{ minWidth: 200, ml: { sm: 1 } }}>
-                        <InputLabel id="version-filter-label">Minecraft version</InputLabel>
-                        <Select
-                            labelId="version-filter-label"
-                            label="Minecraft version"
-                            value={version ?? ''}
-                            onChange={(e) => setVersion(e.target.value === '' ? null : String(e.target.value))}
-                            inputProps={{ 'aria-label': 'Filter by tested Minecraft version' }}
-                        >
-                            <MenuItem value="">Any version</MenuItem>
-                            {versions.map((v) => (
-                                <MenuItem key={v} value={v}>{v}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                ) : null}
-            </Stack>
-
-            {filtering && (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                    Showing {visiblePlugins.length} of {initialPlugins.length} plugins
-                    {version ? ` tested on Minecraft ${version}` : ''}
-                </Typography>
-            )}
+                    {tags.map((t) => (
+                        <Chip
+                            key={t}
+                            label={t}
+                            size="small"
+                            clickable
+                            color={tag === t ? 'primary' : 'default'}
+                            variant={tag === t ? 'filled' : 'outlined'}
+                            onClick={() => setTag(tag === t ? null : t)}
+                            aria-pressed={tag === t}
+                            data-testid={`tag-filter-${t}`}
+                        />
+                    ))}
+                    {versions.length > 0 ? (
+                        <FormControl size="small" sx={{ minWidth: 200, ml: { sm: 1 } }}>
+                            <InputLabel id="version-filter-label">Minecraft version</InputLabel>
+                            <Select
+                                labelId="version-filter-label"
+                                label="Minecraft version"
+                                value={version ?? ''}
+                                onChange={(e) => setVersion(e.target.value === '' ? null : String(e.target.value))}
+                                inputProps={{ 'aria-label': 'Filter by tested Minecraft version' }}
+                            >
+                                <MenuItem value="">Any version</MenuItem>
+                                {versions.map((v) => (
+                                    <MenuItem key={v} value={v}>{v}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    ) : null}
+                </Stack>
+            </Collapse>
 
             {initialPlugins.length === 0 ? (
                 <Typography color="text.secondary" align="center" sx={{ py: 4 }} data-testid="catalogue-unavailable">
                     The plugin catalogue could not be loaded right now. Please try again shortly.
                 </Typography>
             ) : visiblePlugins.length > 0 ? (
-                <PluginSection
+                <PluginIconGrid
                     plugins={visiblePlugins}
                     likeCounts={likeCounts}
                     likedSet={likedSet}
@@ -363,9 +351,14 @@ const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => 
             <TopBar/>
             <ExperienceSplash open={showSplash} onChoosePlayer={dismissSplash} onChooseDeveloper={chooseDeveloper}/>
             <Container component="main" id="main" maxWidth="xl" sx={{py: 4}}>
-                <Blurb/>
-                <SectionDivider/>
+                {/* The page's title, for assistive technology and the heading
+                    outline; the visible wordmark is in the Blurb below the grid. */}
+                <Typography variant="h2" component="h1" sx={visuallyHiddenStyle}>
+                    Dan&apos;s Plugins Community
+                </Typography>
                 <PluginsSection initialPlugins={pluginsWithCounts} />
+                <SectionDivider/>
+                <Blurb/>
             </Container>
             <BottomBar
                 version={version}

@@ -62,7 +62,7 @@ const Blurb: React.FC = () => (
         <Box sx={{textAlign: 'center', py: {xs: 4, md: 8}}}>
             <Typography
                 variant="h2"
-                component="h1"
+                component="h2"
                 gutterBottom
                 sx={(theme) => ({...blurbTitleStyle(theme), marginBottom: theme.spacing(2)})}
             >
@@ -82,9 +82,6 @@ const Blurb: React.FC = () => (
                 justifyContent="center"
                 sx={{mt: 4}}
             >
-                <Button variant="contained" size="large" href="#plugins">
-                    Browse Plugins
-                </Button>
                 <Button
                     variant="outlined"
                     size="large"

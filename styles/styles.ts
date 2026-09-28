@@ -38,22 +38,6 @@ export const sectionHeaderStyle = (theme: Theme) => ({
 });
 
 /**
- * Responsive grid container spacing configuration
- */
-export const gridContainerStyle = {spacing: {xs: 2, md: 3}, pb: 4};
-
-/**
- * Card wrapper with hover lift animation
- */
-export const cardWrapperStyle = {
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
-    },
-};
-
-/**
  * Clean hairline section divider (replaces the former gradient-fade line).
  */
 export const sectionDividerStyle = (theme: Theme) => ({
@@ -77,16 +61,6 @@ export const pageStyle = (theme: Theme) => ({
  * Plugins container layout configuration
  */
 export const pluginsBoxStyle = {flexGrow: 1, marginBottom: 2};
-
-/**
- * Responsive grid item configuration for different breakpoints
- */
-export const gridItemStyle = {
-    // Cap at 4 columns (lg) so cards stay readable on wide screens instead of
-    // squeezing to 6 across.
-    xs: 12, sm: 6, md: 4, lg: 3,
-    sx: cardWrapperStyle,
-};
 
 /**
  * Standard vertical padding for containers
@@ -293,33 +267,100 @@ export const navDrawerDividerStyle = {
 };
 
 /**
- * Plugin card layout. Grows with its content rather than holding a fixed
- * height: a fixed height let a card with several tags (or a wrapped actions
- * row) push Details/Download past the bottom edge, out of reach. Filling the
- * grid item keeps every card in a row as tall as the tallest one, and the
- * min height keeps sparse cards from collapsing.
+ * Hides an element visually while leaving it in the accessibility tree — for
+ * headings that give the page an outline without adding chrome to it.
  */
-export const pluginCardStyle = {
-    height: '100%',
-    minHeight: '18rem',
+export const visuallyHiddenStyle = {
+    border: 0,
+    clip: 'rect(0 0 0 0)',
+    height: '1px',
+    margin: '-1px',
+    overflow: 'hidden',
+    padding: 0,
+    position: 'absolute',
+    whiteSpace: 'nowrap',
+    width: '1px',
+} as const;
+
+/**
+ * The home page's plugin grid: icons only, no cards or borders. auto-fill
+ * rather than fixed columns, so the grid fills whatever width it is given and
+ * a new plugin just takes the next cell.
+ */
+export const iconGridStyle = (theme: Theme) => ({
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))',
+    gap: theme.spacing(2),
+    [theme.breakpoints.up('sm')]: {
+        gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
+        gap: theme.spacing(3),
+    },
+});
+
+/**
+ * One grid tile: an icon with a single line of caption, both inside the link to
+ * the plugin's page. Hover and keyboard focus grow the icon slightly and bring
+ * the caption up to full contrast; neither animates for reduced motion.
+ */
+export const iconTileStyle = (theme: Theme) => ({
     display: 'flex',
     flexDirection: 'column',
-};
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    minWidth: 0,
+    padding: theme.spacing(0.5),
+    borderRadius: '14px',
+    textDecoration: 'none',
+    outline: 'none',
+    '& .icon-tile-image': {
+        width: 56,
+        height: 56,
+        borderRadius: '14px',
+        fontFamily: '"Space Grotesk", sans-serif',
+        fontWeight: 700,
+        fontSize: '1.5rem',
+        transition: 'transform 0.15s ease',
+        [theme.breakpoints.up('sm')]: {width: 64, height: 64},
+    },
+    '& .icon-tile-caption': {
+        maxWidth: '100%',
+        fontSize: '0.75rem',
+        lineHeight: 1.3,
+        textAlign: 'center',
+        color: theme.palette.text.secondary,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        transition: 'color 0.15s ease',
+    },
+    '&:hover .icon-tile-image, &:focus-visible .icon-tile-image': {transform: 'scale(1.06)'},
+    '&:hover .icon-tile-caption, &:focus-visible .icon-tile-caption': {color: theme.palette.text.primary},
+    '&:focus-visible': {boxShadow: `0 0 0 2px ${theme.palette.primary.main}`},
+    '@media (prefers-reduced-motion: reduce)': {
+        '& .icon-tile-image, & .icon-tile-caption': {transition: 'none'},
+        '&:hover .icon-tile-image, &:focus-visible .icon-tile-image': {transform: 'none'},
+    },
+});
 
 /**
- * Content area for plugin cards
+ * The details panel that opens under a hovered or focused tile. Capped to the
+ * viewport so it never runs off a phone screen.
  */
-export const pluginCardContentStyle = {
-    flexGrow: 1,
-};
+export const pluginDetailsPanelStyle = (theme: Theme) => ({
+    width: 340,
+    maxWidth: 'calc(100vw - 32px)',
+    padding: theme.spacing(2),
+    borderRadius: '12px',
+});
 
 /**
- * Action buttons container for plugin cards
+ * Action buttons row in the details panel. Wraps rather than overflowing the
+ * panel's fixed width.
  */
-export const pluginCardActionsStyle = {
-    flexGrow: 0,
-    // The actions row grew a link to the plugin's resource page; wrap rather
-    // than overflow it on a narrow card.
+export const pluginDetailsActionsStyle = {
+    display: 'flex',
     flexWrap: 'wrap',
-    rowGap: 1,
-};
+    gap: 1,
+    alignItems: 'center',
+    mt: 2,
+} as const;
