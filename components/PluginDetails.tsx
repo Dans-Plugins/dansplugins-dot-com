@@ -52,6 +52,9 @@ export interface PluginDetailsProps {
     // Id for the description paragraph, so the grid tile can point
     // aria-describedby at it.
     descriptionId?: string;
+    // Id for the title heading, so the mobile sheet can take its accessible
+    // name from it.
+    titleId?: string;
 }
 
 const PluginDetails: React.FC<PluginDetailsProps> = ({
@@ -72,11 +75,12 @@ const PluginDetails: React.FC<PluginDetailsProps> = ({
     liked,
     token,
     descriptionId,
+    titleId,
 }) => {
     const testedLabel = testedVersions && testedVersions.length > 0 ? formatTestedVersions(testedVersions) : null;
     return (
         <Box>
-            <Typography variant="h6" component="h3" sx={{fontWeight: 600, lineHeight: 1.2, mb: 1}}>
+            <Typography id={titleId} variant="h6" component="h3" sx={{fontWeight: 600, lineHeight: 1.2, mb: 1}}>
                 {/* The plugin's name is the obvious thing to click for more about it. */}
                 <Link
                     component={NextLinkComposed}
