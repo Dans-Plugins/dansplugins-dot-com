@@ -1,6 +1,8 @@
 import {Alert, Box, Button, Container, Typography} from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ExtensionIcon from '@mui/icons-material/Extension';
 import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
@@ -12,6 +14,7 @@ import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {userGuideUrl, userGuideRawUrl} from '../../utils/guides';
 import {getCataloguePlugin} from '../../services/pluginCatalogueService';
+import {resourcePath} from '../../utils/resources';
 
 const version = require('../../package.json').version;
 
@@ -54,9 +57,16 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
         />
         <TopBar/>
         <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
-            <Button component={NextLinkComposed} to="/guides" startIcon={<ArrowBackIcon/>} sx={{mb: 2}}>
-                All guides
-            </Button>
+            {/* The plugin page is where a reader goes next — to download, check
+                versions, or report a bug — so it is linked beside the way back. */}
+            <Box sx={{display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2}}>
+                <Button component={NextLinkComposed} to="/guides" startIcon={<ArrowBackIcon/>}>
+                    All guides
+                </Button>
+                <Button component={NextLinkComposed} to={resourcePath(id)} startIcon={<ExtensionIcon/>} data-testid="guide-plugin-link">
+                    {title} plugin page
+                </Button>
+            </Box>
             <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
                 <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                     {title} Guide
@@ -86,7 +96,16 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
                 </Alert>
             )}
 
-            <Box sx={{mt: 4}}>
+            {/* Guides run to thousands of pixels; the end of one offers the way
+                back up and on to the plugin rather than leaving the reader to
+                scroll the whole way back. */}
+            <Box sx={{mt: 4, display: 'flex', gap: 1, flexWrap: 'wrap'}}>
+                <Button href="#main" startIcon={<ArrowUpwardIcon/>} size="small">
+                    Back to top
+                </Button>
+                <Button component={NextLinkComposed} to={resourcePath(id)} startIcon={<ExtensionIcon/>} size="small">
+                    {title} plugin page
+                </Button>
                 <Button
                     href={userGuideUrl(githubLink)}
                     target="_blank"
