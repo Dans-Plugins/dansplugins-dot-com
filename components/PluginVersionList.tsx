@@ -16,7 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ScienceIcon from '@mui/icons-material/Science';
 import Markdown from 'markdown-to-jsx';
-import {downloadsLabel, siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
+import {downloadsLabel, latestStableTag, siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
 import {formatFileSize} from '../utils/fileSize';
 import {absoluteDateFrom} from '../utils/relativeTime';
 
@@ -88,8 +88,9 @@ const AssetButtons: React.FC<{version: PluginVersion}> = ({version}) => (
     </Stack>
 );
 
-const VersionHeading: React.FC<{version: PluginVersion}> = ({version}) => (
+const VersionHeading: React.FC<{version: PluginVersion; isLatest?: boolean}> = ({version, isLatest}) => (
     <Stack direction="row" spacing={1} alignItems="center" sx={{flexWrap: 'wrap', rowGap: 1}}>
+        {isLatest ? <Chip size="small" color="primary" label="Latest" data-testid="latest-version-chip"/> : null}
         <Typography component="span" sx={{fontWeight: 600}}>
             {version.name || version.tag}
         </Typography>
@@ -127,6 +128,10 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
         return null;
     }
     const [latest, ...older] = versions;
+    // "Latest" means the newest stable release, as it does in the header chip
+    // and on GitHub — not simply the newest entry, which is often a
+    // development build that should not be the one a server owner reaches for.
+    const latestTag = latestStableTag(versions);
 
     return (
         <Box component="section" sx={{mb: 4}}>
@@ -156,8 +161,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
 
             <Paper variant="outlined" sx={{p: 2.5, mb: older.length > 0 ? 2 : 0}}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{flexWrap: 'wrap', rowGap: 1, mb: 1}}>
-                    <Chip size="small" color="primary" label="Latest"/>
-                    <VersionHeading version={latest}/>
+                    <VersionHeading version={latest} isLatest={latest.tag === latestTag}/>
                 </Stack>
                 {latest.changelog ? <Changelog markdown={latest.changelog}/> : (
                     <Typography variant="body2" color="text.secondary">
@@ -170,7 +174,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
             {older.map((version) => (
                 <Accordion key={version.tag} disableGutters variant="outlined">
                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                        <VersionHeading version={version}/>
+                        <VersionHeading version={version} isLatest={version.tag === latestTag}/>
                     </AccordionSummary>
                     <AccordionDetails>
                         {version.changelog ? <Changelog markdown={version.changelog}/> : (
