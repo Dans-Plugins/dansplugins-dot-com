@@ -35,12 +35,11 @@ const pageSources = (dir = 'pages', prefix = 'pages'): {path: string; source: st
         }];
     });
 
-// The one page that does not spell its <h1> out inline: the home page's heading
-// is the site wordmark, which lives in the component below. Listed explicitly so
-// the exception has to be renewed deliberately rather than assumed.
-const HEADING_FROM_COMPONENT: Record<string, string> = {
-    'pages/index.tsx': 'components/Blurb.tsx'
-};
+// Pages whose <h1> lives in a component rather than inline. None today — the
+// home page's heading moved out of components/Blurb.tsx when the Blurb moved
+// below the plugin grid — but the mechanism stays so an exception has to be
+// listed deliberately rather than assumed.
+const HEADING_FROM_COMPONENT: Record<string, string> = {};
 
 const readComponent = (path: string): string => readFileSync(join(process.cwd(), path), 'utf8');
 

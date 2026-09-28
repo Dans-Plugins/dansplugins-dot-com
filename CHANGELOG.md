@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The home page opens on the plugins themselves: a minimal grid of plugin icons with one-line names, no cards. Hovering or keyboard-focusing an icon opens a panel with the description, tags, figures (servers, latest version, downloads, tested Minecraft versions, SpigotMC rating) and the Like, Details, Download, Guide, GitHub and SpigotMC actions; clicking or tapping an icon opens the plugin's page. Search, sort and filters are folded behind a "Search & filter" button above the grid and open by themselves while a filter is active. The welcome blurb moved below the grid and lost its "Browse Plugins" button. `PluginCard` became `PluginDetails`, the panel's contents.
+
 ### Added
 
 - The footer links the Dans-Plugins knowledge base ([zettel.dansplugins.com](https://zettel.dansplugins.com)) and [Dan's Server Hosting](https://dansserverhosting.com) (free Minecraft server hosting), and carries a small "More by Daniel Stephenson → danielstephenson.dev" backlink; Dan's Plugin Manager's resource page notes that Dan's Server Hosting preinstalls it on every new server.
