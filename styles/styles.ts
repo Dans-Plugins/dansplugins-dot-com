@@ -287,113 +287,23 @@ export const visuallyHiddenStyle = {
  * rather than fixed columns, so the grid fills whatever width it is given and
  * a new plugin just takes the next cell.
  */
-export const iconGridStyle = (theme: Theme) => ({
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))',
-    gap: theme.spacing(2),
-    [theme.breakpoints.up('sm')]: {
-        gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
-        gap: theme.spacing(3),
-    },
-});
-
 /**
  * One grid tile: an icon with a short caption, both inside the link to
  * the plugin's page. Hover and keyboard focus grow the icon slightly and bring
  * the caption up to full contrast; neither animates for reduced motion.
  */
-export const iconTileStyle = (theme: Theme) => ({
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    minWidth: 0,
-    padding: theme.spacing(0.5),
-    borderRadius: '14px',
-    textDecoration: 'none',
-    outline: 'none',
-    '& .icon-tile-image': {
-        width: 56,
-        height: 56,
-        borderRadius: '14px',
-        fontFamily: '"Space Grotesk", sans-serif',
-        fontWeight: 700,
-        fontSize: '1.5rem',
-        transition: 'transform 0.15s ease',
-        [theme.breakpoints.up('sm')]: {width: 64, height: 64},
-    },
-    '& .icon-tile-caption': {
-        maxWidth: '100%',
-        fontSize: '0.75rem',
-        lineHeight: 1.3,
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-        // Two lines on a phone: one line of a narrow column cut three
-        // "Medieval …" plugins down to the same word.
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        overflowWrap: 'anywhere',
-        // A single long name (FoodSpoilage) still has to break; hyphenate it
-        // where the browser can rather than cut it at an arbitrary letter.
-        hyphens: 'auto',
-        WebkitHyphens: 'auto',
-        transition: 'color 0.15s ease',
-        [theme.breakpoints.up('sm')]: {
-            display: 'block',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-        },
-    },
-    '&:hover .icon-tile-image, &:focus-visible .icon-tile-image': {transform: 'scale(1.06)'},
-    '&:hover .icon-tile-caption, &:focus-visible .icon-tile-caption': {color: theme.palette.text.primary},
-    '&:focus-visible': {boxShadow: `0 0 0 2px ${theme.palette.primary.main}`},
-    '@media (prefers-reduced-motion: reduce)': {
-        '& .icon-tile-image, & .icon-tile-caption': {transition: 'none'},
-        '&:hover .icon-tile-image, &:focus-visible .icon-tile-image': {transform: 'none'},
-    },
-});
-
 /**
  * The details panel that opens under a hovered or focused tile. Capped to the
  * viewport so it never runs off a phone screen.
  */
-export const pluginDetailsPanelStyle = (theme: Theme) => ({
-    width: 340,
-    maxWidth: 'calc(100vw - 32px)',
-    padding: theme.spacing(2),
-    borderRadius: '12px',
-});
-
 /**
  * The bottom sheet that stands in for the hover panel on touch screens: full
  * width, rounded top corners, never taller than most of the screen, and clear
  * of the home indicator on phones that have one.
  */
-export const pluginDetailsSheetStyle = (theme: Theme) => ({
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    maxHeight: '85vh',
-    overflowY: 'auto',
-    padding: theme.spacing(1, 2, 2),
-    paddingBottom: `calc(${theme.spacing(2)} + env(safe-area-inset-bottom))`,
-    // Keep a long title clear of the close button in the corner.
-    '& h3': {paddingRight: theme.spacing(5)},
-});
-
 /**
  * The grab handle at the top of the bottom sheet.
  */
-export const sheetHandleStyle = (theme: Theme) => ({
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    mx: 'auto',
-    my: 1,
-    bgcolor: theme.palette.divider,
-});
-
 /**
  * Action buttons row in the details panel. Wraps rather than overflowing the
  * panel's fixed width.

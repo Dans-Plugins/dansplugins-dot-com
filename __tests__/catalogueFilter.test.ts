@@ -1,5 +1,15 @@
 import {describe, expect, it} from 'vitest'
-import {allTags, allTestedVersions, filterPlugins, isFilterActive, relatedPlugins} from '../utils/catalogueFilter'
+import {facetValues, filterCatalogue, isCatalogueQueryActive} from '@kingdom-community/community-site-kit/catalogue'
+import {PLUGIN_FACETS, TAG_FACET, VERSION_FACET, relatedPlugins, type FilterablePlugin} from '../utils/catalogueFilter'
+
+// The expectations are the ones the site's own helpers had; the rules now run
+// through community-site-kit's catalogue helpers with this site's facets.
+interface Filter {query?: string; tag?: string | null; version?: string | null}
+const toQuery = ({query, tag, version}: Filter) => ({text: query, facets: {tag, version}})
+const filterPlugins = <T extends FilterablePlugin>(all: T[], filter: Filter) => filterCatalogue(all, PLUGIN_FACETS, toQuery(filter))
+const isFilterActive = (filter: Filter) => isCatalogueQueryActive(toQuery(filter))
+const allTags = (all: FilterablePlugin[]) => facetValues(all, TAG_FACET)
+const allTestedVersions = (all: FilterablePlugin[]) => facetValues(all, VERSION_FACET)
 
 const plugins = [
     {id: 'mf', title: 'Medieval Factions', description: 'Feudal groups.', tags: ['medieval', 'factions'], testedVersions: ['1.21']},

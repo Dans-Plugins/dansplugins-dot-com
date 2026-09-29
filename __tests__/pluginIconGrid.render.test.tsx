@@ -19,7 +19,8 @@ vi.mock('../services/likeService', () => ({
 vi.mock('../utils/session', () => ({getSessionToken: vi.fn(async () => null)}));
 vi.mock('next/router', () => ({useRouter: () => ({push: vi.fn()})}));
 
-import PluginIconGrid, {CLOSE_DELAY_MS, OPEN_DELAY_MS, TOUCH_ONLY_QUERY, type IconGridPlugin} from '../components/PluginIconGrid';
+import {CATALOGUE_CLOSE_DELAY_MS as CLOSE_DELAY_MS, CATALOGUE_OPEN_DELAY_MS as OPEN_DELAY_MS, TOUCH_ONLY_QUERY} from '@kingdom-community/community-site-kit';
+import PluginIconGrid, {type IconGridPlugin} from '../components/PluginIconGrid';
 import {PluginsSection} from '../pages/index';
 
 const PLUGINS: IconGridPlugin[] = [
@@ -47,15 +48,18 @@ const renderGrid = () => render(
 );
 
 // A tile's caption; its full text also carries the fallback avatar's initial.
-const captionOf = (tile: HTMLElement) => tile.querySelector('.icon-tile-caption')?.textContent;
-const captions = () => screen.getAllByTestId('plugin-tile').map(captionOf);
+const captionOf = (tile: HTMLElement) => tile.querySelector('.catalogue-tile-caption')?.textContent;
+const captions = () => screen.getAllByTestId('catalogue-tile').map(captionOf);
 const tileFor = (title: string) =>
-    screen.getAllByTestId('plugin-tile').find((tile) => captionOf(tile) === title) as HTMLElement;
+    screen.getAllByTestId('catalogue-tile').find((tile) => captionOf(tile) === title) as HTMLElement;
 
-// The panel of the tile's own wrapper; closed panels are display:none.
+// The panel (community-site-kit's Popper) of the tile's own wrapper; closed
+// panels stay mounted as display:none.
 const panelFor = (title: string) =>
-    tileFor(title).parentElement!.querySelector('[data-testid="plugin-panel"]') as HTMLElement;
-const isOpen = (title: string) => panelFor(title).style.display !== 'none';
+    tileFor(title).parentElement!.querySelector('[role="group"]')!.parentElement as HTMLElement;
+// On a touch screen the grid renders no hover panel at all, which is closed too.
+const isOpen = (title: string) =>
+    tileFor(title).parentElement!.querySelector('[role="group"]') !== null && panelFor(title).style.display !== 'none';
 
 afterEach(() => {
     cleanup();
@@ -180,7 +184,7 @@ const useTouchScreen = () => {
     });
 };
 
-const sheet = () => screen.queryByTestId('plugin-sheet');
+const sheet = () => screen.queryByRole('dialog');
 
 describe('PluginIconGrid on a touch screen', () => {
     beforeEach(useTouchScreen);
@@ -218,7 +222,7 @@ describe('PluginIconGrid on a touch screen', () => {
     it('closes from its close button and on Escape', () => {
         renderGrid();
         fireEvent.click(tileFor('Fiefs'));
-        fireEvent.click(screen.getByRole('button', {name: 'Close'}));
+        fireEvent.click(screen.getByRole('button', {name: /^Close /}));
         expect(screen.queryByRole('dialog')).toBeNull();
 
         fireEvent.click(tileFor('Fiefs'));
@@ -261,7 +265,7 @@ describe('PluginsSection search and filters', () => {
         renderSection();
         const toggle = screen.getByRole('button', {name: 'Search & filter'});
         expect(toggle.getAttribute('aria-expanded')).toBe('false');
-        expect(screen.getAllByTestId('plugin-tile')).toHaveLength(3);
+        expect(screen.getAllByTestId('catalogue-tile')).toHaveLength(3);
     });
 
     it('expands the controls, which still filter the grid', () => {

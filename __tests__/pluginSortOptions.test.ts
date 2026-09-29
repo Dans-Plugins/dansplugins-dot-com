@@ -1,5 +1,17 @@
 import {describe, expect, it} from 'vitest'
-import {sortPlugins} from '../utils/sortPlugins'
+import {sortCatalogue} from '@kingdom-community/community-site-kit/catalogue'
+import {pluginSortOptions, type FilterablePlugin} from '../utils/catalogueFilter'
+
+// The expectations are the ones the site's own sortPlugins had; the orders now
+// run through community-site-kit's sortCatalogue.
+const sortPlugins = <T extends Omit<FilterablePlugin, 'description'>>(
+    plugins: T[],
+    key: string,
+    likeCounts: Record<string, number> = {},
+): T[] => {
+    const option = pluginSortOptions(likeCounts).find((candidate) => candidate.key === key)!
+    return sortCatalogue(plugins.map((p) => ({description: '', ...p})), option) as unknown as T[]
+}
 
 const plugins = [
     {id: 'a', title: 'Apple', serverCount: 10},
@@ -7,7 +19,7 @@ const plugins = [
     {id: 'c', title: 'Cherry', serverCount: null},
 ]
 
-describe('sortPlugins', () => {
+describe('pluginSortOptions', () => {
     it('sorts alphabetically by title', () => {
         expect(sortPlugins(plugins, 'alphabetical').map((p) => p.id)).toEqual(['a', 'b', 'c'])
     })
