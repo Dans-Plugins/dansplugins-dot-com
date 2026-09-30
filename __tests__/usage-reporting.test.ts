@@ -171,8 +171,8 @@ describe('createUsageReporting', () => {
 });
 
 describe('pageViewTags', () => {
-    it('carries the page and the version and nothing else', () => {
-        expect(pageViewTags('/about')).toEqual({ page: '/about', version: VERSION });
+    it('carries the page and nothing else; the client adds the version', () => {
+        expect(pageViewTags('/about')).toEqual({ page: '/about' });
         expect(VERSION).toBe(pkg.version);
     });
 });

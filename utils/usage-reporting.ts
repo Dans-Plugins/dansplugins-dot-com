@@ -22,8 +22,12 @@ export const DEFAULT_ENDPOINT = 'https://trace.danielstephenson.dev';
 /** What is and is not sent, and every way to turn it off. */
 export const DETAILS_URL = 'https://github.com/Stephenson-Software/trace#usage-reporting';
 
-/** The build the events are tagged with: `version` from package.json. */
-export const VERSION: string = pkg.version;
+/**
+ * The build the events are tagged with: `version` from package.json, passed to
+ * the client, which tags every event with it. Never blank, so building the
+ * client inside middleware can never throw over it.
+ */
+export const VERSION: string = (typeof pkg.version === 'string' && pkg.version.trim()) || 'unknown';
 
 /** The environment variables read. Each is looked up by its literal name so Next.js exposes it to middleware. */
 export interface UsageReportingEnv {
@@ -88,6 +92,7 @@ export function createUsageReporting(
     if (line && options.log) options.log(line);
     if (disabledReason(env)) return TraceClient.disabled();
     return new TraceClient(endpointOf(env), PROGRAM_NAME, {
+        version: VERSION,
         key: env.USAGE_REPORTING_KEY,
         env: traceEnvironment(env),
         fetch: options.fetch,
@@ -95,9 +100,9 @@ export function createUsageReporting(
     });
 }
 
-/** The tags a page view carries: the normalised path and the version, nothing else. */
+/** The tags a page view is reported with: the normalised path, nothing else (the client adds `version`). */
 export function pageViewTags(page: string): Record<string, string> {
-    return { page, version: VERSION };
+    return { page };
 }
 
 let shared: TraceClient | undefined;
