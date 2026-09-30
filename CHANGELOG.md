@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **How releases work** (`/releases`): what the release gates check before a stable release is published (the API-compatibility check on every build, and the boot, save-compatibility and dependents gates), the stable and dev channels, supported Minecraft versions, and what happens when a check fails or a release has to be pulled. Linked from About and listed in the sitemap.
 - **Verified before release** on every plugin page: the gate runs its current stable release passed, read from the *Verification* section of that release's notes (which dpc-api already mirrors), each linking to its public run, and the Minecraft versions it was started on. Nothing is shown for a release whose notes record no gates, so no check is claimed that did not happen.
 
+### Tests
+
+- `LikeButton` and `SelfLoadingLikeButton` are covered (`__tests__/likeButton.render.test.tsx`): a signed-out click explains itself and calls no API, a signed-in click likes then unlikes and shows the server's count, the button is disabled while a request is in flight, a failed request keeps the old state and says so, and the self-loading variant reads its own count and matches a user's like on both type and id.
+
 ### Changed
 
 - The home page opens on the plugins themselves: a minimal grid of plugin icons with one-line names, no cards. Hovering or keyboard-focusing an icon opens a panel with the description, tags, figures (servers, latest version, downloads, tested Minecraft versions, SpigotMC rating) and the Like, Details, Download, Guide, GitHub and SpigotMC actions; clicking or tapping an icon opens the plugin's page. Search, sort and filters are folded behind a "Search & filter" button above the grid and open by themselves while a filter is active. The welcome blurb moved below the grid and lost its "Browse Plugins" button. `PluginCard` became `PluginDetails`, the panel's contents.
