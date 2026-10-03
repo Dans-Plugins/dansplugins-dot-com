@@ -44,13 +44,16 @@ type Gate = 'loading' | 'signed-out' | 'not-admin' | 'unreachable' | 'admin'
 
 // Everything the form holds is text, tags included: a comma-separated line is
 // the least ceremony for a dozen short words, and parseTags() normalises it.
-interface FormState extends Omit<PluginUpsert, 'tags'> {
+// The plugins an entry requires are slugs in the same form.
+interface FormState extends Omit<PluginUpsert, 'tags' | 'requires'> {
     tagsText: string
+    requiresText: string
 }
 
 const formFrom = (plugin: CataloguePlugin | null): FormState => {
     const base = plugin ? upsertFrom(plugin) : EMPTY_UPSERT
-    return {...base, tagsText: base.tags.join(', ')}
+    const {tags, requires, ...rest} = base
+    return {...rest, tagsText: tags.join(', '), requiresText: requires.join(', ')}
 }
 
 const AdminPluginsPage: NextPage = () => {
@@ -107,8 +110,8 @@ const AdminPluginsPage: NextPage = () => {
         setError(null)
         setNotice(null)
         setFieldErrors({})
-        const {tagsText, ...rest} = form
-        const body: PluginUpsert = {...rest, tags: parseTags(tagsText)}
+        const {tagsText, requiresText, ...rest} = form
+        const body: PluginUpsert = {...rest, tags: parseTags(tagsText), requires: parseTags(requiresText)}
         const result = editing ? await updatePlugin(token, editing, body) : await createPlugin(token, body)
         setSubmitting(false)
         if (!result.ok) {
@@ -122,7 +125,7 @@ const AdminPluginsPage: NextPage = () => {
         setNotice(`${result.value.title} saved. The site shows the change on its next render (within five minutes on a cached page).`)
     }
 
-    const field = (name: keyof Omit<FormState, 'tagsText'>, label: string, extra: Record<string, unknown> = {}) => (
+    const field = (name: keyof Omit<FormState, 'tagsText' | 'requiresText'>, label: string, extra: Record<string, unknown> = {}) => (
         <TextField
             label={label}
             name={name}
@@ -224,6 +227,32 @@ const AdminPluginsPage: NextPage = () => {
                             {parseTags(form.tagsText).length > 0 && (
                                 <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5}} aria-label="Tag preview">
                                     {parseTags(form.tagsText).map((tag) => <Chip key={tag} label={tag} size="small" variant="outlined"/>)}
+                                </Stack>
+                            )}
+
+                            <TextField
+                                label="Requires"
+                                name="requires"
+                                value={form.requiresText}
+                                onChange={(e) => setForm((current) => ({...current, requiresText: e.target.value}))}
+                                size="small"
+                                error={Boolean(fieldErrors.requires) || Object.keys(fieldErrors).some((k) => k.startsWith('requires'))}
+                                helperText={fieldErrors.requires ?? 'Slugs of plugins this one cannot run without, comma-separated, e.g. medieval-factions. It is then listed under that plugin\'s Expansions.'}
+                            />
+                            {parseTags(form.requiresText).length > 0 && (
+                                <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5}} aria-label="Preview of required plugins">
+                                    {parseTags(form.requiresText).map((required) => {
+                                        const known = catalogue.find((plugin) => plugin.id === required)
+                                        return (
+                                            <Chip
+                                                key={required}
+                                                label={known ? known.title : `${required} (not in the catalogue)`}
+                                                size="small"
+                                                variant="outlined"
+                                                color={known ? 'default' : 'warning'}
+                                            />
+                                        )
+                                    })}
                                 </Stack>
                             )}
 

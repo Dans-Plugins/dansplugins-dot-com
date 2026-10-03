@@ -141,6 +141,20 @@ class FlywayMigrationTest {
     }
 
     @Test
+    void pluginRequiresSeedNamesMedievalFactionsExpansions() {
+        // V25 seeds the four add-ons that declare `depend: [MedievalFactions]`.
+        // Read through the entity so Hibernate's mapping of the new table is
+        // exercised against the real schema, foreign key to plugins(slug) included.
+        for (String addOn : new String[] {"currencies", "fiefs", "democracy", "bluemap-medieval-factions"}) {
+            assertThat(pluginRepository.findBySlug(addOn).orElseThrow().getRequires())
+                    .as(addOn).containsExactly("medieval-factions");
+        }
+        // A soft integration is not a hard dependency, and the flagship needs nothing.
+        assertThat(pluginRepository.findBySlug("mailboxes").orElseThrow().getRequires()).isEmpty();
+        assertThat(pluginRepository.findBySlug("medieval-factions").orElseThrow().getRequires()).isEmpty();
+    }
+
+    @Test
     void pluginVersionsRoundTripWithTheirAssets() {
         // V16's two tables are created empty, so this is the only place their
         // shape is exercised against real Postgres: the foreign key to plugins,

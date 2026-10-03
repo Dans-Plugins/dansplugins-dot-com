@@ -20,6 +20,9 @@ export interface CataloguePlugin {
     bStatsId: string | null;
     icon: string | null;
     tags: string[];
+    // Slugs of the plugins this one cannot run without (a hard dependency).
+    // A plugin's "expansions" are the entries whose list names it.
+    requires: string[];
 }
 
 /** How long a fetched catalogue is served before dpc-api is asked again. */
@@ -44,6 +47,9 @@ export const clearCatalogueCache = (): void => {
 const orNull = (value: unknown): string | null =>
     typeof value === 'string' && value.trim() !== '' ? value : null;
 
+const stringList = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+
 /** dpc-api's row shape → the page shape. Exported for the client-side readers. */
 export const toCataloguePlugin = (row: unknown): CataloguePlugin | null => {
     if (!row || typeof row !== 'object') {
@@ -61,7 +67,9 @@ export const toCataloguePlugin = (row: unknown): CataloguePlugin | null => {
         spigotmcLink: orNull(r.spigotmcUrl),
         bStatsId: orNull(r.bstatsId),
         icon: orNull(r.iconPath),
-        tags: Array.isArray(r.tags) ? r.tags.filter((t): t is string => typeof t === 'string') : [],
+        tags: stringList(r.tags),
+        // Absent from an API older than #349; read as "requires nothing".
+        requires: stringList(r.requires),
     };
 };
 

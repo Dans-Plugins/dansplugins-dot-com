@@ -88,6 +88,22 @@ public class Plugin {
         tags.addAll(newTags);
     }
 
+    // Slugs of the plugins this one cannot run without (V25, #349) — a hard
+    // dependency, not a shared theme. Read eagerly for the same reason as tags.
+    // The other direction (a plugin's expansions) is not stored: it is every
+    // plugin whose set names this one, which a reader of the catalogue derives.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "plugin_requires", joinColumns = @JoinColumn(name = "plugin_id"))
+    @Column(name = "required_slug", nullable = false, length = 64)
+    @Setter(lombok.AccessLevel.NONE)
+    private Set<String> requires = new HashSet<>();
+
+    /** Replaces the required-plugin set in place, as {@link #replaceTags} does. */
+    public void replaceRequires(java.util.Collection<String> newRequires) {
+        requires.clear();
+        requires.addAll(newRequires);
+    }
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(lombok.AccessLevel.NONE)
     private Instant createdAt;

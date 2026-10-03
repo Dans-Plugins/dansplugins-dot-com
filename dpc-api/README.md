@@ -212,7 +212,8 @@ migration. A signed-in non-admin gets `403`; no token gets `401`.
   "bstatsId": "8929",
   "iconPath": "/icons/mf.png",
   "firstReleasedAt": "2020-08-02T18:41:07Z",
-  "tags": ["factions", "medieval"]
+  "tags": ["factions", "medieval"],
+  "requires": []
 }
 ```
 
@@ -223,7 +224,14 @@ plugin's first GitHub release was published, recorded once by the release sync
 releases, and until the sync has recorded it. The internal UUID is not exposed:
 the slug is the public identifier. `tags` are short lower-case words saying
 what the plugin is for, sorted, from the `plugin_tags` table `V20` seeds from
-the site's catalogue file; an untagged plugin has `[]`.
+the site's catalogue file; an untagged plugin has `[]`. `requires` lists the
+slugs of the catalogue plugins this one cannot run without (a hard dependency,
+from the `plugin_requires` table `V25` added and seeded with Medieval Factions'
+four add-ons), sorted; `[]` for a plugin that stands alone. A plugin's
+*expansions* are not stored separately: they are the plugins whose `requires`
+names it, which a reader of the list derives. On a write, every required slug
+must already be in the catalogue and a plugin cannot require itself (`400`
+otherwise); an absent `requires` clears the list, as for `tags`.
 
 The website renders its catalogue from these endpoints
 (`services/pluginCatalogueService.ts`), cached per server process and served

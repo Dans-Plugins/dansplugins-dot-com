@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest'
 import {facetValues, filterCatalogue, isCatalogueQueryActive} from '@kingdom-community/community-site-kit/catalogue'
-import {PLUGIN_FACETS, TAG_FACET, VERSION_FACET, relatedPlugins, type FilterablePlugin} from '../utils/catalogueFilter'
+import {PLUGIN_FACETS, TAG_FACET, VERSION_FACET, expansionsOf, relatedPlugins, requiredPlugins, type FilterablePlugin} from '../utils/catalogueFilter'
 
 // The expectations are the ones the site's own helpers had; the rules now run
 // through community-site-kit's catalogue helpers with this site's facets.
@@ -84,5 +84,38 @@ describe('relatedPlugins', () => {
     it('is empty for an untagged plugin, and omits plugins sharing nothing', () => {
         expect(relatedPlugins(plugins[5], plugins)).toEqual([])
         expect(relatedPlugins(plugins[3], plugins)).toEqual([])
+    })
+
+    it('leaves out the expansions and requirements the page already links', () => {
+        const withRequires = plugins.map((p) => (p.id === 'cur' || p.id === 'fiefs' ? {...p, requires: ['mf']} : p))
+        expect(relatedPlugins(withRequires[0], withRequires).map((p) => p.id)).toEqual(['mc'])
+        // Currencies' sibling add-on is still related; the plugin it requires is not.
+        expect(relatedPlugins(withRequires[1], withRequires).map((p) => p.id)).toEqual(['fiefs', 'mc'])
+    })
+})
+
+describe('expansionsOf and requiredPlugins', () => {
+    const catalogue = [
+        {id: 'cur', title: 'Currencies', description: '', tags: ['factions'], requires: ['mf']},
+        {id: 'fiefs', title: 'Fiefs', description: '', tags: ['factions'], requires: ['mf', 'gone']},
+        {id: 'mf', title: 'Medieval Factions', description: '', tags: ['factions'], requires: []},
+        {id: 'mre', title: 'Medieval Roleplay Engine', description: '', tags: ['factions']},
+    ]
+
+    it('lists the plugins requiring the given one, in catalogue order, never from tags alone', () => {
+        expect(expansionsOf(catalogue[2], catalogue).map((p) => p.id)).toEqual(['cur', 'fiefs'])
+        expect(expansionsOf(catalogue[3], catalogue)).toEqual([])
+    })
+
+    it('resolves what a plugin requires, skipping a slug the catalogue lacks', () => {
+        expect(requiredPlugins(catalogue[1], catalogue).map((p) => p.id)).toEqual(['mf'])
+        expect(requiredPlugins(catalogue[2], catalogue)).toEqual([])
+        expect(requiredPlugins(catalogue[3], catalogue)).toEqual([])
+    })
+
+    it('ignores a plugin naming itself', () => {
+        const selfish = [{id: 'x', title: 'X', description: '', requires: ['x']}]
+        expect(expansionsOf(selfish[0], selfish)).toEqual([])
+        expect(requiredPlugins(selfish[0], selfish)).toEqual([])
     })
 })

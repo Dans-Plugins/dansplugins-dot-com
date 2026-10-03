@@ -19,6 +19,8 @@ export interface PluginUpsert {
     bstatsId: string;
     iconPath: string;
     tags: string[];
+    // Slugs of catalogue plugins this one cannot run without.
+    requires: string[];
 }
 
 export type AdminResult<T> = {ok: true; value: T} | {ok: false; message: string; fieldErrors?: Record<string, string>};
@@ -35,13 +37,17 @@ export const upsertFrom = (plugin: CataloguePlugin): PluginUpsert => ({
     bstatsId: plugin.bStatsId ?? '',
     iconPath: plugin.icon ?? '',
     tags: plugin.tags,
+    requires: plugin.requires,
 });
 
 export const EMPTY_UPSERT: PluginUpsert = {
-    slug: '', title: '', description: '', githubUrl: '', spigotmcUrl: '', bstatsId: '', iconPath: '', tags: [],
+    slug: '', title: '', description: '', githubUrl: '', spigotmcUrl: '', bstatsId: '', iconPath: '', tags: [], requires: [],
 };
 
-/** "medieval, factions,, Economy " → ["medieval", "factions", "economy"]. */
+/**
+ * "medieval, factions,, Economy " → ["medieval", "factions", "economy"]. Also
+ * reads the required-plugins line, which is slugs in the same comma form.
+ */
 export const parseTags = (text: string): string[] =>
     Array.from(new Set(text.split(',').map((t) => t.trim().toLowerCase()).filter((t) => t !== '')));
 

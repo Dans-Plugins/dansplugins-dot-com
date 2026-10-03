@@ -45,6 +45,7 @@ public class PluginCatalogueService {
         Plugin plugin = new Plugin(request.slug(), request.title().trim(), request.description().trim(),
                 request.githubUrl().trim(), orNull(request.spigotmcUrl()), orNull(request.bstatsId()), orNull(request.iconPath()));
         plugin.replaceTags(normalisedTags(request.tags()));
+        plugin.replaceRequires(checkedRequires(request.slug(), request.requires()));
         return pluginRepository.save(plugin);
     }
 
@@ -60,6 +61,7 @@ public class PluginCatalogueService {
         plugin.setBstatsId(orNull(request.bstatsId()));
         plugin.setIconPath(orNull(request.iconPath()));
         plugin.replaceTags(normalisedTags(request.tags()));
+        plugin.replaceRequires(checkedRequires(slug, request.requires()));
         return pluginRepository.save(plugin);
     }
 
@@ -72,6 +74,25 @@ public class PluginCatalogueService {
     // "" and whitespace are the absence the old catalogue file spelled that way.
     private static String orNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    /**
+     * The required-plugin slugs, de-duplicated and sorted, refused with a 400
+     * naming the culprit when one is the plugin itself or not in the
+     * catalogue — the foreign key would refuse it too, but as a 500.
+     */
+    private List<String> checkedRequires(String ownSlug, List<String> requires) {
+        List<String> slugs = normalisedTags(requires);
+        for (String required : slugs) {
+            if (required.equals(ownSlug)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A plugin cannot require itself");
+            }
+            if (pluginRepository.findBySlug(required).isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Required plugin '" + required + "' is not in the catalogue");
+            }
+        }
+        return slugs;
     }
 
     private static List<String> normalisedTags(List<String> tags) {

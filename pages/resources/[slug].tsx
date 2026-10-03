@@ -37,7 +37,7 @@ import {colorForTitle} from '../../utils/pluginAvatar';
 import {getCatalogue} from '../../services/pluginCatalogueService';
 import {absoluteDateFrom} from '../../utils/relativeTime';
 import {DPM_SLUG, DSH_URL, resourceDescription, resourcePath} from '../../utils/resources';
-import {relatedPlugins} from '../../utils/catalogueFilter';
+import {expansionsOf, relatedPlugins, requiredPlugins} from '../../utils/catalogueFilter';
 
 const version = require('../../package.json').version;
 
@@ -82,11 +82,14 @@ interface ResourcePageProps {
     // hides the line, never guesses.
     firstReleasedAt: string | null;
     lastUpdatedAt: string | null;
-    // From the catalogue: what the plugin is for, and the plugins sharing a
-    // tag with it (most in common first). Currencies and Fiefs both call
-    // themselves expansions of Medieval Factions; this is where the site
-    // finally says so.
+    // From the catalogue: what the plugin is for; the plugins it cannot run
+    // without, and those that cannot run without it (its expansions), both
+    // from the catalogue's hand-kept `requires`, never inferred from tags; and
+    // the other plugins sharing a tag with it (most in common first), less any
+    // already named as an expansion or a requirement.
     tags: string[];
+    requires: RelatedPlugin[];
+    expansions: RelatedPlugin[];
     related: RelatedPlugin[];
 }
 
@@ -96,6 +99,56 @@ interface RelatedPlugin {
     description: string;
     icon: string | null;
 }
+
+const toRelated = (other: {id: string; title: string; description: string; icon: string | null}): RelatedPlugin => ({
+    slug: other.id,
+    title: other.title,
+    description: other.description,
+    icon: other.icon
+});
+
+/** A titled block of linked plugin rows: icon, name and one-line description. */
+const PluginLinkSection = ({id, heading, intro, plugins, testId}: {
+    id: string; heading: string; intro?: string; plugins: RelatedPlugin[]; testId: string
+}) => (
+    <Box component="section" aria-labelledby={id} sx={{mb: 4}} data-testid={testId}>
+        <Typography id={id} variant="h6" component="h2" gutterBottom={!intro}>
+            {heading}
+        </Typography>
+        {intro ? (
+            <Typography variant="body2" color="text.secondary" sx={{mb: 1.5}}>
+                {intro}
+            </Typography>
+        ) : null}
+        <Stack spacing={1}>
+            {plugins.map((other) => (
+                <Paper
+                    key={other.slug}
+                    variant="outlined"
+                    component={NextLinkComposed}
+                    to={resourcePath(other.slug)}
+                    sx={{p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, textDecoration: 'none', color: 'inherit'}}
+                >
+                    <Avatar
+                        variant="rounded"
+                        {...(other.icon ? {src: other.icon, alt: ''} : {'aria-hidden': true})}
+                        sx={{bgcolor: colorForTitle(other.title), width: 32, height: 32, fontSize: '0.9rem'}}
+                    >
+                        {other.title.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box sx={{minWidth: 0}}>
+                        <Typography variant="subtitle2" component="span" sx={{display: 'block'}}>
+                            {other.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{display: 'block'}}>
+                            {other.description}
+                        </Typography>
+                    </Box>
+                </Paper>
+            ))}
+        </Stack>
+    </Box>
+);
 
 
 export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async ({params}) => {
@@ -145,12 +198,9 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             firstReleasedAt: record?.firstReleasedAt ?? null,
             lastUpdatedAt: versions[0]?.publishedAt ?? null,
             tags: plugin.tags,
-            related: relatedPlugins(plugin, catalogue).map((other) => ({
-                slug: other.id,
-                title: other.title,
-                description: other.description,
-                icon: other.icon
-            }))
+            requires: requiredPlugins(plugin, catalogue).map(toRelated),
+            expansions: expansionsOf(plugin, catalogue).map(toRelated),
+            related: relatedPlugins(plugin, catalogue).map(toRelated)
         }
     };
 };
@@ -172,6 +222,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     firstReleasedAt,
     lastUpdatedAt,
     tags,
+    requires,
+    expansions,
     related
 }) => {
     const firstReleased = firstReleasedAt ? absoluteDateFrom(firstReleasedAt) : '';
@@ -322,9 +374,25 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     </Paper>
                 ) : null}
 
-                <Typography variant="body1" color="text.secondary" sx={{mb: tags.length > 0 ? 1.5 : 3, lineHeight: 1.7}}>
+                <Typography variant="body1" color="text.secondary" sx={{mb: tags.length > 0 || requires.length > 0 ? 1.5 : 3, lineHeight: 1.7}}>
                     {description}
                 </Typography>
+
+                {requires.length > 0 ? (
+                    // A hard dependency, so it sits with the description rather than
+                    // down with the related plugins: it is something to install first.
+                    <Typography variant="body2" sx={{mb: tags.length > 0 ? 1.5 : 3}} data-testid="requires">
+                        Requires{' '}
+                        {requires.map((required, i) => (
+                            <React.Fragment key={required.slug}>
+                                {i > 0 ? (i === requires.length - 1 ? ' and ' : ', ') : null}
+                                <Link component={NextLinkComposed} to={resourcePath(required.slug)} sx={{fontWeight: 600}}>
+                                    {required.title}
+                                </Link>
+                            </React.Fragment>
+                        ))}
+                    </Typography>
+                ) : null}
 
                 {tags.length > 0 ? (
                     <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5, mb: 3}} aria-label="Tags">
@@ -404,39 +472,18 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
 
                 <PluginVersionList versions={versions} releasesUrl={releases}/>
 
+                {expansions.length > 0 ? (
+                    <PluginLinkSection
+                        id="expansions-heading"
+                        heading="Expansions"
+                        intro={`Plugins that build on ${title} and need it installed.`}
+                        plugins={expansions}
+                        testId="expansions"
+                    />
+                ) : null}
+
                 {related.length > 0 ? (
-                    <Box component="section" aria-labelledby="related-heading" sx={{mb: 4}} data-testid="related-plugins">
-                        <Typography id="related-heading" variant="h6" component="h2" gutterBottom>
-                            Related plugins
-                        </Typography>
-                        <Stack spacing={1}>
-                            {related.map((other) => (
-                                <Paper
-                                    key={other.slug}
-                                    variant="outlined"
-                                    component={NextLinkComposed}
-                                    to={resourcePath(other.slug)}
-                                    sx={{p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, textDecoration: 'none', color: 'inherit'}}
-                                >
-                                    <Avatar
-                                        variant="rounded"
-                                        {...(other.icon ? {src: other.icon, alt: ''} : {'aria-hidden': true})}
-                                        sx={{bgcolor: colorForTitle(other.title), width: 32, height: 32, fontSize: '0.9rem'}}
-                                    >
-                                        {other.title.charAt(0).toUpperCase()}
-                                    </Avatar>
-                                    <Box sx={{minWidth: 0}}>
-                                        <Typography variant="subtitle2" component="span" sx={{display: 'block'}}>
-                                            {other.title}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{display: 'block'}}>
-                                            {other.description}
-                                        </Typography>
-                                    </Box>
-                                </Paper>
-                            ))}
-                        </Stack>
-                    </Box>
+                    <PluginLinkSection id="related-heading" heading="Related plugins" plugins={related} testId="related-plugins"/>
                 ) : null}
 
                 <Paper elevation={0} sx={{p: 2.5, bgcolor: 'action.hover'}}>

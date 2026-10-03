@@ -26,6 +26,8 @@ interface ResourcePropsShape {
         firstReleasedAt: string | null;
         lastUpdatedAt: string | null;
         tags: string[];
+        requires: {slug: string; title: string; description: string; icon: string | null}[];
+        expansions: {slug: string; title: string; description: string; icon: string | null}[];
         related: {slug: string; title: string; description: string; icon: string | null}[];
     };
 }
@@ -152,6 +154,8 @@ describe('resource page getServerSideProps', () => {
             firstReleasedAt: null,
             lastUpdatedAt: null,
             tags: ['admin'],
+            requires: [],
+            expansions: [],
             // The one other admin plugin in the fixture.
             related: [
                 {slug: 'dans-essentials', title: 'Dan\'s Essentials', description: 'Provides miscellaneous commands.', icon: '/icons/de.png'}
@@ -162,12 +166,35 @@ describe('resource page getServerSideProps', () => {
     it('names the plugins sharing a tag, most in common first', async () => {
         const result = await getServerSideProps(contextWithSlug('currencies')) as ResourcePropsShape;
 
-        // Currencies is medieval + factions + economy: the other factions
-        // plugins share two tags (alphabetical between themselves), Medieval
-        // Cookery one, and Activity Tracker and Dan's Essentials none.
+        // Currencies is medieval + factions + economy: Fiefs shares two tags,
+        // Medieval Cookery one, and Activity Tracker and Dan's Essentials none.
+        // Medieval Factions shares two as well, but is left out: the page
+        // already links it as what Currencies requires.
         expect(result.props.related.map((p) => p.slug)).toEqual([
-            'fiefs', 'medieval-factions', 'medieval-cookery'
+            'fiefs', 'medieval-cookery'
         ]);
+    });
+
+    it('names the plugins requiring this one as its expansions, and not again as related', async () => {
+        const result = await getServerSideProps(contextWithSlug('medieval-factions')) as ResourcePropsShape;
+
+        expect(result.props.expansions).toEqual([
+            {slug: 'currencies', title: 'Currencies',
+                description: 'An expansion for Medieval Factions that allows faction owners to create and mint local currencies.',
+                icon: '/icons/c.png'},
+            {slug: 'fiefs', title: 'Fiefs', description: 'Allows players to create fiefs and manage them.', icon: '/icons/f.png'},
+        ]);
+        expect(result.props.requires).toEqual([]);
+        // Both expansions share its tags; only the plugin that merely shares one is related.
+        expect(result.props.related.map((p) => p.slug)).toEqual(['medieval-cookery']);
+    });
+
+    it('names what an add-on requires, linking back to it', async () => {
+        const result = await getServerSideProps(contextWithSlug('fiefs')) as ResourcePropsShape;
+
+        expect(result.props.requires.map((p) => [p.slug, p.title])).toEqual([['medieval-factions', 'Medieval Factions']]);
+        // An add-on is not an expansion of another add-on that happens to share its requirement.
+        expect(result.props.expansions).toEqual([]);
     });
 
     it('serves SpigotMC\'s rating and download count once the listing has enough reviews', async () => {
