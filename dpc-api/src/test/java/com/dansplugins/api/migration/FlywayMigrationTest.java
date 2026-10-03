@@ -155,6 +155,13 @@ class FlywayMigrationTest {
     }
 
     @Test
+    void democracyDescriptionNoLongerNamesMedievalFactionsVersions() {
+        // V26 drops V24's "Requires Medieval Factions 5 or 6." (stale since MF 7.0.0).
+        assertThat(pluginRepository.findBySlug("democracy").orElseThrow().getDescription())
+                .isEqualTo("Lets a Medieval Factions faction hold elections: members stand as candidates, vote, and follow the count.");
+    }
+
+    @Test
     void pluginVersionsRoundTripWithTheirAssets() {
         // V16's two tables are created empty, so this is the only place their
         // shape is exercised against real Postgres: the foreign key to plugins,
