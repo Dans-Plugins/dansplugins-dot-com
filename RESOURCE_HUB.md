@@ -37,6 +37,7 @@ as resource pages.
 | Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |
 | Rating | SpigotMC's, bridged through the same Spiget listing and labelled as theirs, until reviews of the site's own exist |
 | Tags, categories | Hand-curated `tags` per plugin in `plugins.json`, mirrored into `plugin_tags` (`V20`) under the same drift guard; filters on `/`, related plugins on a resource page |
+| Dependencies | Hand-curated `requires` per plugin in `plugin_requires` (`V25`, #349), edited at `/admin/plugins`; a resource page lists its "Expansions" (plugins requiring it) above related plugins and an add-on says "Requires …" with a link back. Never inferred from tags |
 | Likes | `likes(target_type, target_id)` — already polymorphic over `plugin`, `guide`, `issue`, `feature_request` |
 | Accounts | UserAuth (external) plus a local `users` mirror holding display name, avatar and bio |
 | Member profile | `/u/[username]`, with badges and likes |

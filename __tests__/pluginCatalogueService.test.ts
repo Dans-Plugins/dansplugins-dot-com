@@ -25,8 +25,15 @@ describe('toCataloguePlugin', () => {
             id: 'medieval-cookery', title: 'Medieval Cookery',
             description: 'Allows server owners to add cooking recipes for an enhanced roleplay experience.',
             githubLink: 'https://github.com/Dans-Plugins/Medieval-Cookery',
-            spigotmcLink: null, bStatsId: null, icon: null, tags: ['medieval', 'recipes', 'roleplay']
+            spigotmcLink: null, bStatsId: null, icon: null, tags: ['medieval', 'recipes', 'roleplay'], requires: []
         });
+    });
+
+    it('reads what a plugin requires, and an API that predates the field as "requires nothing"', () => {
+        expect(toCataloguePlugin(API_CATALOGUE[1])?.requires).toEqual(['medieval-factions']);
+        expect(toCataloguePlugin({slug: 'x', title: 'X', githubUrl: 'https://github.com/o/x'})?.requires).toEqual([]);
+        expect(toCataloguePlugin({slug: 'x', title: 'X', githubUrl: 'https://github.com/o/x', requires: ['a', 3, null]})?.requires)
+            .toEqual(['a']);
     });
 
     it('treats "" as null, so the old catalogue file\'s spelling of "none" still reads as none', () => {

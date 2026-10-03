@@ -69,6 +69,8 @@ class PluginCatalogueAdminTest {
                 "https://www.spigotmc.org/resources/wild-pets.95800/", "12332", "/icons/wp.png");
         wildPets.replaceTags(Set.of("survival", "mobs"));
         pluginRepository.save(wildPets);
+        pluginRepository.save(new Plugin("medieval-factions", "Medieval Factions", "Feudal groups.",
+                "https://github.com/Dans-Plugins/Medieval-Factions", null, null, "/icons/mf.png"));
     }
 
     @AfterEach
@@ -162,6 +164,71 @@ class PluginCatalogueAdminTest {
         Plugin stored = pluginRepository.findBySlug("wild-pets").orElseThrow();
         assertThat(stored.getTags()).containsExactly("pets");
         assertThat(pluginRepository.findBySlug("ignored-here")).isEmpty();
+    }
+
+    @Test
+    void create_byAdmin_recordsWhatThePluginRequires_andGetServesIt() throws Exception {
+        String addOn = NEW_PLUGIN.replace("\"tags\":", "\"requires\":[\"medieval-factions\",\"medieval-factions\"],\"tags\":");
+        mockMvc.perform(post("/api/v1/plugins").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(addOn))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.requires").value(contains("medieval-factions")));
+
+        mockMvc.perform(get("/api/v1/plugins/new-plugin"))
+                .andExpect(jsonPath("$.requires").value(contains("medieval-factions")));
+        // The required plugin is untouched; its expansions are derived by readers, not stored.
+        mockMvc.perform(get("/api/v1/plugins/medieval-factions"))
+                .andExpect(jsonPath("$.requires").isEmpty());
+        assertThat(pluginRepository.findBySlug("new-plugin").orElseThrow().getRequires())
+                .containsExactly("medieval-factions");
+    }
+
+    @Test
+    void create_withoutRequires_servesAnEmptyList() throws Exception {
+        mockMvc.perform(post("/api/v1/plugins").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(NEW_PLUGIN))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.requires").isArray())
+                .andExpect(jsonPath("$.requires").isEmpty());
+    }
+
+    @Test
+    void createAndUpdate_refuseARequiredPluginNotInTheCatalogue_orItself() throws Exception {
+        String unknown = NEW_PLUGIN.replace("\"tags\":", "\"requires\":[\"no-such-plugin\"],\"tags\":");
+        mockMvc.perform(post("/api/v1/plugins").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(unknown))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Required plugin 'no-such-plugin' is not in the catalogue"));
+        assertThat(pluginRepository.findBySlug("new-plugin")).isEmpty();
+
+        String self = NEW_PLUGIN.replace("\"tags\":", "\"requires\":[\"wild-pets\"],\"tags\":");
+        mockMvc.perform(put("/api/v1/plugins/wild-pets").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(self))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("A plugin cannot require itself"));
+
+        String badSlug = NEW_PLUGIN.replace("\"tags\":", "\"requires\":[\"Medieval Factions\"],\"tags\":");
+        mockMvc.perform(post("/api/v1/plugins").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(badSlug))
+                .andExpect(status().isBadRequest());
+        assertThat(pluginRepository.findBySlug("wild-pets").orElseThrow().getTitle()).isEqualTo("Wild Pets");
+    }
+
+    @Test
+    void update_byAdmin_replacesRequires_andAnAbsentListClearsThem() throws Exception {
+        String withRequires = NEW_PLUGIN.replace("\"tags\":", "\"requires\":[\"medieval-factions\"],\"tags\":");
+        mockMvc.perform(put("/api/v1/plugins/wild-pets").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(withRequires))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requires").value(contains("medieval-factions")));
+
+        // A PUT replaces the whole entry: the form always sends the list, so
+        // leaving it out means "requires nothing", as it does for tags.
+        mockMvc.perform(put("/api/v1/plugins/wild-pets").header("Authorization", ADMIN_BEARER)
+                        .contentType(MediaType.APPLICATION_JSON).content(NEW_PLUGIN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requires").isEmpty());
+        assertThat(pluginRepository.findBySlug("wild-pets").orElseThrow().getRequires()).isEmpty();
     }
 
     @Test

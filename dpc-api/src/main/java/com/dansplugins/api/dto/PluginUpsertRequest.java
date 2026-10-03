@@ -52,6 +52,12 @@ public record PluginUpsertRequest(
         @Schema(description = "Short lower-case words; duplicates are dropped")
         @Size(max = 12)
         List<@Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$", message = "a tag must be lower-case words joined by hyphens")
-                @Size(max = 32) String> tags
+                @Size(max = 32) String> tags,
+
+        @Schema(description = "Slugs of catalogue plugins this one cannot run without; each must already be in "
+                + "the catalogue, and a plugin cannot require itself. Duplicates are dropped; absent clears the list")
+        @Size(max = 12)
+        List<@Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$", message = "a required plugin must be named by its slug")
+                @Size(max = 64) String> requires
 ) {
 }

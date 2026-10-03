@@ -20,6 +20,8 @@ export interface FilterablePlugin {
     title: string
     description: string
     tags?: string[] | null
+    // Slugs of the plugins this one cannot run without.
+    requires?: string[] | null
     // As SpigotMC lists them, mirrored through Spiget; null when unknown.
     testedVersions?: string[] | null
     serverCount?: number | null
@@ -65,9 +67,29 @@ export const pluginSortOptions = (likeCounts: Record<string, number>): Catalogue
 ]
 
 /**
- * Plugins sharing a tag with the given one: most tags in common first, ties
- * alphabetical, at most `limit`. Currencies and Fiefs both call themselves
- * expansions of Medieval Factions; this is where the site finally says so.
+ * The plugins that cannot run without the given one — its expansions, the way
+ * Currencies, Fiefs, Democracy and Bluemap_MedievalFactions are Medieval
+ * Factions'. Read from each plugin's own `requires`, never inferred from tags:
+ * sharing the "factions" tag is not a dependency. In catalogue order.
  */
-export const relatedPlugins = <T extends FilterablePlugin>(plugin: T, all: T[], limit = 4): T[] =>
-    relatedItems(plugin, all, TAG_FACET as CatalogueFacet<T>, limit)
+export const expansionsOf = <T extends FilterablePlugin>(plugin: T, all: T[]): T[] =>
+    all.filter((other) => other.id !== plugin.id && (other.requires ?? []).includes(plugin.id))
+
+/**
+ * The catalogue entries the given plugin requires, in catalogue order. A slug
+ * the catalogue does not have is skipped rather than shown as a dead link.
+ */
+export const requiredPlugins = <T extends FilterablePlugin>(plugin: T, all: T[]): T[] => {
+    const required = new Set(plugin.requires ?? [])
+    return all.filter((other) => other.id !== plugin.id && required.has(other.id))
+}
+
+/**
+ * Plugins sharing a tag with the given one: most tags in common first, ties
+ * alphabetical, at most `limit`. A plugin the page already links as an
+ * expansion or a requirement is left out, so the block names something new.
+ */
+export const relatedPlugins = <T extends FilterablePlugin>(plugin: T, all: T[], limit = 4): T[] => {
+    const linked = new Set([...expansionsOf(plugin, all), ...requiredPlugins(plugin, all)].map((other) => other.id))
+    return relatedItems(plugin, all.filter((other) => !linked.has(other.id)), TAG_FACET as CatalogueFacet<T>, limit)
+}

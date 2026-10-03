@@ -12,6 +12,7 @@ import {API_CATALOGUE} from './fixtures/catalogue';
 const UPSERT = {
     slug: 'new-plugin', title: 'New Plugin', description: 'Does a thing.',
     githubUrl: 'https://github.com/Dans-Plugins/New-Plugin', spigotmcUrl: '', bstatsId: '', iconPath: '', tags: ['survival'],
+    requires: [],
 };
 
 const savedRow = {...API_CATALOGUE[0], slug: 'new-plugin', title: 'New Plugin', tags: ['survival']};
@@ -36,12 +37,13 @@ describe('upsertFrom', () => {
     it('spells an absent optional as "", the way the form holds it', () => {
         expect(upsertFrom({
             id: 'medieval-cookery', title: 'Medieval Cookery', description: 'Cooking.', githubLink: 'https://github.com/x/y',
-            spigotmcLink: null, bStatsId: null, icon: null, tags: ['recipes'],
+            spigotmcLink: null, bStatsId: null, icon: null, tags: ['recipes'], requires: ['medieval-factions'],
         })).toEqual({
             slug: 'medieval-cookery', title: 'Medieval Cookery', description: 'Cooking.', githubUrl: 'https://github.com/x/y',
-            spigotmcUrl: '', bstatsId: '', iconPath: '', tags: ['recipes'],
+            spigotmcUrl: '', bstatsId: '', iconPath: '', tags: ['recipes'], requires: ['medieval-factions'],
         });
         expect(EMPTY_UPSERT.tags).toEqual([]);
+        expect(EMPTY_UPSERT.requires).toEqual([]);
     });
 });
 

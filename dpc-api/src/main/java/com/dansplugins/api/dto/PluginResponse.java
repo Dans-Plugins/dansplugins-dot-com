@@ -19,7 +19,10 @@ public record PluginResponse(
                 + "with no releases, and until the release sync has recorded it", nullable = true)
         Instant firstReleasedAt,
         @Schema(description = "What the plugin is for, as short lower-case words, sorted; empty when untagged")
-        List<String> tags
+        List<String> tags,
+        @Schema(description = "Slugs of the catalogue plugins this one cannot run without (a hard dependency), "
+                + "sorted; empty when it stands alone. A plugin's expansions are the plugins whose list names it")
+        List<String> requires
 ) {
     /**
      * The internal UUID is deliberately absent: the slug is the public
@@ -36,7 +39,8 @@ public record PluginResponse(
                 plugin.getBstatsId(),
                 plugin.getIconPath(),
                 plugin.getFirstReleasedAt(),
-                plugin.getTags().stream().sorted().toList()
+                plugin.getTags().stream().sorted().toList(),
+                plugin.getRequires().stream().sorted().toList()
         );
     }
 }

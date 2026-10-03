@@ -69,6 +69,9 @@ describe('admin plugins page editing', () => {
         fireEvent.click(screen.getByTestId('edit-currencies'));
         expect((screen.getByLabelText(/^Title/) as HTMLInputElement).value).toBe('Currencies');
         expect((screen.getByLabelText(/^Tags/) as HTMLInputElement).value).toBe('economy, factions, medieval');
+        expect((screen.getByLabelText(/^Requires/) as HTMLInputElement).value).toBe('medieval-factions');
+        // The preview names the required plugin by its title.
+        expect(screen.getByLabelText('Preview of required plugins').textContent).toBe('Medieval Factions');
         // The slug is fixed once created, so it is not offered on an edit.
         expect(screen.queryByLabelText(/^Slug/)).toBeNull();
     });
@@ -84,6 +87,9 @@ describe('admin plugins page editing', () => {
         fireEvent.click(screen.getByTestId('edit-currencies'));
         fireEvent.change(screen.getByLabelText(/^Title/), {target: {value: 'Currencies!'}});
         fireEvent.change(screen.getByLabelText(/^Tags/), {target: {value: ' Economy, medieval,, '}});
+        fireEvent.change(screen.getByLabelText(/^Requires/), {target: {value: 'medieval-factions, no-such-plugin, '}});
+        // A slug the catalogue lacks is flagged before the API refuses it.
+        expect(screen.getByLabelText('Preview of required plugins').textContent).toContain('no-such-plugin (not in the catalogue)');
         fireEvent.submit(screen.getByRole('form', {name: 'Edit currencies'}));
 
         await waitFor(() => expect(screen.getByTestId('form-notice').textContent).toContain('Currencies! saved'));
@@ -95,6 +101,7 @@ describe('admin plugins page editing', () => {
             githubUrl: 'https://github.com/Dans-Plugins/Currencies',
             spigotmcUrl: 'https://www.spigotmc.org/resources/currencies.96381/', bstatsId: '12810', iconPath: '/icons/c.png',
             tags: ['economy', 'medieval'],
+            requires: ['medieval-factions', 'no-such-plugin'],
         });
     });
 
