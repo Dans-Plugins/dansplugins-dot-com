@@ -1,4 +1,7 @@
 // @vitest-environment node
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import pkg from '../package.json';
 import { TraceClient } from '../utils/trace-client';
@@ -9,6 +12,7 @@ import {
     VERSION,
     createUsageReporting,
     disabledReason,
+    installIdFile,
     pageViewTags,
     startupLine,
 } from '../utils/usage-reporting';
@@ -174,5 +178,60 @@ describe('pageViewTags', () => {
     it('carries the page and nothing else; the client adds the version', () => {
         expect(pageViewTags('/about')).toEqual({ page: '/about' });
         expect(VERSION).toBe(pkg.version);
+    });
+});
+
+describe('the installation ID', () => {
+    function sentTags(fetch: ReturnType<typeof okFetch>): Record<string, string> {
+        return JSON.parse((fetch.mock.calls[0] as [string, RequestInit])[1].body as string).tags;
+    }
+
+    it('lives in <data dir>/<program>/trace-install-id', () => {
+        expect(installIdFile({ XDG_DATA_HOME: '/data/' })).toBe(`/data/${PROGRAM_NAME}/trace-install-id`);
+        expect(installIdFile({ HOME: '/home/app' })).toBe(`/home/app/.local/share/${PROGRAM_NAME}/trace-install-id`);
+        expect(installIdFile({ XDG_DATA_HOME: ' ', HOME: '' })).toBeNull();
+        expect(installIdFile({})).toBeNull();
+    });
+
+    it('is TRACE_INSTALL_ID when set, sent as the tag install', async () => {
+        const fetch = okFetch();
+        const client = createUsageReporting(
+            { USAGE_REPORTING_KEY: KEY, TRACE_INSTALL_ID: ' pinned-id ', XDG_DATA_HOME: '/nonexistent' },
+            { fetch, log: () => undefined },
+        );
+        expect(client.installId).toBe('pinned-id');
+        await client.report('page-view', { tags: pageViewTags('/') });
+        expect(sentTags(fetch)).toEqual({ page: '/', version: pkg.version, install: 'pinned-id' });
+    });
+
+    it('otherwise comes from the file, or from memory where node:fs is out of reach', async () => {
+        const dataHome = mkdtempSync(join(tmpdir(), 'install-id-'));
+        const fetch = okFetch();
+        const client = createUsageReporting(
+            { USAGE_REPORTING_KEY: KEY, XDG_DATA_HOME: dataHome },
+            { fetch, log: () => undefined },
+        );
+        expect(client.installId).toMatch(/^[0-9a-f-]{36}$/);
+        await client.report('page-view', { tags: pageViewTags('/') });
+        expect(sentTags(fetch).install).toBe(client.installId);
+        const file = join(dataHome, PROGRAM_NAME, 'trace-install-id');
+        // process.getBuiltinModule arrived in Node 20.16 / 22.3; before that
+        // (and in the Edge runtime) the client keeps the ID in memory only.
+        const hasFs = typeof (process as { getBuiltinModule?: unknown }).getBuiltinModule === 'function';
+        expect(existsSync(file)).toBe(hasFs);
+        if (hasFs) expect(readFileSync(file, 'utf8').trim()).toBe(client.installId);
+    });
+
+    it('is never made, read or written when reporting is off', () => {
+        const dataHome = mkdtempSync(join(tmpdir(), 'install-id-off-'));
+        for (const env of [
+            { USAGE_REPORTING_KEY: KEY, XDG_DATA_HOME: dataHome, TRACE_USAGE_REPORTING: 'off' },
+            { USAGE_REPORTING_KEY: KEY, XDG_DATA_HOME: dataHome, DO_NOT_TRACK: '1' },
+            { USAGE_REPORTING_KEY: KEY, XDG_DATA_HOME: dataHome, USAGE_REPORTING_ENABLED: 'false' },
+            { XDG_DATA_HOME: dataHome, TRACE_INSTALL_ID: 'pinned-id' },
+        ]) {
+            expect(createUsageReporting(env, { log: () => undefined }).installId).toBeNull();
+        }
+        expect(existsSync(join(dataHome, PROGRAM_NAME))).toBe(false);
     });
 });

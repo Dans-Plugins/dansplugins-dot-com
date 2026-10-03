@@ -1,6 +1,7 @@
 // The one trace client for this site, built from the server's environment.
 // One event is reported: `page-view`, from middleware.ts, once per HTML page
-// served, tagged with the path and the site version and nothing else. What a
+// served, tagged with the path, the site version and this server's random
+// installation ID (`install`), and nothing else. What a
 // page view records, and why it is reported server-side, is trace decision 0002:
 // https://github.com/Stephenson-Software/trace/blob/main/docs/decisions/0002-website-page-views.md
 //
@@ -36,6 +37,11 @@ export interface UsageReportingEnv {
     USAGE_REPORTING_KEY?: string;
     TRACE_USAGE_REPORTING?: string;
     DO_NOT_TRACK?: string;
+    /** Pins the installation ID (the tag `install`); otherwise it comes from {@link installIdFile}. */
+    TRACE_INSTALL_ID?: string;
+    /** Where {@link installIdFile} goes: `$XDG_DATA_HOME`, else `$HOME/.local/share`. */
+    XDG_DATA_HOME?: string;
+    HOME?: string;
 }
 
 /** Why nothing is sent; null when reporting is on. First match wins, in this order. */
@@ -74,9 +80,28 @@ export function startupLine(env: UsageReportingEnv): string | null {
     const reason = disabledReason(env);
     if (reason === 'no key') return null;
     if (reason) return `Usage reporting is off (${reason}).`;
-    return `Usage reporting is on: ${PROGRAM_NAME} sends one page-view event per page served (the path and the`
-        + ` site version, nothing about the visitor) to ${endpointOf(env)}. Turn it off with`
+    return `Usage reporting is on: ${PROGRAM_NAME} sends one page-view event per page served (the path, the`
+        + ` site version and a random ID for this server, nothing about the visitor) to ${endpointOf(env)}. Turn it off with`
         + ` USAGE_REPORTING_ENABLED=false or TRACE_USAGE_REPORTING=off. Details: ${DETAILS_URL}`;
+}
+
+/**
+ * Where the client keeps this server's installation ID:
+ * `<user data dir>/<program>/trace-install-id`, the user data dir being
+ * `$XDG_DATA_HOME` or `$HOME/.local/share` (the server runs on Linux). Only a
+ * path: the client reads or creates the file, and only when reporting is on.
+ * Null when neither variable is set.
+ *
+ * The report is made from Next.js middleware, which runs in the Edge runtime:
+ * it has no `node:fs` (`process.getBuiltinModule`), so there the client keeps
+ * the ID in memory for the life of the server process instead. Set
+ * TRACE_INSTALL_ID to keep one ID across restarts.
+ */
+export function installIdFile(env: UsageReportingEnv): string | null {
+    const base = (env.XDG_DATA_HOME ?? '').trim()
+        || ((env.HOME ?? '').trim() ? `${(env.HOME ?? '').trim().replace(/\/+$/, '')}/.local/share` : '');
+    if (!base) return null;
+    return `${base.replace(/\/+$/, '')}/${PROGRAM_NAME.toLowerCase()}/trace-install-id`;
 }
 
 function endpointOf(env: UsageReportingEnv): string {
@@ -95,6 +120,8 @@ export function createUsageReporting(
         version: VERSION,
         key: env.USAGE_REPORTING_KEY,
         env: traceEnvironment(env),
+        installId: env.TRACE_INSTALL_ID,
+        installIdFile: installIdFile(env),
         fetch: options.fetch,
         debug: options.debug,
     });
@@ -117,6 +144,9 @@ export function usageReporting(): TraceClient {
                 USAGE_REPORTING_KEY: process.env.USAGE_REPORTING_KEY,
                 TRACE_USAGE_REPORTING: process.env.TRACE_USAGE_REPORTING,
                 DO_NOT_TRACK: process.env.DO_NOT_TRACK,
+                TRACE_INSTALL_ID: process.env.TRACE_INSTALL_ID,
+                XDG_DATA_HOME: process.env.XDG_DATA_HOME,
+                HOME: process.env.HOME,
             },
             { log: (line) => console.log(line) },
         );

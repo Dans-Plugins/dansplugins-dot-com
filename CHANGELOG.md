@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- `utils/trace-client.ts` is re-vendored unmodified from `Stephenson-Software/trace-client-js` 0.4.0 (tag `0.4.0`, commit 1b4d0fb). Every page view now carries a random installation ID for the server as the tag `install`, so trace can count installations rather than events: `TRACE_INSTALL_ID` when set, otherwise the client's `installIdFile` option pointed at `$XDG_DATA_HOME/dansplugins-dot-com/trace-install-id` (or `~/.local/share/...`). The report runs in the Edge runtime, which has no `node:fs`, so without `TRACE_INSTALL_ID` the ID lasts for the server process. The opt-outs stop it: a disabled client never makes, reads or writes one. `next build` now prints the client's expected "Node.js API is used (process.getBuiltinModule)" Edge warning; the client guards the call.
 - The home page opens on the plugins themselves: a minimal grid of plugin icons with one-line names, no cards. Hovering or keyboard-focusing an icon opens a panel with the description, tags, figures (servers, latest version, downloads, tested Minecraft versions, SpigotMC rating) and the Like, Details, Download, Guide, GitHub and SpigotMC actions; clicking or tapping an icon opens the plugin's page. Search, sort and filters are folded behind a "Search & filter" button above the grid and open by themselves while a filter is active. The welcome blurb moved below the grid and lost its "Browse Plugins" button. `PluginCard` became `PluginDetails`, the panel's contents.
 
 ### Added

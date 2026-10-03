@@ -74,6 +74,17 @@ referrer. No script is added to any page — the report is made by the server (N
 so the key never reaches the browser — and crawlers, uptime monitors, prefetches, API calls,
 assets and 404s are not counted.
 
+Every page view also carries a random **installation ID** for the server (the tag `install`), so
+trace can count installations of the site rather than raw events. It is a UUID made when the
+server first reports, derived from nothing about the server or any visitor. `TRACE_INSTALL_ID`,
+when set, is used as is; otherwise the client is pointed at
+`$XDG_DATA_HOME/dansplugins-dot-com/trace-install-id` (or `~/.local/share/dansplugins-dot-com/trace-install-id`).
+The report is made from Next.js middleware, which runs in the Edge runtime and has no file system,
+so in practice the ID lives in memory for the life of the server process: each restart or redeploy
+counts as a new installation unless `TRACE_INSTALL_ID` is set. To reset it, restart the server or
+change `TRACE_INSTALL_ID` (or delete the file, where a runtime with file access created one). Every
+switch below also stops it: with reporting off no ID is made, read or written.
+
 Reporting is off unless a key is set, and any of these turns it off:
 
 - `USAGE_REPORTING_ENABLED=false` in the server's environment

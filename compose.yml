@@ -26,6 +26,9 @@ services:
       USAGE_REPORTING_ENDPOINT: ${USAGE_REPORTING_ENDPOINT:-}
       TRACE_USAGE_REPORTING: ${TRACE_USAGE_REPORTING:-}
       DO_NOT_TRACK: ${DO_NOT_TRACK:-}
+      # Pins the page views' installation ID (tag `install`); empty means a
+      # random one per server process. See CONFIG.md (TRACE_INSTALL_ID).
+      TRACE_INSTALL_ID: ${TRACE_INSTALL_ID:-}
     volumes:
       - ./node_modules:/app/node_modules
       - ./data:/app/data
