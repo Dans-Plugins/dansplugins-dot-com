@@ -89,6 +89,12 @@ JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 **Default:** `https://trace.danielstephenson.dev`  
 **Description:** The trace server page views are sent to.
 
+### `TRACE_PUBLIC_URL`
+
+**Type:** string  
+**Default:** `https://trace.danielstephenson.dev`  
+**Description:** The trace server plugin usage is read from, server side, for the Usage panel on each plugin page and the `/usage` page (`utils/traceUsage.ts`). Only trace's public, unauthenticated endpoints are read, so no key is needed. Point it at a local stub to try the pages against made-up figures. When trace can't be reached, or has no figures for a plugin yet, the panel is left out and `/usage` says the figures are unavailable; neither page fails.
+
 A new page under `pages/` must also be added to `PAGE_ROUTES` in [`utils/page-view-policy.ts`](utils/page-view-policy.ts) to be counted; a test fails until it is.
 
 ## Docker Compose Configuration

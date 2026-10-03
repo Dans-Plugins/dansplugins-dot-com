@@ -34,6 +34,7 @@ export const PAGE_ROUTES: readonly string[] = [
     '/resources/[slug]',
     '/roadmap',
     '/u/[username]',
+    '/usage',
 ];
 
 /**
