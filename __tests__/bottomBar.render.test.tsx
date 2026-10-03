@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 //
 // Renders the site footer to pin its off-site links: the knowledge base, Dan's
-// Server Hosting, and the backlink to the author's portfolio.
+// Server Hosting, the backlink to the author's portfolio, and its browser-game arcade.
 import {afterEach, describe, expect, it} from 'vitest';
 import {cleanup, render, screen} from '@testing-library/react';
 
@@ -28,6 +28,16 @@ describe('BottomBar links', () => {
         const link = screen.getByRole('link', {name: 'danielstephenson.dev'});
         expect(link.getAttribute('href')).toBe('https://danielstephenson.dev');
         expect(link.getAttribute('target')).toBeNull();
-        expect(link.parentElement?.textContent).toBe('More by Daniel Stephenson → danielstephenson.dev');
+        expect(link.parentElement?.textContent).toBe(
+            'More by Daniel Stephenson → danielstephenson.dev · Play his games in your browser',
+        );
+    });
+
+    it('links the browser-game arcade on danielstephenson.dev/play in the same tab', () => {
+        render(<BottomBar version="1.0.0"/>);
+
+        const play = screen.getByRole('link', {name: 'Play his games in your browser'});
+        expect(play.getAttribute('href')).toBe('https://danielstephenson.dev/play');
+        expect(play.getAttribute('target')).toBeNull();
     });
 });

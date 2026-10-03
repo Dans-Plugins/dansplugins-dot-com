@@ -109,6 +109,10 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                 <Link href="https://danielstephenson.dev" color="inherit" underline="hover">
                     danielstephenson.dev
                 </Link>
+                {' · '}
+                <Link href="https://danielstephenson.dev/play" color="inherit" underline="hover">
+                    Play his games in your browser
+                </Link>
             </Typography>
         </AppBar>
     );

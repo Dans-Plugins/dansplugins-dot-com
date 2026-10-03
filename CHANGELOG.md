@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The footer's "More by Daniel Stephenson" line also links the browser-game arcade at [danielstephenson.dev/play](https://danielstephenson.dev/play) ("Play his games in your browser").
 - **Expansions** on a plugin's page (#349): the plugins that cannot run without it, listed above "Related plugins" with icon, name and description, and left out of "Related plugins" so none is named twice. Each add-on's page says "Requires Medieval Factions" with a link back. Backed by a new catalogue field, `requires` (slugs of hard dependencies), stored in `plugin_requires` (`V25`, additive) and seeded with Currencies, Fiefs, Democracy and BlueMap Medieval Factions requiring Medieval Factions (each declares it in `plugin.yml` `depend`). Served on `GET /api/v1/plugins`, accepted on the admin `POST`/`PUT` (an unknown slug or a plugin requiring itself is a `400`), and editable at `/admin/plugins`, where the preview names each required plugin or flags one not in the catalogue.
 
 - **Democracy** joins the catalogue (`V24`): its first stable release, 0.2.0, came out on 2026-09-28, ported to Medieval Factions 5/6 and verified on Minecraft 1.19.4, 1.21.11 and 26.2, with a new SpigotMC listing. Tagged medieval, factions and roleplay, with a new house-style icon (a ballot going into a ballot box) at `public/icons/dem.png`.
