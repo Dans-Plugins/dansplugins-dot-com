@@ -75,7 +75,7 @@ JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 
 **Type:** string  
 **Default:** *unset — no usage is reported*  
-**Description:** The [trace](https://trace.danielstephenson.dev) write key for the `dansplugins-dot-com` program. With it set, the Next.js server reports one `page-view` event per HTML page served, carrying the path and the site version only (see [Usage reporting](README.md#usage-reporting)). It is read at runtime by `middleware.ts` only: never inlined at build time, never exposed to the browser, and never committed — keep it in the deployment's environment. Without it, nothing is sent and nothing is logged.
+**Description:** The [trace](https://trace.danielstephenson.dev) write key for the `dansplugins-dot-com` program. With it set, the Next.js server reports one `page-view` event per HTML page served, carrying the path, the site version and a random installation ID for the server (see [Usage reporting](README.md#usage-reporting)). It is read at runtime by `middleware.ts` only: never inlined at build time, never exposed to the browser, and never committed — keep it in the deployment's environment. Without it, nothing is sent and nothing is logged.
 
 ### `USAGE_REPORTING_ENABLED`
 
@@ -88,6 +88,12 @@ JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 **Type:** string  
 **Default:** `https://trace.danielstephenson.dev`  
 **Description:** The trace server page views are sent to.
+
+### `TRACE_INSTALL_ID`
+
+**Type:** string  
+**Default:** *unset — a random ID per server process*  
+**Description:** The installation ID every page view carries as the tag `install`, so trace can count installations rather than events. Unset, the trace client is pointed at `$XDG_DATA_HOME/dansplugins-dot-com/trace-install-id` (or `$HOME/.local/share/...`), but the report runs in the Edge runtime, which has no file system, so the client makes a random ID that lasts until the server restarts. Set it to keep one ID across restarts and redeploys. Ignored when reporting is off. Read at runtime by `middleware.ts`.
 
 ### `TRACE_PUBLIC_URL`
 
@@ -107,7 +113,7 @@ Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild 
 
 `compose.yml` sets `DPC_API_INTERNAL_URL` to `http://dpc-api:8080` by default, which is how the website container reaches the API on the Compose network. Leave it alone unless the API service is renamed or moved; it does not belong in a `.env` written for `npm run dev`, where the server and the browser are the same machine and `NEXT_PUBLIC_API_URL` already answers for both.
 
-Compose hands the website container only the variables its `environment:` block names, so `compose.yml` also passes through the usage-reporting variables — [`USAGE_REPORTING_KEY`](#usage_reporting_key), [`USAGE_REPORTING_ENABLED`](#usage_reporting_enabled), [`USAGE_REPORTING_ENDPOINT`](#usage_reporting_endpoint), `TRACE_USAGE_REPORTING` and `DO_NOT_TRACK` — from the shell or `.env`. Each defaults to empty, which leaves reporting off. Like `DPC_API_INTERNAL_URL` they are read at runtime, so setting the key needs a restart rather than a rebuild.
+Compose hands the website container only the variables its `environment:` block names, so `compose.yml` also passes through the usage-reporting variables — [`USAGE_REPORTING_KEY`](#usage_reporting_key), [`USAGE_REPORTING_ENABLED`](#usage_reporting_enabled), [`USAGE_REPORTING_ENDPOINT`](#usage_reporting_endpoint), `TRACE_USAGE_REPORTING`, `DO_NOT_TRACK` and [`TRACE_INSTALL_ID`](#trace_install_id) — from the shell or `.env`. Each defaults to empty, which leaves reporting off. Like `DPC_API_INTERNAL_URL` they are read at runtime, so setting the key needs a restart rather than a rebuild.
 
 **Example `.env`:**
 
