@@ -5,6 +5,7 @@ import {getServerSideProps} from '../pages/resources/[slug]';
 import {clearServerCountCache} from '../utils/bstats';
 import {clearSpigotListingCache} from '../utils/spigot';
 import {clearCatalogueCache} from '../services/pluginCatalogueService';
+import {clearTraceUsageCache} from '../utils/traceUsage';
 import {catalogueResponse} from './fixtures/catalogue';
 import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
@@ -29,6 +30,8 @@ interface ResourcePropsShape {
         requires: {slug: string; title: string; description: string; icon: string | null}[];
         expansions: {slug: string; title: string; description: string; icon: string | null}[];
         related: {slug: string; title: string; description: string; icon: string | null}[];
+        usage: unknown;
+        renderedAt: number;
     };
 }
 
@@ -63,7 +66,7 @@ const mirroredVersion = (spec: string | {tag: string; publishedAt: string}): Plu
 
 // Route the seven upstreams the page calls by URL, so a test can fail one
 // without affecting the others.
-const stubUpstreams = ({servers, tag, versions, downloads, tested, rating, spigotDownloads, firstReleasedAt}: {
+const stubUpstreams = ({servers, tag, versions, downloads, tested, rating, spigotDownloads, firstReleasedAt, trace}: {
     servers?: number;
     tag?: string;
     versions?: PluginVersion[];
@@ -73,8 +76,15 @@ const stubUpstreams = ({servers, tag, versions, downloads, tested, rating, spigo
     spigotDownloads?: number;
     // The catalogue row: absent fails that request, null is "not yet recorded".
     firstReleasedAt?: string | null;
+    // trace's per-program body; absent is a 404 (the endpoint not deployed yet).
+    trace?: unknown;
 }) => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        if (url.includes('trace.danielstephenson.dev')) {
+            return trace === undefined
+                ? {ok: false, status: 404, statusText: 'Not Found'} as Response
+                : {ok: true, json: async () => trace} as unknown as Response;
+        }
         if (/\/api\/v1\/plugins$/.test(url)) {
             return catalogueResponse();
         }
@@ -118,6 +128,7 @@ beforeEach(() => {
     clearServerCountCache();
     clearSpigotListingCache();
     clearCatalogueCache();
+    clearTraceUsageCache();
     // The default case is the one that matters most: an unmirrored plugin, where
     // the latest tag still comes from the live GitHub call.
     stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.18', '1.19', '1.20'], firstReleasedAt: null});
@@ -159,7 +170,10 @@ describe('resource page getServerSideProps', () => {
             // The one other admin plugin in the fixture.
             related: [
                 {slug: 'dans-essentials', title: 'Dan\'s Essentials', description: 'Provides miscellaneous commands.', icon: '/icons/de.png'}
-            ]
+            ],
+            // trace answers 404 in the default stub: no panel, no failure.
+            usage: null,
+            renderedAt: expect.any(Number)
         });
     });
 
@@ -399,5 +413,36 @@ describe('resource page getServerSideProps', () => {
         const result = await getServerSideProps(contextWithSlug(SLUG_WITHOUT_OPTIONAL_LINKS)) as ResourcePropsShape;
 
         expect(Object.values(result.props).some((value) => value === undefined)).toBe(false);
+    });
+});
+
+describe('resource page usage from trace', () => {
+    const usageBody = {
+        application: 'ActivityTracker',
+        lastSeen: '2026-10-02T12:00:00Z',
+        window: 'P30D',
+        startups30d: 12,
+        activeInstalls30d: null,
+        versions: [{version: '1.2.3', installs: null, startups: 12}],
+        days: [{day: '2026-10-02', startups: 12}]
+    };
+
+    it('asks trace under the plugin\'s trace name and serves what it reports', async () => {
+        stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.21'], firstReleasedAt: null, trace: usageBody});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.usage).toEqual(usageBody);
+        const urls = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls.map(([url]) => url as string);
+        expect(urls).toContain('https://trace.danielstephenson.dev/api/public/programs/ActivityTracker');
+    });
+
+    it('degrades to no usage when trace answers with something malformed', async () => {
+        stubUpstreams({servers: 1234, tag: 'v1.2.3', versions: [], tested: ['1.21'], firstReleasedAt: null, trace: {nope: true}});
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        expect(result.props.usage).toBeNull();
     });
 });

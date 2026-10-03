@@ -19,6 +19,7 @@ import BottomBar from '../../components/BottomBar';
 import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import PluginVersionList from '../../components/PluginVersionList';
 import ReleaseVerification from '../../components/ReleaseVerification';
+import UsagePanel from '../../components/UsagePanel';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {
     getPlugin,
@@ -38,6 +39,8 @@ import {getCatalogue} from '../../services/pluginCatalogueService';
 import {absoluteDateFrom} from '../../utils/relativeTime';
 import {DPM_SLUG, DSH_URL, resourceDescription, resourcePath} from '../../utils/resources';
 import {expansionsOf, relatedPlugins, requiredPlugins} from '../../utils/catalogueFilter';
+import {traceNameFor} from '../../utils/traceNames';
+import {getProgramUsage, ProgramUsage} from '../../utils/traceUsage';
 
 const version = require('../../package.json').version;
 
@@ -91,6 +94,13 @@ interface ResourcePageProps {
     requires: RelatedPlugin[];
     expansions: RelatedPlugin[];
     related: RelatedPlugin[];
+    // What trace reports about the plugin's use over the last 30 days (see
+    // utils/traceUsage.ts). Null for a plugin that does not report, and
+    // whenever trace can't be reached or has no figures yet; the panel is
+    // omitted then. `renderedAt` fixes the clock its relative dates use, so
+    // the server's markup and the browser's hydration agree.
+    usage: ProgramUsage | null;
+    renderedAt: number;
 }
 
 interface RelatedPlugin {
@@ -174,10 +184,12 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
     // must degrade the page, never fail it. Both helpers already swallow their
     // own errors and resolve to undefined.
     const spigotId = spigotResourceId(plugin.spigotmcLink);
-    const [serverCount, spigotListing, latestFromGithub] = await Promise.all([
+    const traceName = traceNameFor(slug);
+    const [serverCount, spigotListing, latestFromGithub, usage] = await Promise.all([
         plugin.bStatsId ? getServerCount(plugin.bStatsId) : Promise.resolve(undefined),
         spigotId ? getSpigotListing(spigotId) : Promise.resolve(undefined),
-        mirroredLatest ? Promise.resolve(undefined) : getLatestRelease(plugin.githubLink)
+        mirroredLatest ? Promise.resolve(undefined) : getLatestRelease(plugin.githubLink),
+        traceName ? getProgramUsage(traceName) : Promise.resolve(undefined)
     ]);
 
     return {
@@ -200,7 +212,9 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             tags: plugin.tags,
             requires: requiredPlugins(plugin, catalogue).map(toRelated),
             expansions: expansionsOf(plugin, catalogue).map(toRelated),
-            related: relatedPlugins(plugin, catalogue).map(toRelated)
+            related: relatedPlugins(plugin, catalogue).map(toRelated),
+            usage: usage ?? null,
+            renderedAt: Date.now()
         }
     };
 };
@@ -224,7 +238,9 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     tags,
     requires,
     expansions,
-    related
+    related,
+    usage,
+    renderedAt
 }) => {
     const firstReleased = firstReleasedAt ? absoluteDateFrom(firstReleasedAt) : '';
     const lastUpdated = lastUpdatedAt ? absoluteDateFrom(lastUpdatedAt) : '';
@@ -465,6 +481,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                         </Button>
                     ) : null}
                 </Stack>
+
+                {usage ? <UsagePanel usage={usage} now={renderedAt}/> : null}
 
                 <Divider sx={{mb: 3}}/>
 
