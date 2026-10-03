@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Tests
 
 - `LikeButton` and `SelfLoadingLikeButton` are covered (`__tests__/likeButton.render.test.tsx`): a signed-out click explains itself and calls no API, a signed-in click likes then unlikes and shows the server's count, the button is disabled while a request is in flight, a failed request keeps the old state and says so, and the self-loading variant reads its own count and matches a user's like on both type and id.
+- `ClaimButton` is covered (`__tests__/claimButton.render.test.tsx`): someone else's claim shows as text with no button, a signed-out click explains itself and calls no API, a signed-in claim reports the server's claimant (or the signed-in username when the server returns no body), the button is disabled while a claim is in flight, your own claim can be released, and a failed claim or release shows the server's message without reporting a change.
 
 ### Changed
 
