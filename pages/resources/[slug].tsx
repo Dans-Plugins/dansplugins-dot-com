@@ -20,6 +20,7 @@ import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import PluginVersionList from '../../components/PluginVersionList';
 import ReleaseVerification from '../../components/ReleaseVerification';
 import UsagePanel from '../../components/UsagePanel';
+import PluginTrailer from '../../components/PluginTrailer';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {
     getPlugin,
@@ -41,6 +42,7 @@ import {DPM_SLUG, DSH_URL, resourceDescription, resourcePath} from '../../utils/
 import {expansionsOf, relatedPlugins, requiredPlugins} from '../../utils/catalogueFilter';
 import {traceNameFor} from '../../utils/traceNames';
 import {getProgramUsage, ProgramUsage} from '../../utils/traceUsage';
+import {trailerFor, type PluginTrailer as Trailer} from '../../utils/pluginTrailers';
 
 const version = require('../../package.json').version;
 
@@ -101,6 +103,8 @@ interface ResourcePageProps {
     // the server's markup and the browser's hydration agree.
     usage: ProgramUsage | null;
     renderedAt: number;
+    // The plugin's preview clip (utils/pluginTrailers.ts), or null.
+    trailer: Trailer | null;
 }
 
 interface RelatedPlugin {
@@ -214,7 +218,8 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             expansions: expansionsOf(plugin, catalogue).map(toRelated),
             related: relatedPlugins(plugin, catalogue).map(toRelated),
             usage: usage ?? null,
-            renderedAt: Date.now()
+            renderedAt: Date.now(),
+            trailer: trailerFor(slug)
         }
     };
 };
@@ -240,7 +245,8 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     expansions,
     related,
     usage,
-    renderedAt
+    renderedAt,
+    trailer
 }) => {
     const firstReleased = firstReleasedAt ? absoluteDateFrom(firstReleasedAt) : '';
     const lastUpdated = lastUpdatedAt ? absoluteDateFrom(lastUpdatedAt) : '';
@@ -481,6 +487,17 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                         </Button>
                     ) : null}
                 </Stack>
+
+                {trailer ? (
+                    // After the buttons, so Download stays near the top on a
+                    // phone; the same clip the home page panel plays on hover.
+                    <Box component="figure" sx={{m: 0, mb: 4, maxWidth: 560}} data-testid="plugin-preview">
+                        <PluginTrailer trailer={trailer}/>
+                        <Typography component="figcaption" variant="caption" color="text.secondary" sx={{display: 'block', mt: 1}}>
+                            {trailer.caption}
+                        </Typography>
+                    </Box>
+                ) : null}
 
                 {usage ? <UsagePanel usage={usage} now={renderedAt}/> : null}
 

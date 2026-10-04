@@ -1,0 +1,113 @@
+{
+  "id": "currencies",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T16:13:30.271Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (4): BlueMap, MedievalFactions, Currencies, MF_Bluemap",
+  "minecraft": "1.21.1",
+  "player": "Rowena",
+  "events": [
+    {
+      "t": 0.92,
+      "type": "actionbar",
+      "motd": "§#C0392BSouthmarch",
+      "text": "Southmarch"
+    },
+    {
+      "t": 1.499,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.499,
+      "type": "sent",
+      "text": "/currency create Ducat"
+    },
+    {
+      "t": 1.501,
+      "type": "chat",
+      "motd": "§cThe item's display name does not match the specified currency name. Would you like to update it to match?",
+      "text": "The item's display name does not match the specified currency name. Would you like to update it to match?"
+    },
+    {
+      "t": 1.501,
+      "type": "chat",
+      "motd": "§aYes §cNo",
+      "text": "Yes No"
+    },
+    {
+      "t": 3.801,
+      "type": "sent",
+      "text": "/currency create Ducat --rename"
+    },
+    {
+      "t": 3.827,
+      "type": "chat",
+      "motd": "§aCurrency created.",
+      "text": "Currency created."
+    },
+    {
+      "t": 5.802,
+      "type": "sent",
+      "text": "/currency mint Ducat 3"
+    },
+    {
+      "t": 5.872,
+      "type": "chat",
+      "motd": "§aMinted 3 x Ducat.",
+      "text": "Minted 3 x Ducat."
+    },
+    {
+      "t": 7.803,
+      "type": "sent",
+      "text": "/currency info Ducat"
+    },
+    {
+      "t": 7.815,
+      "type": "chat",
+      "motd": "§b=== Ducat ===",
+      "text": "=== Ducat ==="
+    },
+    {
+      "t": 7.816,
+      "type": "chat",
+      "motd": "§aChange name",
+      "text": "Change name"
+    },
+    {
+      "t": 7.816,
+      "type": "chat",
+      "motd": "§7Description: ",
+      "text": "Description: "
+    },
+    {
+      "t": 7.817,
+      "type": "chat",
+      "motd": "§aChange description",
+      "text": "Change description"
+    },
+    {
+      "t": 7.817,
+      "type": "chat",
+      "motd": "§7Faction: Southmarch",
+      "text": "Faction: Southmarch"
+    },
+    {
+      "t": 7.817,
+      "type": "chat",
+      "motd": "§7Item: Ducat",
+      "text": "Item: Ducat"
+    },
+    {
+      "t": 7.818,
+      "type": "chat",
+      "motd": "§7Minted: 3",
+      "text": "Minted: 3"
+    },
+    {
+      "t": 11.204,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

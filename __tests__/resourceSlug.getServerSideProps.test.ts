@@ -7,6 +7,7 @@ import {clearSpigotListingCache} from '../utils/spigot';
 import {clearCatalogueCache} from '../services/pluginCatalogueService';
 import {clearTraceUsageCache} from '../utils/traceUsage';
 import {catalogueResponse} from './fixtures/catalogue';
+import {PLUGIN_TRAILERS} from '../utils/pluginTrailers';
 import type {PluginDownloads, PluginVersion} from '../services/pluginVersionService';
 
 interface ResourcePropsShape {
@@ -173,8 +174,15 @@ describe('resource page getServerSideProps', () => {
             ],
             // trace answers 404 in the default stub: no panel, no failure.
             usage: null,
-            renderedAt: expect.any(Number)
+            renderedAt: expect.any(Number),
+            // No preview clip for this plugin (utils/pluginTrailers.ts).
+            trailer: null
         });
+    });
+
+    it('passes the plugin\'s preview clip from the code map, when it has one', async () => {
+        const result = await getServerSideProps(contextWithSlug('currencies')) as ResourcePropsShape;
+        expect((result.props as {trailer: unknown}).trailer).toEqual(PLUGIN_TRAILERS.currencies);
     });
 
     it('names the plugins sharing a tag, most in common first', async () => {

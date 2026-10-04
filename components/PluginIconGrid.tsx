@@ -5,12 +5,16 @@ import PluginDetails, {type PluginDetailsProps} from './PluginDetails';
 import {pluginsBoxStyle} from '../styles/styles';
 import {colorForTitle} from '../utils/pluginAvatar';
 import {resourcePath} from '../utils/resources';
+import {trailerFor} from '../utils/pluginTrailers';
 
 // The home page catalogue: one icon per plugin and nothing else. Everything the
 // old cards carried — description, figures, actions — lives in a panel that
 // opens under a tile on hover or keyboard focus, and clicking a tile goes to
 // the plugin's page. A touch screen has no hover, so there a tap opens the same
 // details in a bottom sheet instead, whose Details button goes on to the page.
+// A plugin with a preview clip plays it in the desktop panel while the panel is
+// open; the sheet shows no clip (a phone never autoplays a grid clip, and the
+// sheet's buttons stay in view), and the clip plays on the plugin's page.
 //
 // The grid itself — tiles, panels, sheet, timings — is community-site-kit's
 // CatalogueGrid, shared with preponderous.org and danielstephenson.dev; this
@@ -66,6 +70,7 @@ const PluginIconGrid: React.FC<PluginIconGridProps> = ({plugins, likeCounts, lik
                 likeCount={likeCounts[plugin.id] || 0}
                 liked={likedSet.has(plugin.id)}
                 token={token}
+                trailer={inSheet ? null : trailerFor(plugin.id)}
                 // In the sheet, a tag filters the grid behind it, so get the
                 // sheet out of the way of the result first.
                 onTagClick={inSheet ? (tag) => {

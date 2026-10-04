@@ -158,6 +158,20 @@ The site serves `/robots.txt` and `/sitemap.xml` so search engines know which pa
 - `robots.txt` disallows `/account` (signed-in only), `/admin` (the catalogue editor, admins only), `/dev` (the developer console), and `/api/` (JSON, not pages) — the `DISALLOWED_CRAWL_PATHS` list in the same file. Public profiles (`/u/[username]`) stay crawlable but are not listed in the sitemap.
 - Neither document is a substitute for indexing controls on individual pages; `robots.txt` is a request, not an access control. Do not rely on it to keep anything private.
 
+## Plugin Preview Clips
+
+Some plugins have a short preview clip, listed in `PLUGIN_TRAILERS` in `utils/pluginTrailers.ts` and keyed by the plugin's catalogue slug. The clip's files live in `public/trailers/` and are part of the site, not the catalogue, so a clip is added with a commit, never with a dpc-api migration or an admin edit. Each entry supports:
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `poster` | yes | `/trailers/<slug>.jpg`, a still from the clip. The only part the server renders, and all a visitor who prefers reduced motion sees. |
+| `webm`, `mp4` | at least one | `/trailers/<slug>.webm` (VP9) and `/trailers/<slug>.mp4` (H.264, for Safari). |
+| `alt` | yes | What the clip shows, for screen readers. A chat clip must say it is a recreation. |
+| `aspect` | no | `16:10` or `1:1` (the default). |
+| `caption` | yes | Shown under the clip on the plugin's page: how it was made. A **chat clip is a recreation** of the chat window drawn from captured server output, and its caption must say so ("A recreated chat panel: …"); a test fails otherwise. |
+
+Where a clip shows: in the plugin's desktop details panel on the home page while the panel is open (hover or keyboard focus), and on the plugin's page (`/resources/<slug>`) under the buttons. The touch bottom sheet shows none. Each clip is muted, looping and inline, with a pause button. `__tests__/pluginTrailers.test.tsx` checks names, shapes and sizes (WebM < 450 KB, MP4 < 650 KB, still < 120 KB), that no unused file sits in `public/trailers/`, and that each chat clip keeps its capture in `scripts/previews/captures/`. Clips are recorded with `scripts/previews/` (see its README).
+
 ## Editing News Posts
 
 The News page (`/news`) reads its posts at request time from `data/news.json`. In a Docker Compose deployment this lives on the mounted `./data` volume, so **posts can be edited on the server without rebuilding or redeploying the site** — changes appear on the next page load.
