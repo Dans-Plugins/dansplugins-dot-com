@@ -1,0 +1,62 @@
+{
+  "id": "simple-skills",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:43:57.271Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (19): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, SimpleSkills, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Wren",
+  "events": [
+    {
+      "t": 0.006,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 0.8,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 0.985,
+      "type": "chat",
+      "motd": "§aYou've learned the Digging skill. Type /ss info to view your skills.",
+      "text": "You've learned the Digging skill. Type /ss info to view your skills."
+    },
+    {
+      "t": 0.986,
+      "type": "chat",
+      "motd": "§aYou've leveled up your Digging skill to 1",
+      "text": "You've leveled up your Digging skill to 1"
+    },
+    {
+      "t": 2.391,
+      "type": "chat",
+      "motd": "§aYou've leveled up your Digging skill to 2",
+      "text": "You've leveled up your Digging skill to 2"
+    },
+    {
+      "t": 5.477,
+      "type": "sent",
+      "text": "/ss info"
+    },
+    {
+      "t": 5.48,
+      "type": "chat",
+      "motd": "§b=== Skills of Wren ===",
+      "text": "=== Skills of Wren ==="
+    },
+    {
+      "t": 5.48,
+      "type": "chat",
+      "motd": "§bDigging - LVL: 2 - EXP: 16/22",
+      "text": "Digging - LVL: 2 - EXP: 16/22"
+    },
+    {
+      "t": 8.277,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

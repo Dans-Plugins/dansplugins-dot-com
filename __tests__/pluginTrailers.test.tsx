@@ -107,9 +107,17 @@ describe('Plugin trailer files', () => {
         expect(trailerAspectRatio({aspect: '16:10'})).toBe('16 / 10');
     });
 
-    it('has the pilot\'s three clips, and none for a plugin without one', () => {
-        expect(Object.keys(PLUGIN_TRAILERS).sort()).toEqual(['bluemap-medieval-factions', 'currencies', 'medieval-factions']);
-        expect(trailerFor('fiefs')).toBeNull();
+    it('has a clip for each plugin given one, and none for a plugin without one', () => {
+        expect(Object.keys(PLUGIN_TRAILERS).sort()).toEqual([
+            'activity-tracker', 'bluemap-medieval-factions', 'currencies', 'dans-essentials', 'dans-plugin-manager',
+            'dans-set-home', 'democracy', 'easy-links', 'fiefs', 'kdr-tracker', 'mailboxes', 'medieval-economy',
+            'medieval-factions', 'medieval-roleplay-engine', 'mini-factions', 'nether-access-controller',
+            'simple-skills', 'wild-pets',
+        ]);
+        // Dropped from the rollout, each for a reason in scripts/previews/README.md.
+        for (const slug of ['alternate-account-finder', 'conquest-recipes', 'more-recipes', 'food-spoilage', 'no-more-creepers', 'player-lore', 'dans-spawn-system']) {
+            expect(trailerFor(slug)).toBeNull();
+        }
     });
 
     it.each(TRAILERS)('%s: files are named for it, exist, are small, and match its shape', (slug, trailer) => {
@@ -138,15 +146,20 @@ describe('Plugin trailer files', () => {
     const chatClips = TRAILERS.filter(([slug]) => fs.existsSync(path.join(CAPTURES, `${slug}.json`)));
 
     it('keeps the capture behind each chat clip, with real commands and replies in it', () => {
-        expect(chatClips.map(([slug]) => slug).sort()).toEqual(['currencies', 'medieval-factions']);
+        // Every clip but BlueMap's (a recording of its web map) is a chat clip.
+        expect(chatClips.map(([slug]) => slug).sort()).toEqual(
+            TRAILERS.map(([slug]) => slug).filter((slug) => slug !== 'bluemap-medieval-factions').sort());
         for (const [slug] of chatClips) {
             const capture = JSON.parse(fs.readFileSync(path.join(CAPTURES, `${slug}.json`), 'utf8'));
             expect(capture.id).toBe(slug);
             expect(capture.server).toMatch(/Spigot/);
             const types = new Set(capture.events.map((e: {type: string}) => e.type));
             expect(types.has('sent') && types.has('chat')).toBe(true);
-            // Colour codes as the server sent them, not plain text typed in.
-            expect(capture.events.some((e: {motd?: string}) => /§/.test(e.motd ?? ''))).toBe(true);
+            // Colour codes as the server sent them, not plain text typed in
+            // (MiniFactions 0.3.0 sends its replies uncoloured).
+            if (slug !== 'mini-factions') {
+                expect(capture.events.some((e: {motd?: string}) => /§/.test(e.motd ?? ''))).toBe(true);
+            }
         }
     });
 
@@ -231,8 +244,8 @@ const PLUGINS: IconGridPlugin[] = [
         githubLink: 'https://github.com/Dans-Plugins/Medieval-Factions', icon: null, tags: [],
     },
     {
-        id: 'fiefs', title: 'Fiefs', description: 'Allows players to create fiefs.',
-        githubLink: 'https://github.com/Dans-Plugins/Fiefs', icon: null, tags: [],
+        id: 'food-spoilage', title: 'Food Spoilage', description: 'Makes food turn into rotten flesh.',
+        githubLink: 'https://github.com/Dans-Plugins/FoodSpoilage', icon: null, tags: [],
     },
 ];
 const renderGrid = () => render(
@@ -250,7 +263,7 @@ describe('Preview clips in the home page grid', () => {
         // Closed panels stay mounted (for their Like state), but load nothing.
         const box = within(panelOf('Medieval Factions')).getByTestId('plugin-trailer');
         expect(box.querySelector('img, video')).toBeNull();
-        expect(within(panelOf('Fiefs')).queryByTestId('plugin-trailer')).toBeNull();
+        expect(within(panelOf('Food Spoilage')).queryByTestId('plugin-trailer')).toBeNull();
 
         fireEvent.mouseEnter(tileFor('Medieval Factions').parentElement!);
         act(() => vi.advanceTimersByTime(OPEN_DELAY_MS));

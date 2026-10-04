@@ -40,6 +40,7 @@
   #input { position: absolute; left: 4px; right: 4px; bottom: 6px; height: 28px; line-height: 28px; padding: 0 6px; background: rgba(0, 0, 0, 0.5); white-space: pre; }
   #caret { display: inline-block; width: 0.55em; }
   .sq { display: inline-block; width: 0.82em; height: 0.82em; margin: 0 0.06em; vertical-align: -0.06em; }
+  .blk { display: inline-block; width: 0.5em; height: 0.9em; vertical-align: -0.1em; }
   .sq.hollow { background: transparent !important; border: 0.22em solid currentColor; }
   .b { font-weight: 600; } .i { font-style: italic; } .u { text-decoration: underline; } .s { text-decoration: line-through; }
 </style>
@@ -63,6 +64,7 @@ const shadow = (hex) => {
   const q = (v) => Math.floor(v / 4).toString(16).padStart(2, '0');
   return `#${q(n >> 16 & 255)}${q(n >> 8 & 255)}${q(n & 255)}`;
 };
+const BLOCKS = { '⬛': 1, '⬜': 1, '█': 1, '▓': 0.75, '▒': 0.5, '░': 0.25 };
 const MAX_LINES = 40; // DOM tidy-up only; the window's height decides what shows
 
 // One line of legacy-formatted text (as mineflayer's toMotd() gives it, with
@@ -72,17 +74,20 @@ function render(motd) {
   let color = '#FFFFFF'; let fmt = new Set();
   const flush = (text) => {
     if (!text) return;
-    for (const part of text.split(/([⬛⬜])/)) {
+    for (const part of text.split(/([⬛⬜█▓▒░])/)) {
       if (!part) continue;
       const span = document.createElement('span');
       span.style.color = color;
       span.style.textShadow = `2px 2px 0 ${shadow(color)}`;
       span.className = [...fmt].join(' ');
-      if (part === '⬛' || part === '⬜') {
+      if (BLOCKS[part] !== undefined) {
         // The chat font draws these as squares in the text colour; a web font
-        // would draw them as emoji, ignoring the colour, so they are boxes here.
-        span.classList.add('sq');
+        // would draw ⬛/⬜ as emoji, ignoring the colour, and VT323 has no
+        // block or shade glyphs at all (█ ▓ ▒ ░), so they are boxes here, the
+        // shades at their shade's strength.
+        span.classList.add(part === '⬛' || part === '⬜' ? 'sq' : 'blk');
         if (part === '⬜') span.classList.add('hollow'); else span.style.background = color;
+        if (BLOCKS[part] < 1) span.style.opacity = BLOCKS[part];
         span.style.boxShadow = `2px 2px 0 ${shadow(color)}`;
         span.setAttribute('aria-label', part);
       } else span.textContent = part;

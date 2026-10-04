@@ -1,0 +1,71 @@
+{
+  "id": "medieval-roleplay-engine",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:38:49.675Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Elspeth",
+  "events": [
+    {
+      "t": 0.333,
+      "type": "actionbar",
+      "motd": "§#C0392BSouthmarch",
+      "text": "Southmarch"
+    },
+    {
+      "t": 1.2,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.2,
+      "type": "sent",
+      "text": "/card name Elspeth of Southmarch"
+    },
+    {
+      "t": 1.205,
+      "type": "chat",
+      "motd": "§aName set! Type /card to see changes.",
+      "text": "Name set! Type /card to see changes."
+    },
+    {
+      "t": 3.302,
+      "type": "sent",
+      "text": "/me draws her sword"
+    },
+    {
+      "t": 3.306,
+      "type": "chat",
+      "motd": "§7§oElspeth of Southmarch draws her sword",
+      "text": "Elspeth of Southmarch draws her sword"
+    },
+    {
+      "t": 5.202,
+      "type": "sent",
+      "text": "/roll 1d20+5"
+    },
+    {
+      "t": 5.205,
+      "type": "chat",
+      "motd": "§b§oElspeth rolled 1d20+5: 12 +5 = 17",
+      "text": "Elspeth rolled 1d20+5: 12 +5 = 17"
+    },
+    {
+      "t": 7.102,
+      "type": "sent",
+      "text": "/yell To arms!"
+    },
+    {
+      "t": 7.104,
+      "type": "chat",
+      "motd": "§cElspeth of Southmarch yells: \"To arms!\"",
+      "text": "Elspeth of Southmarch yells: \"To arms!\""
+    },
+    {
+      "t": 9.702,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

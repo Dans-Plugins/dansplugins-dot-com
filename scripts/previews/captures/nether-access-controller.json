@@ -1,0 +1,66 @@
+{
+  "id": "nether-access-controller",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:49:42.813Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (19): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, SimpleSkills, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Warden",
+  "events": [
+    {
+      "t": 0.054,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1,
+      "type": "sent",
+      "text": "/nac list"
+    },
+    {
+      "t": 1.002,
+      "type": "chat",
+      "motd": "§bNo one is allowed to access the nether.",
+      "text": "No one is allowed to access the nether."
+    },
+    {
+      "t": 3.306,
+      "type": "sent",
+      "text": "/nac allow Quill"
+    },
+    {
+      "t": 3.307,
+      "type": "chat",
+      "motd": "§aQuill is now allowed to use nether portals.",
+      "text": "Quill is now allowed to use nether portals."
+    },
+    {
+      "t": 5.906,
+      "type": "sent",
+      "text": "/nac list"
+    },
+    {
+      "t": 5.907,
+      "type": "chat",
+      "motd": "§b=== Players With Access To The Nether ==",
+      "text": "=== Players With Access To The Nether =="
+    },
+    {
+      "t": 5.908,
+      "type": "chat",
+      "motd": "§bQuill",
+      "text": "Quill"
+    },
+    {
+      "t": 8.906,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}
