@@ -1,0 +1,109 @@
+{
+  "id": "dans-plugin-manager",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:38:08.731Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Warden",
+  "events": [
+    {
+      "t": 0.677,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1.2,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.2,
+      "type": "sent",
+      "text": "/dpm search faction"
+    },
+    {
+      "t": 1.203,
+      "type": "chat",
+      "motd": "§b=== Search Results (3) ===",
+      "text": "=== Search Results (3) ==="
+    },
+    {
+      "t": 1.203,
+      "type": "chat",
+      "motd": "§7bluemapmedievalfactions§7 — Renders Medieval Factions territory and claims on BlueMap.",
+      "text": "bluemapmedievalfactions — Renders Medieval Factions territory and claims on BlueMap."
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§7medievalfactions§7 — A comprehensive factions plugin built for medieval roleplay servers.",
+      "text": "medievalfactions — A comprehensive factions plugin built for medieval roleplay servers."
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§7minifactions§7 — A lightweight factions plugin for servers that want simple territory control.",
+      "text": "minifactions — A lightweight factions plugin for servers that want simple territory control."
+    },
+    {
+      "t": 3.901,
+      "type": "sent",
+      "text": "/dpm info herald"
+    },
+    {
+      "t": 3.902,
+      "type": "chat",
+      "motd": "§bFetching release info for herald...",
+      "text": "Fetching release info for herald..."
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§b=== herald ===",
+      "text": "=== herald ==="
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§fAnnounces custom messages on player join and leave.",
+      "text": "Announces custom messages on player join and leave."
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§fOwner: §bDans-Plugins",
+      "text": "Owner: Dans-Plugins"
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§fRepository: §bHerald",
+      "text": "Repository: Herald"
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§fLatest release: §av2.1.0",
+      "text": "Latest release: v2.1.0"
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§fPublished: §b2026-10-02",
+      "text": "Published: 2026-10-02"
+    },
+    {
+      "t": 4.177,
+      "type": "chat",
+      "motd": "§fInstalled: §7No",
+      "text": "Installed: No"
+    },
+    {
+      "t": 8.101,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

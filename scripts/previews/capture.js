@@ -97,6 +97,8 @@ async function capture(id, clip) {
       watched.chat(text);
       if (after) await sleep(after);
     },
+    // What the watched player has been sent so far (plain text), newest last.
+    lines() { return events.filter((e) => e.type === 'chat').map((e) => e.text); },
     mark(name) { events.push({ t: (Date.now() - t0) / 1000, type: 'mark', text: name }); },
     stop() { t0 = null; },
   };

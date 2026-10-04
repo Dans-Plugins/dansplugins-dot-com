@@ -1,0 +1,68 @@
+{
+  "id": "kdr-tracker",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:40:57.529Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Bram",
+  "events": [
+    {
+      "t": 0.834,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 0.9,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 4.012,
+      "type": "chat",
+      "motd": "You now have 1 kills.",
+      "text": "You now have 1 kills."
+    },
+    {
+      "t": 4.015,
+      "type": "chat",
+      "motd": "Cole was slain by Bram",
+      "text": "Cole was slain by Bram"
+    },
+    {
+      "t": 4.035,
+      "type": "chat",
+      "motd": "§aYou have gained 1 power.",
+      "text": "You have gained 1 power."
+    },
+    {
+      "t": 5.857,
+      "type": "sent",
+      "text": "/kdrt info"
+    },
+    {
+      "t": 5.859,
+      "type": "chat",
+      "motd": "§bKills: 1",
+      "text": "Kills: 1"
+    },
+    {
+      "t": 5.859,
+      "type": "chat",
+      "motd": "§bDeaths: 0",
+      "text": "Deaths: 0"
+    },
+    {
+      "t": 5.859,
+      "type": "chat",
+      "motd": "§bK/D Ratio: 1.00",
+      "text": "K/D Ratio: 1.00"
+    },
+    {
+      "t": 9.058,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

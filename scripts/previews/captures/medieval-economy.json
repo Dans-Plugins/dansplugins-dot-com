@@ -1,0 +1,71 @@
+{
+  "id": "medieval-economy",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:40:38.088Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Odo",
+  "events": [
+    {
+      "t": 0.319,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1.199,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.199,
+      "type": "sent",
+      "text": "/balance"
+    },
+    {
+      "t": 1.201,
+      "type": "chat",
+      "motd": "§aYou have 0 coins in your coinpurse.",
+      "text": "You have 0 coins in your coinpurse."
+    },
+    {
+      "t": 3.001,
+      "type": "sent",
+      "text": "/deposit 10"
+    },
+    {
+      "t": 3.003,
+      "type": "chat",
+      "motd": "§aYou open your coinpurse and deposit 10 coins.",
+      "text": "You open your coinpurse and deposit 10 coins."
+    },
+    {
+      "t": 4.902,
+      "type": "sent",
+      "text": "/balance"
+    },
+    {
+      "t": 4.903,
+      "type": "chat",
+      "motd": "§aYou have 10 coins in your coinpurse.",
+      "text": "You have 10 coins in your coinpurse."
+    },
+    {
+      "t": 7.502,
+      "type": "sent",
+      "text": "/withdraw 4"
+    },
+    {
+      "t": 7.505,
+      "type": "chat",
+      "motd": "§aYou open your coinpurse and take out 4 coins.",
+      "text": "You open your coinpurse and take out 4 coins."
+    },
+    {
+      "t": 10.102,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

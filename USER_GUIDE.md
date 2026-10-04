@@ -38,7 +38,7 @@ No special software is required to use the website. Simply visit [https://danspl
    - **GitHub** — the plugin's source code and releases.
    - **SpigotMC** — the plugin's SpigotMC resource page, shown for plugins that have one.
    - The heart records the plugin in your **My likes** list; you will be prompted to sign in first if you are not already.
-5. A few plugins (currently Medieval Factions, Currencies and BlueMap Medieval Factions) also have a short **preview clip**, a few seconds long, muted and looping, with a pause button. On a computer it plays at the top of the plugin's panel when you hover over its icon or move to it with the keyboard, and stops when the panel closes; nothing is downloaded for it until then. On a phone or tablet a tap opens the plugin's sheet exactly as before, with no clip, and the clip plays on the plugin's page instead (**Details**). If your device is set to reduce motion, you see a still instead, everywhere.
+5. Most plugins also have a short **preview clip**, a few seconds long, muted and looping, with a pause button. On a computer it plays at the top of the plugin's panel when you hover over its icon or move to it with the keyboard, and stops when the panel closes; nothing is downloaded for it until then. On a phone or tablet a tap opens the plugin's sheet exactly as before, with no clip, and the clip plays on the plugin's page instead (**Details**). If your device is set to reduce motion, you see a still instead, everywhere.
 
 ### Viewing a Plugin's Page
 
@@ -49,7 +49,7 @@ No special software is required to use the website. Simply visit [https://danspl
    - **User guide** — the same guide reachable from the Guides page.
    - **Source** — the plugin's source code.
    - **SpigotMC** — its SpigotMC page, for plugins that have one.
-4. A plugin with a **preview clip** shows it under the buttons, with a line saying how it was made. The Medieval Factions and Currencies clips are *recreations* of the in-game chat window: every line in them is the plugin's real output, captured when a test player ran the commands on a test server, redrawn as a chat panel. The BlueMap Medieval Factions clip is BlueMap's own web map, recorded on a test server.
+4. A plugin with a **preview clip** shows it under the buttons, with a line saying how it was made. Most clips are *recreations* of the in-game chat window: every line in them is the plugin's real output, captured when a test player ran the commands on a test server, redrawn as a chat panel. The BlueMap Medieval Factions clip is BlueMap's own web map, recorded on a test server.
 5. **Related plugins** lists the plugins that share a tag with this one, those with the most in common first — Currencies and Fiefs both extend Medieval Factions, for instance, and each names the other here. Plugins sharing no tag with anything show no such section.
 6. Under **Versions**, the newest release is shown open, with its release notes, how many times it has been downloaded through this site, and a download button for each file it publishes; earlier releases sit below it and expand when clicked. Every download link leads to the file on GitHub — the site only counts the download on the way past. Plugins that have never published a release show no Versions section.
 7. At the bottom, **Report a bug** opens a new issue on that plugin's issue tracker, and **Suggest a feature** goes to the Dev Portal, where ideas can be submitted and upvoted.

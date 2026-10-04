@@ -1,0 +1,61 @@
+{
+  "id": "dans-set-home",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:40:07.341Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Tamsin",
+  "events": [
+    {
+      "t": 0.167,
+      "type": "actionbar",
+      "motd": "§#C0392BSouthmarch",
+      "text": "Southmarch"
+    },
+    {
+      "t": 1.2,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.201,
+      "type": "sent",
+      "text": "/sethome"
+    },
+    {
+      "t": 1.203,
+      "type": "chat",
+      "motd": "§aHome set!",
+      "text": "Home set!"
+    },
+    {
+      "t": 3.176,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 4.003,
+      "type": "sent",
+      "text": "/home"
+    },
+    {
+      "t": 4.005,
+      "type": "chat",
+      "motd": "§aTeleporting in 3 seconds...",
+      "text": "Teleporting in 3 seconds..."
+    },
+    {
+      "t": 7.172,
+      "type": "actionbar",
+      "motd": "§#C0392BSouthmarch",
+      "text": "Southmarch"
+    },
+    {
+      "t": 9.203,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

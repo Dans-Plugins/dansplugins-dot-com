@@ -10,6 +10,21 @@ there), and `record.js` is that recorder adapted, encoder included.
 | `medieval-factions` | chat | `/mf create Oakvale`, `/mf claim`, `/mf map` (the map shows the new claim among the neighbours' territory) |
 | `currencies` | chat | `/currency create Ducat` (and its rename prompt), `--rename`, `mint Ducat 3`, `info Ducat` |
 | `bluemap-medieval-factions` | map | BlueMap's web map with three factions' claims drawn by the plugin; zooms in on one and clicks it for its label |
+| `dans-plugin-manager` | chat | an operator's `/dpm search faction`, `/dpm info herald` (read-only: `/dpm get` would add to GitHub's download count, which the site shows) |
+| `democracy` | chat | Southmarch's leader: `/d start`, `/d vote Elspeth`, `/d info` (Garrick and Elspeth stand and vote off-screen) |
+| `medieval-roleplay-engine` | chat | `/card name`, `/me`, `/roll 1d20+5`, `/yell` |
+| `fiefs` | chat | `/fi create "Ironbrook"`, `/fi claim`, `/fi list`, `/fi info Ironbrook` inside Southmarch |
+| `mailboxes` | chat | a message arrives (sent off-screen by Rowena), `/m list`, `/m open <id>` |
+| `simple-skills` | chat | digging with a shovel teaches the Digging skill and levels it up; `/ss info` |
+| `activity-tracker` | chat | `/at info`, `/at top 5` (records start at the plugin's install on the test server) |
+| `dans-essentials` | chat | an operator's `/de getpos`, `/de label "Oathkeeper"`, `/de broadcast` |
+| `dans-set-home` | chat | `/sethome`, then `/home` after being moved away |
+| `easy-links` | chat | an operator's `/el create "discord" "..."`, `/el list`, `/el view "discord"` (the plugin ships with no links) |
+| `medieval-economy` | chat | a new player's `/balance`, `/deposit 10`, `/balance`, `/withdraw 4` |
+| `nether-access-controller` | chat | an operator's `/nac list`, `/nac allow Quill`, `/nac list` (Quill's portal-lighting is refused until then) |
+| `kdr-tracker` | chat | Bram defeats Cole; the kill is counted and `/kdrt info` shows it |
+| `wild-pets` | chat | `/wp tame`, right-clicks on a fox with sweet berries until it is tamed, `/wp rename Ember`, `/wp follow` |
+| `mini-factions` | chat | `/mf create Thornwall`, `/mf claim`, `/mf checkclaim`, `/mf info` (captured on a second server, see below) |
 
 ## Files
 
@@ -80,6 +95,25 @@ What the committed clips were recorded on (2026-10-04):
   (`forceload add -192 -112 223 207` in parts of at most 256 chunks, wait,
   `forceload remove all`, `save-all flush`), then `bluemap force-update preview`.
 - `node scripts/previews/setup-world.js` (with `RCON_PASSWORD`), left running.
+- For the rollout clips, also the latest stable releases of Dan's Plugin
+  Manager 0.6.0, Democracy 0.3.0, Medieval Roleplay Engine 1.15.1, Fiefs
+  0.12.1, Mailboxes 1.4.0, SimpleSkills 2.6.0, Activity Tracker 1.5.0, Dan's
+  Essentials 2.5.0, Dan's Set Home 1.4.0, Easy Links 0.5.0, Medieval Economy
+  2.0.0, Nether Access Controller 2.1.0, KDR Tracker 0.2.0 and Wild Pets
+  1.10.0, all on the same server. Each logs "Usage reporting is off
+  (environment)" with the variables above (DPM 0.6.0 has no usage reporting).
+  - **SimpleSkills is unloaded for every other capture** (move its jar out and
+    restart): it announces skills learned from almost anything (fighting,
+    lighting portals, falling), which would put its lines in other plugins'
+    clips. It is put back for its own capture.
+  - **MiniFactions** uses `/mf`, like Medieval Factions, so it is captured on a
+    second server (a copy with `server-port=25568`, `rcon.port=25578`) running
+    it without Medieval Factions, Currencies or Bluemap_MedievalFactions:
+    `MC_PORT=25568 RCON_PORT=25578 node scripts/previews/capture.js mini-factions`.
+  - Clips use fresh player names where state matters (a player who has
+    already set a home, learned a skill or been allowed into the nether would
+    not show the first-time replies); setup through RCON (`give`, `clear`, `op`,
+    `summon`, `fill`, `spreadplayers`) is described at the top of each clip.
 
 ## Re-record a clip
 
@@ -108,6 +142,24 @@ Notes from the committed takes:
   when Medieval Factions announces the claim, before the claim is saved), so
   claims appearing live on the map would lag one behind.
 
+## Plugins without a clip
+
+- **Alternate Account Finder**: every test player connects from 127.0.0.1, so
+  it would report all of them as each other's alternate accounts: real
+  output, but contrived.
+- **Conquest Recipes**, **More Recipes**: their value is crafting recipes,
+  shown in the crafting screen, which neither the chat panel nor
+  prismarine-viewer can show.
+- **Food Spoilage**: food turning to rotten flesh over time happens in the
+  inventory, with nothing in chat.
+- **No More Creepers**: an absence of creepers; nothing to show.
+- **Player Lore**: lore shows in an item's tooltip, which nothing here draws;
+  in chat it is a one-line confirmation.
+- **Dan's Spawn System**: the moment is right-clicking a `[Spawn]` sign and
+  being teleported; chat shows only "Spawn set!". A prismarine-viewer take was
+  tried (time-boxed): the camera did not turn to the sign, so sign text could
+  not be judged.
+
 ## Methods tried
 
 - **prismarine-viewer** (mineflayer's in-browser 3D view of what a bot sees) was
@@ -119,3 +171,8 @@ Notes from the committed takes:
   not visible in the world, so a 3D clip of MF shows a player in a forest. The
   chat clip with `/mf map` shows the claim; the 3D view suits plugins with an
   in-world visual instead.
+- It was tried again for **Wild Pets** (time-boxed): the third-person camera
+  is a fixed aerial view in which the player and a fox are specks among trees,
+  the first-person camera did not follow the player's look, and taming by
+  right-click is a chance roll that often missed, so a pet following the
+  player was never caught on camera. Wild Pets has a chat clip instead.

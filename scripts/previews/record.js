@@ -231,7 +231,8 @@ function encode(id, clip) {
     if (fs.statSync(out('mp4')).size <= BUDGET.mp4) break;
   }
   // Poster: a still from the clip (default: 60% of the way in).
-  const posterAt = clip.poster !== undefined ? clip.poster : length * 0.6;
+  // (clamped inside the clip: a still past its end would be no still at all)
+  const posterAt = Math.min(clip.poster !== undefined ? clip.poster : length * 0.6, length - 0.25);
   ff(['-ss', posterAt.toFixed(3), '-i', out('mp4'), '-frames:v', '1', '-q:v', '4', out('jpg')]);
   // A contact sheet for review (not published).
   const n = 12;

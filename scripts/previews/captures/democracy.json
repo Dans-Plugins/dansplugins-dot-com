@@ -1,0 +1,78 @@
+{
+  "id": "democracy",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:38:33.582Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Rowena",
+  "events": [
+    {
+      "t": 0.727,
+      "type": "actionbar",
+      "motd": "§#C0392BSouthmarch",
+      "text": "Southmarch"
+    },
+    {
+      "t": 1.201,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.201,
+      "type": "sent",
+      "text": "/d start"
+    },
+    {
+      "t": 1.218,
+      "type": "chat",
+      "motd": "§aElection has been started.",
+      "text": "Election has been started."
+    },
+    {
+      "t": 3.701,
+      "type": "sent",
+      "text": "/d vote Elspeth"
+    },
+    {
+      "t": 3.703,
+      "type": "chat",
+      "motd": "§aYour vote for Elspeth has been cast.",
+      "text": "Your vote for Elspeth has been cast."
+    },
+    {
+      "t": 6.101,
+      "type": "sent",
+      "text": "/d info"
+    },
+    {
+      "t": 6.103,
+      "type": "chat",
+      "motd": "§b=== Election Info ===",
+      "text": "=== Election Info ==="
+    },
+    {
+      "t": 6.103,
+      "type": "chat",
+      "motd": "§bStarted by: Rowena",
+      "text": "Started by: Rowena"
+    },
+    {
+      "t": 6.103,
+      "type": "chat",
+      "motd": "§bGarrick: 1 vote(s)",
+      "text": "Garrick: 1 vote(s)"
+    },
+    {
+      "t": 6.104,
+      "type": "chat",
+      "motd": "§bElspeth: 2 vote(s)",
+      "text": "Elspeth: 2 vote(s)"
+    },
+    {
+      "t": 9.502,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

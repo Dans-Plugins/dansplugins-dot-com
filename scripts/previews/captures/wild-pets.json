@@ -1,0 +1,144 @@
+{
+  "id": "wild-pets",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:43:07.894Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Fenna",
+  "events": [
+    {
+      "t": 0.432,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 0.9,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 0.9,
+      "type": "sent",
+      "text": "/wp tame"
+    },
+    {
+      "t": 0.902,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 0.902,
+      "type": "chat",
+      "motd": "§6┌─ §e§lWild Pets§6 ─ Tame",
+      "text": "┌─ Wild Pets ─ Tame"
+    },
+    {
+      "t": 0.903,
+      "type": "chat",
+      "motd": "§6│ §aRight click on an entity to tame it. Type '/wp tame cancel' to cancel taming.",
+      "text": "│ Right click on an entity to tame it. Type '/wp tame cancel' to cancel taming."
+    },
+    {
+      "t": 0.903,
+      "type": "chat",
+      "motd": "§6└─────────────────────────",
+      "text": "└─────────────────────────"
+    },
+    {
+      "t": 2.018,
+      "type": "chat",
+      "motd": "§cTaming failed.",
+      "text": "Taming failed."
+    },
+    {
+      "t": 2.922,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 2.923,
+      "type": "chat",
+      "motd": "§6┌─ §e§lWild Pets§6 ─ Tame",
+      "text": "┌─ Wild Pets ─ Tame"
+    },
+    {
+      "t": 2.923,
+      "type": "chat",
+      "motd": "§6│ §aTamed.",
+      "text": "│ Tamed."
+    },
+    {
+      "t": 2.923,
+      "type": "chat",
+      "motd": "§6└─────────────────────────",
+      "text": "└─────────────────────────"
+    },
+    {
+      "t": 4.72,
+      "type": "sent",
+      "text": "/wp rename Ember"
+    },
+    {
+      "t": 4.721,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 4.721,
+      "type": "chat",
+      "motd": "§6┌─ §e§lWild Pets§6 ─ Rename",
+      "text": "┌─ Wild Pets ─ Rename"
+    },
+    {
+      "t": 4.722,
+      "type": "chat",
+      "motd": "§6│ §aRenamed.",
+      "text": "│ Renamed."
+    },
+    {
+      "t": 4.722,
+      "type": "chat",
+      "motd": "§6└─────────────────────────",
+      "text": "└─────────────────────────"
+    },
+    {
+      "t": 6.421,
+      "type": "sent",
+      "text": "/wp follow"
+    },
+    {
+      "t": 6.422,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 6.422,
+      "type": "chat",
+      "motd": "§6┌─ §e§lWild Pets§6 ─ Follow",
+      "text": "┌─ Wild Pets ─ Follow"
+    },
+    {
+      "t": 6.422,
+      "type": "chat",
+      "motd": "§6│ §aEmber is now following you.",
+      "text": "│ Ember is now following you."
+    },
+    {
+      "t": 6.422,
+      "type": "chat",
+      "motd": "§6└─────────────────────────",
+      "text": "└─────────────────────────"
+    },
+    {
+      "t": 9.022,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

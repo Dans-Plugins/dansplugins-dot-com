@@ -1,0 +1,72 @@
+{
+  "id": "easy-links",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:42:51.929Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Warden",
+  "events": [
+    {
+      "t": 0.78,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1.201,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.201,
+      "type": "sent",
+      "text": "/el create \"discord\" \"https://discord.gg/xXtuAQ2\""
+    },
+    {
+      "t": 1.208,
+      "type": "chat",
+      "motd": "§aLink created.",
+      "text": "Link created."
+    },
+    {
+      "t": 3.502,
+      "type": "sent",
+      "text": "/el list"
+    },
+    {
+      "t": 3.503,
+      "type": "chat",
+      "motd": "§b=== Links ===",
+      "text": "=== Links ==="
+    },
+    {
+      "t": 3.503,
+      "type": "chat",
+      "motd": "§bdiscord",
+      "text": "discord"
+    },
+    {
+      "t": 5.403,
+      "type": "sent",
+      "text": "/el view \"discord\""
+    },
+    {
+      "t": 5.404,
+      "type": "chat",
+      "motd": "§b === discord === ",
+      "text": " === discord === "
+    },
+    {
+      "t": 5.404,
+      "type": "chat",
+      "motd": "§bhttps://discord.gg/xXtuAQ2§b",
+      "text": "https://discord.gg/xXtuAQ2"
+    },
+    {
+      "t": 8.403,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

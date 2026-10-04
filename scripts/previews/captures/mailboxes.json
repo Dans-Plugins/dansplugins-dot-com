@@ -1,0 +1,121 @@
+{
+  "id": "mailboxes",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:39:23.362Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Garrick",
+  "events": [
+    {
+      "t": 0.148,
+      "type": "actionbar",
+      "motd": "§#C0392BSouthmarch",
+      "text": "Southmarch"
+    },
+    {
+      "t": 0.801,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 0.804,
+      "type": "chat",
+      "motd": "§bYou've received a message. Type /m list to view your messages.",
+      "text": "You've received a message. Type /m list to view your messages."
+    },
+    {
+      "t": 2.401,
+      "type": "sent",
+      "text": "/m list"
+    },
+    {
+      "t": 2.404,
+      "type": "chat",
+      "motd": "§b=== Active Messages (Page 1/1) ===",
+      "text": "=== Active Messages (Page 1/1) ==="
+    },
+    {
+      "t": 2.404,
+      "type": "chat",
+      "motd": "§bD: date, S: sender, ������: has attachments",
+      "text": "D: date, S: sender, ������: has attachments"
+    },
+    {
+      "t": 2.409,
+      "type": "chat",
+      "motd": "§b§l* §e§lID: 3567§b§l - D: 2026-10-04 - S: Mailboxes",
+      "text": "* ID: 3567 - D: 2026-10-04 - S: Mailboxes"
+    },
+    {
+      "t": 2.41,
+      "type": "chat",
+      "motd": "§b§l* §e§lID: 8702§b§l - D: 2026-10-04 - S: Rowena",
+      "text": "* ID: 8702 - D: 2026-10-04 - S: Rowena"
+    },
+    {
+      "t": 4.602,
+      "type": "sent",
+      "text": "/m open 8702"
+    },
+    {
+      "t": 4.603,
+      "type": "chat",
+      "motd": "§b=============================",
+      "text": "============================="
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "§bType: Player Message",
+      "text": "Type: Player Message"
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "§bDate: Sun Oct 04 11:39:14 MDT 2026",
+      "text": "Date: Sun Oct 04 11:39:14 MDT 2026"
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "§bFrom: Rowena",
+      "text": "From: Rowena"
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "§bThe council meets at noon.",
+      "text": "The council meets at noon."
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "§b=============================",
+      "text": "============================="
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 4.604,
+      "type": "chat",
+      "motd": "§7Actions: §a§l[Archive] §c§l[Delete]",
+      "text": "Actions: [Archive] [Delete]"
+    },
+    {
+      "t": 8.202,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

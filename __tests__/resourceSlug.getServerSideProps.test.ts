@@ -175,8 +175,8 @@ describe('resource page getServerSideProps', () => {
             // trace answers 404 in the default stub: no panel, no failure.
             usage: null,
             renderedAt: expect.any(Number),
-            // No preview clip for this plugin (utils/pluginTrailers.ts).
-            trailer: null
+            // Its preview clip, from utils/pluginTrailers.ts.
+            trailer: PLUGIN_TRAILERS['activity-tracker']
         });
     });
 

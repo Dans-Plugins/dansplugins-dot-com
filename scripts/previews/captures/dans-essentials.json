@@ -1,0 +1,60 @@
+{
+  "id": "dans-essentials",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:39:51.888Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Warden",
+  "events": [
+    {
+      "t": 0.419,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1.201,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.201,
+      "type": "sent",
+      "text": "/de getpos"
+    },
+    {
+      "t": 1.202,
+      "type": "chat",
+      "motd": "§bYour current coordinates are -150 64 31",
+      "text": "Your current coordinates are -150 64 31"
+    },
+    {
+      "t": 3.001,
+      "type": "sent",
+      "text": "/de label \"Oathkeeper\""
+    },
+    {
+      "t": 3.003,
+      "type": "chat",
+      "motd": "§aItem has been renamed!",
+      "text": "Item has been renamed!"
+    },
+    {
+      "t": 5.002,
+      "type": "sent",
+      "text": "/de broadcast \"The gates open at dawn.\""
+    },
+    {
+      "t": 5.003,
+      "type": "chat",
+      "motd": "§aThe gates open at dawn.",
+      "text": "The gates open at dawn."
+    },
+    {
+      "t": 8.002,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

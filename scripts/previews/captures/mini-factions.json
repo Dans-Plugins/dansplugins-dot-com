@@ -1,0 +1,101 @@
+{
+  "id": "mini-factions",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:41:49.535Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (2): MiniFactions, BlueMap",
+  "minecraft": "1.21.1",
+  "player": "Corwin",
+  "events": [
+    {
+      "t": 1.206,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.206,
+      "type": "sent",
+      "text": "/mf create Thornwall"
+    },
+    {
+      "t": 1.208,
+      "type": "chat",
+      "motd": "Faction created.",
+      "text": "Faction created."
+    },
+    {
+      "t": 3.006,
+      "type": "sent",
+      "text": "/mf claim"
+    },
+    {
+      "t": 3.077,
+      "type": "chat",
+      "motd": "You have lost 1.0 power.",
+      "text": "You have lost 1.0 power."
+    },
+    {
+      "t": 3.077,
+      "type": "chat",
+      "motd": "Claimed.",
+      "text": "Claimed."
+    },
+    {
+      "t": 4.706,
+      "type": "sent",
+      "text": "/mf checkclaim"
+    },
+    {
+      "t": 4.708,
+      "type": "chat",
+      "motd": "This territory is claimed by Thornwall",
+      "text": "This territory is claimed by Thornwall"
+    },
+    {
+      "t": 6.406,
+      "type": "sent",
+      "text": "/mf info"
+    },
+    {
+      "t": 6.417,
+      "type": "chat",
+      "motd": "=== Thornwall ===",
+      "text": "=== Thornwall ==="
+    },
+    {
+      "t": 6.418,
+      "type": "chat",
+      "motd": "Leader: Corwin",
+      "text": "Leader: Corwin"
+    },
+    {
+      "t": 6.418,
+      "type": "chat",
+      "motd": "Members: 1",
+      "text": "Members: 1"
+    },
+    {
+      "t": 6.418,
+      "type": "chat",
+      "motd": "Power: 49.0",
+      "text": "Power: 49.0"
+    },
+    {
+      "t": 6.418,
+      "type": "chat",
+      "motd": "Invited: 0",
+      "text": "Invited: 0"
+    },
+    {
+      "t": 6.418,
+      "type": "chat",
+      "motd": "Territory Size: 1",
+      "text": "Territory Size: 1"
+    },
+    {
+      "t": 9.408,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

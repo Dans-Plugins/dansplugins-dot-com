@@ -1,0 +1,139 @@
+{
+  "id": "activity-tracker",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T17:39:37.835Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Scout",
+  "events": [
+    {
+      "t": 0.771,
+      "type": "actionbar",
+      "motd": "§#48067BScoutia",
+      "text": "Scoutia"
+    },
+    {
+      "t": 1.2,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.2,
+      "type": "sent",
+      "text": "/at info"
+    },
+    {
+      "t": 1.202,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 1.203,
+      "type": "chat",
+      "motd": "§6┌─ §e§lScout§6 ─ Activity Info",
+      "text": "┌─ Scout ─ Activity Info"
+    },
+    {
+      "t": 1.203,
+      "type": "chat",
+      "motd": "§6│ §7Logins:    §f2",
+      "text": "│ Logins:    2"
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§6│ §7Play Time: §a0.36h",
+      "text": "│ Play Time: 0.36h"
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§6│ §7Ranking:   §b1/27 §8[██████████]",
+      "text": "│ Ranking:   1/27 [██████████]"
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§6│ §7Status:    §aOnline",
+      "text": "│ Status:    Online"
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§6│ §7Session:   §f0.00h since login",
+      "text": "│ Session:   0.00h since login"
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§6│ §7First Login: §f2026-10-04T11:14:47.092498600",
+      "text": "│ First Login: 2026-10-04T11:14:47.092498600"
+    },
+    {
+      "t": 1.204,
+      "type": "chat",
+      "motd": "§6└─────────────────────────",
+      "text": "└─────────────────────────"
+    },
+    {
+      "t": 4.502,
+      "type": "sent",
+      "text": "/at top 5"
+    },
+    {
+      "t": 4.504,
+      "type": "chat",
+      "motd": "",
+      "text": ""
+    },
+    {
+      "t": 4.504,
+      "type": "chat",
+      "motd": "§6┌─ §e§lActivity Tracker§6 ─ Top Players",
+      "text": "┌─ Activity Tracker ─ Top Players"
+    },
+    {
+      "t": 4.504,
+      "type": "chat",
+      "motd": "§6│ §b#1 §fScout §a0.36h §8[██████████]",
+      "text": "│ #1 Scout 0.36h [██████████]"
+    },
+    {
+      "t": 4.505,
+      "type": "chat",
+      "motd": "§6│ §b#2 §fScout2 §a0.34h §8[█████████░]",
+      "text": "│ #2 Scout2 0.34h [█████████░]"
+    },
+    {
+      "t": 4.505,
+      "type": "chat",
+      "motd": "§6│ §b#3 §fSteward §a0.17h §8[████░░░░░░]",
+      "text": "│ #3 Steward 0.17h [████░░░░░░]"
+    },
+    {
+      "t": 4.505,
+      "type": "chat",
+      "motd": "§6│ §b#4 §fDigger3 §a0.02h §8[░░░░░░░░░░]",
+      "text": "│ #4 Digger3 0.02h [░░░░░░░░░░]"
+    },
+    {
+      "t": 4.506,
+      "type": "chat",
+      "motd": "§6│ §b#5 §fFenna4 §a0.01h §8[░░░░░░░░░░]",
+      "text": "│ #5 Fenna4 0.01h [░░░░░░░░░░]"
+    },
+    {
+      "t": 4.506,
+      "type": "chat",
+      "motd": "§6└─────────────────────────",
+      "text": "└─────────────────────────"
+    },
+    {
+      "t": 8.302,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}
