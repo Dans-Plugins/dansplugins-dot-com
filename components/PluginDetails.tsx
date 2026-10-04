@@ -8,11 +8,13 @@ import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import StarIcon from '@mui/icons-material/Star';
 import LikeButton from './LikeButton';
+import PluginTrailer from './PluginTrailer';
 import {NextLinkComposed} from './NextLinkComposed';
 import {pluginDetailsActionsStyle} from '../styles/styles';
 import {resourcePath} from '../utils/resources';
 import {downloadsLabel} from '../services/pluginVersionService';
 import {formatTestedVersions} from '../utils/spigot';
+import type {PluginTrailer as Trailer} from '../utils/pluginTrailers';
 
 // Everything the catalogue says about one plugin — what it is, its figures, and
 // where to go next. The home page grid shows only icons; this is the panel that
@@ -55,6 +57,11 @@ export interface PluginDetailsProps {
     // Id for the title heading, so the mobile sheet can take its accessible
     // name from it.
     titleId?: string;
+    // The plugin's preview clip, shown under the title. Passed only for the
+    // desktop panel (hover or keyboard focus); the touch sheet gets none, so it
+    // stays as it was and its buttons stay in view, and the clip plays on the
+    // plugin's page instead, one tap away (Details).
+    trailer?: Trailer | null;
 }
 
 const PluginDetails: React.FC<PluginDetailsProps> = ({
@@ -76,6 +83,7 @@ const PluginDetails: React.FC<PluginDetailsProps> = ({
     token,
     descriptionId,
     titleId,
+    trailer,
 }) => {
     const testedLabel = testedVersions && testedVersions.length > 0 ? formatTestedVersions(testedVersions) : null;
     return (
@@ -91,6 +99,11 @@ const PluginDetails: React.FC<PluginDetailsProps> = ({
                     {title}
                 </Link>
             </Typography>
+            {trailer ? (
+                // Loads nothing until the panel is open on screen (the grid
+                // keeps closed panels mounted), and stops when it closes.
+                <PluginTrailer trailer={trailer} load="visible" sx={{mb: 1.5}}/>
+            ) : null}
             <Typography id={descriptionId} variant="body2" color="text.secondary">
                 {description}
             </Typography>

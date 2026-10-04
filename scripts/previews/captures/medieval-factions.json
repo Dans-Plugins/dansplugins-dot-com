@@ -1,0 +1,114 @@
+{
+  "id": "medieval-factions",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-04T16:12:58.693Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (4): BlueMap, MedievalFactions, Currencies, MF_Bluemap",
+  "minecraft": "1.21.1",
+  "player": "Rowan",
+  "events": [
+    {
+      "t": 0.497,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1.6,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.6,
+      "type": "sent",
+      "text": "/mf create Oakvale"
+    },
+    {
+      "t": 1.654,
+      "type": "chat",
+      "motd": "§aFaction Oakvale created.",
+      "text": "Faction Oakvale created."
+    },
+    {
+      "t": 4.201,
+      "type": "sent",
+      "text": "/mf claim"
+    },
+    {
+      "t": 4.293,
+      "type": "chat",
+      "motd": "§aClaimed 1 chunks.",
+      "text": "Claimed 1 chunks."
+    },
+    {
+      "t": 4.348,
+      "type": "actionbar",
+      "motd": "§#AD27AFOakvale",
+      "text": "Oakvale"
+    },
+    {
+      "t": 6.601,
+      "type": "sent",
+      "text": "/mf map"
+    },
+    {
+      "t": 6.643,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#2E86DE⬛§#2E86DE⬛§#2E86DE⬛§#2E86DE⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.644,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.644,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.645,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.645,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#AD27AF⬜§#3E8E39⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.645,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#3E8E39⬛§#3E8E39⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.646,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#F1C40F⬛§#3E8E39⬛§#3E8E39⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#C0392B⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.646,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 6.647,
+      "type": "chat",
+      "motd": "§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛§#3E8E39⬛",
+      "text": "⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛"
+    },
+    {
+      "t": 10.202,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

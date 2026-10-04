@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=640, initial-scale=1">
+<title>Chat panel</title>
+<!--
+  Draws one capture (captures/<id>.json, injected by record.js as window.CAPTURE)
+  as a Minecraft-style chat panel, replayed on the capture's own clock.
+
+  This is a RECREATION of the chat window, and says so in the corner. What it
+  draws is only what the capture holds: each line's text and colour codes as
+  the server sent them, at the moment they arrived. The one thing added is
+  the typing of each command into the input bar, in the gap before the moment
+  the player actually sent it (the bot sent it in one go).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=block" rel="stylesheet">
+<style>
+  :root { --line: 25px; --font: 24px; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 640px; height: 400px; overflow: hidden; background: #1d2a1f; }
+  body {
+    font-family: 'VT323', monospace; font-size: var(--font); color: #fff;
+    background: radial-gradient(ellipse at 30% 20%, #3b5634 0%, #22331f 55%, #141c12 100%);
+  }
+  #stage { position: relative; width: 640px; height: 400px; }
+  #tag {
+    position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 4px;
+    font: 600 12px/1.2 system-ui, sans-serif; color: #e8efe6; background: rgba(0, 0, 0, 0.45); letter-spacing: 0.01em;
+  }
+  /* A fixed window: older lines scroll off the top, as in the game. */
+  #chat { position: absolute; left: 6px; bottom: 70px; width: 540px; height: 300px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+  .line { flex: none; min-height: var(--line); line-height: var(--line); padding: 0 6px; background: rgba(0, 0, 0, 0.5); white-space: pre-wrap; }
+  .line.sent { color: #fff; }
+  #bar {
+    position: absolute; left: 0; right: 0; bottom: 42px; height: 25px; line-height: 25px; text-align: center;
+    font-weight: 600; transition: opacity 0.35s;
+  }
+  #input { position: absolute; left: 4px; right: 4px; bottom: 6px; height: 28px; line-height: 28px; padding: 0 6px; background: rgba(0, 0, 0, 0.5); white-space: pre; }
+  #caret { display: inline-block; width: 0.55em; }
+  .sq { display: inline-block; width: 0.82em; height: 0.82em; margin: 0 0.06em; vertical-align: -0.06em; }
+  .sq.hollow { background: transparent !important; border: 0.22em solid currentColor; }
+  .b { font-weight: 600; } .i { font-style: italic; } .u { text-decoration: underline; } .s { text-decoration: line-through; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="tag">Recreated chat panel · real server output</div>
+  <div id="chat"></div>
+  <div id="bar"></div>
+  <div id="input"><span id="typed"></span><span id="caret">_</span></div>
+</div>
+<script>
+'use strict';
+const CODES = {
+  0: '#000000', 1: '#0000AA', 2: '#00AA00', 3: '#00AAAA', 4: '#AA0000', 5: '#AA00AA', 6: '#FFAA00', 7: '#AAAAAA',
+  8: '#555555', 9: '#5555FF', a: '#55FF55', b: '#55FFFF', c: '#FF5555', d: '#FF55FF', e: '#FFFF55', f: '#FFFFFF',
+};
+// Minecraft's text shadow: the colour at a quarter brightness, 1 px down-right (2 px at this size).
+const shadow = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  const q = (v) => Math.floor(v / 4).toString(16).padStart(2, '0');
+  return `#${q(n >> 16 & 255)}${q(n >> 8 & 255)}${q(n & 255)}`;
+};
+const MAX_LINES = 40; // DOM tidy-up only; the window's height decides what shows
+
+// One line of legacy-formatted text (as mineflayer's toMotd() gives it, with
+// §#rrggbb for hex colours) to DOM nodes. Nothing is added or reworded.
+function render(motd) {
+  const frag = document.createDocumentFragment();
+  let color = '#FFFFFF'; let fmt = new Set();
+  const flush = (text) => {
+    if (!text) return;
+    for (const part of text.split(/([⬛⬜])/)) {
+      if (!part) continue;
+      const span = document.createElement('span');
+      span.style.color = color;
+      span.style.textShadow = `2px 2px 0 ${shadow(color)}`;
+      span.className = [...fmt].join(' ');
+      if (part === '⬛' || part === '⬜') {
+        // The chat font draws these as squares in the text colour; a web font
+        // would draw them as emoji, ignoring the colour, so they are boxes here.
+        span.classList.add('sq');
+        if (part === '⬜') span.classList.add('hollow'); else span.style.background = color;
+        span.style.boxShadow = `2px 2px 0 ${shadow(color)}`;
+        span.setAttribute('aria-label', part);
+      } else span.textContent = part;
+      frag.appendChild(span);
+    }
+  };
+  let buf = '';
+  for (let i = 0; i < motd.length; i++) {
+    if (motd[i] !== '§' || i + 1 >= motd.length) { buf += motd[i]; continue; }
+    flush(buf); buf = '';
+    const c = motd[i + 1].toLowerCase();
+    if (c === '#') { color = '#' + motd.slice(i + 2, i + 8).toUpperCase(); fmt = new Set(); i += 7; continue; }
+    if (CODES[c]) { color = CODES[c]; fmt = new Set(); } else if (c === 'l') fmt.add('b');
+    else if (c === 'o') fmt.add('i'); else if (c === 'n') fmt.add('u'); else if (c === 'm') fmt.add('s');
+    else if (c === 'r') { color = '#FFFFFF'; fmt = new Set(); }
+    i += 1;
+  }
+  flush(buf);
+  return frag;
+}
+
+const chat = document.getElementById('chat');
+const bar = document.getElementById('bar');
+const typed = document.getElementById('typed');
+const caret = document.getElementById('caret');
+function addLine(node, cls) {
+  const div = document.createElement('div');
+  div.className = 'line' + (cls ? ' ' + cls : '');
+  div.appendChild(node);
+  chat.appendChild(div);
+  while (chat.children.length > MAX_LINES) chat.removeChild(chat.firstChild);
+}
+function showBar(motd) { bar.replaceChildren(render(motd)); bar.style.opacity = 1; }
+
+const TYPE_MS = 42;
+// The timeline: every event at its captured time. A command is typed into the
+// input bar over the moments before it was sent (TYPE_MS per character, at
+// most the gap since the previous event), then appears in the chat history as
+// the client echoes it, and the server's replies follow at their own times.
+function schedule(capture) {
+  const ev = capture.events;
+  const mark = (name) => (ev.find((e) => e.type === 'mark' && e.text === name) || {}).t;
+  // Start a moment before the first command's typing begins.
+  const first = ev.find((e) => e.type === 'sent');
+  const from = Math.max(0, Math.min(mark('in') ?? ev[0].t, first ? first.t - (first.text.length * TYPE_MS) / 1000 : Infinity) - 0.5);
+  const to = mark('out') ?? ev[ev.length - 1].t + 2;
+  const steps = [];
+  // State before the clip starts: the action bar as it stood then.
+  const before = ev.filter((e) => e.t < from && e.type === 'actionbar').pop();
+  if (before) steps.push({ at: 0, run: () => showBar(before.motd) });
+  ev.forEach((e, i) => {
+    if (e.t < from) return;
+    const at = (e.t - from) * 1000;
+    if (e.type === 'sent') {
+      const prev = ev.slice(0, i).reverse().find((p) => p.type !== 'mark');
+      const room = prev ? (e.t - prev.t) * 1000 - 500 : at;
+      const dur = Math.max(0, Math.min(e.text.length * TYPE_MS, room, at));
+      [...e.text].forEach((_, k) => steps.push({ at: at - dur + (dur * k) / e.text.length, run: () => { typed.textContent = e.text.slice(0, k + 1); } }));
+      steps.push({ at, run: () => { typed.textContent = ''; addLine(document.createTextNode(e.text), 'sent'); } });
+    } else if (e.type === 'chat') steps.push({ at, run: () => addLine(render(e.motd)) });
+    else if (e.type === 'actionbar') steps.push({ at, run: () => showBar(e.motd) });
+  });
+  return { steps: steps.sort((a, b) => a.at - b.at), length: (to - from) * 1000 };
+}
+
+let caretTimer = null;
+window.playClip = () => new Promise((done) => {
+  const { steps, length } = schedule(window.CAPTURE);
+  const t0 = performance.now();
+  let next = 0;
+  caretTimer = setInterval(() => { caret.style.visibility = caret.style.visibility === 'hidden' ? 'visible' : 'hidden'; }, 300);
+  const tick = () => {
+    const now = performance.now() - t0;
+    while (next < steps.length && steps[next].at <= now) steps[next++].run();
+    if (now < length) requestAnimationFrame(tick); else { clearInterval(caretTimer); done(); }
+  };
+  requestAnimationFrame(tick);
+});
+// Before playing: the state at the start of the clip, so a still is never blank.
+window.addEventListener('DOMContentLoaded', () => {
+  if (!window.CAPTURE) return;
+  document.title = `Chat panel: ${window.CAPTURE.id}`;
+});
+</script>
+</body>
+</html>
