@@ -72,12 +72,15 @@ function look(from, to) {
 // The overlay: chat lines drawn from the capture (the server's own text and
 // colour codes, at the moments they arrived), over the rendered world, with
 // a tag saying it is a recreation. Nothing else is drawn over the world.
+// Sized for the home page's desktop panel, which shows the 960x600 view about
+// 286 px wide (0.3x): 44 px chat is drawn there at about 13 px, the tag at
+// about 8 px.
 const OVERLAY_CSS = `
   #pv-overlay { position: fixed; inset: 0; pointer-events: none; font-family: 'VT323', monospace; color: #fff; }
-  #pv-tag { position: absolute; top: 8px; right: 8px; padding: 3px 7px; border-radius: 4px;
-    font: 600 11px/1.2 system-ui, sans-serif; color: #e8efe6; background: rgba(0, 0, 0, 0.5); }
-  #pv-chat { position: absolute; left: 6px; bottom: 8px; max-width: 70%; display: flex; flex-direction: column; }
-  #pv-chat .line { font-size: 26px; line-height: 27px; padding: 0 6px; background: rgba(0, 0, 0, 0.5);
+  #pv-tag { position: absolute; top: 10px; right: 10px; padding: 5px 11px; border-radius: 6px;
+    font: 600 27px/1.2 system-ui, sans-serif; color: #e8efe6; background: rgba(0, 0, 0, 0.55); }
+  #pv-chat { position: absolute; left: 10px; bottom: 12px; max-width: 80%; display: flex; flex-direction: column; }
+  #pv-chat .line { font-size: 44px; line-height: 46px; padding: 0 9px; background: rgba(0, 0, 0, 0.5);
     white-space: pre; transition: opacity 0.4s; }
 `;
 

@@ -132,8 +132,18 @@ takes' pets are moved out of the way (Wild Pets keeps pets from harm, so
   on the map moves meanwhile.
 - **Small and legible.** 6–10 s; WebM under ~400 KB, MP4 under ~600 KB, still
   under 120 KB. Look at the contact sheet (`$PREVIEW_WORK/<id>/sheet.png`) and
-  at the clip about 360 px wide before committing. Re-record a weak clip once;
-  drop it if it is still poor.
+  at the clip **286 px wide**, the size the home page's desktop details panel
+  shows it (measured at 1280, 1440 and 1920 px windows), before committing.
+  Re-record a weak clip once; drop it if it is still poor.
+- **Sized for the panel.** The panel shows a 640x400 clip at 0.45x, so the
+  chat panel draws 30 px text (about 13 px there) in a window of whole rows
+  under the recreation tag; a clip whose table or map must not wrap asks for
+  a smaller `font` (Medieval Factions 28 for its 21-square `/mf map`, Fiefs 26
+  for its `/fi list` row). World clips are 960x600 (0.3x in the panel), so
+  their chat overlay is 44 px and the tag 27 px. The BlueMap clip is recorded
+  at 480x300 CSS px with a device scale of 2: the same map resolution as
+  960x600, but BlueMap's labels and player markers, sized in CSS px, are
+  twice as large in the frame.
 
 ## The test server
 
@@ -217,7 +227,11 @@ Notes from the committed takes:
   `setup-world.js` ends with `bluemap reload`: Bluemap_MedievalFactions 1.0.0
   draws a faction's claims as they stood before its newest claim (it reads them
   when Medieval Factions announces the claim, before the claim is saved), so
-  claims appearing live on the map would lag one behind.
+  claims appearing live on the map would lag one behind. It was re-recorded
+  on 2026-10-04 at 480x300 (above), with the camera a little closer (distance
+  150 to 105, was 200 to 140) so the larger markers do not hide the claims;
+  `setup-world.js` was run again on the same server first, to bring the bots
+  online (every claim was already in place, so it claimed nothing).
 
 ## Plugins without a clip
 
