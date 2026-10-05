@@ -1,65 +1,65 @@
 {
   "id": "mailboxes",
   "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
-  "capturedAt": "2026-10-04T17:39:23.362Z",
+  "capturedAt": "2026-10-05T00:08:49.753Z",
   "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
   "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
   "minecraft": "1.21.1",
   "player": "Garrick",
   "events": [
     {
-      "t": 0.148,
+      "t": 0.293,
       "type": "actionbar",
       "motd": "§#C0392BSouthmarch",
       "text": "Southmarch"
     },
     {
-      "t": 0.801,
+      "t": 0.8,
       "type": "mark",
       "text": "in"
     },
     {
-      "t": 0.804,
+      "t": 0.801,
       "type": "chat",
       "motd": "§bYou've received a message. Type /m list to view your messages.",
       "text": "You've received a message. Type /m list to view your messages."
     },
     {
-      "t": 2.401,
+      "t": 2.402,
       "type": "sent",
       "text": "/m list"
     },
     {
-      "t": 2.404,
+      "t": 2.402,
       "type": "chat",
       "motd": "§b=== Active Messages (Page 1/1) ===",
       "text": "=== Active Messages (Page 1/1) ==="
     },
     {
-      "t": 2.404,
+      "t": 2.403,
       "type": "chat",
-      "motd": "§bD: date, S: sender, ������: has attachments",
-      "text": "D: date, S: sender, ������: has attachments"
+      "motd": "§bD: date, S: sender, 📎: has attachments",
+      "text": "D: date, S: sender, 📎: has attachments"
     },
     {
-      "t": 2.409,
+      "t": 2.403,
       "type": "chat",
       "motd": "§b§l* §e§lID: 3567§b§l - D: 2026-10-04 - S: Mailboxes",
       "text": "* ID: 3567 - D: 2026-10-04 - S: Mailboxes"
     },
     {
-      "t": 2.41,
+      "t": 2.403,
       "type": "chat",
-      "motd": "§b§l* §e§lID: 8702§b§l - D: 2026-10-04 - S: Rowena",
-      "text": "* ID: 8702 - D: 2026-10-04 - S: Rowena"
-    },
-    {
-      "t": 4.602,
-      "type": "sent",
-      "text": "/m open 8702"
+      "motd": "§b§l* §e§lID: 4079§b§l - D: 2026-10-04 - S: Rowena",
+      "text": "* ID: 4079 - D: 2026-10-04 - S: Rowena"
     },
     {
       "t": 4.603,
+      "type": "sent",
+      "text": "/m open 4079"
+    },
+    {
+      "t": 4.604,
       "type": "chat",
       "motd": "§b=============================",
       "text": "============================="
@@ -73,8 +73,8 @@
     {
       "t": 4.604,
       "type": "chat",
-      "motd": "§bDate: Sun Oct 04 11:39:14 MDT 2026",
-      "text": "Date: Sun Oct 04 11:39:14 MDT 2026"
+      "motd": "§bDate: Sun Oct 04 18:08:40 MDT 2026",
+      "text": "Date: Sun Oct 04 18:08:40 MDT 2026"
     },
     {
       "t": 4.604,
@@ -113,7 +113,7 @@
       "text": "Actions: [Archive] [Delete]"
     },
     {
-      "t": 8.202,
+      "t": 8.203,
       "type": "mark",
       "text": "out"
     }

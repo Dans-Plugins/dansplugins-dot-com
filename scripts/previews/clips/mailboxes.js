@@ -7,6 +7,19 @@ module.exports = {
   async capture(h) {
     const p = await arrive(h, 'Garrick', 56, 56);
     const sender = await arrive(h, 'Rowena', 40, 72);
+    // A retake: earlier takes' messages from Rowena are deleted first (off
+    // the record), so the list shows only the new one.
+    const before = [];
+    const keep = (m) => before.push(m.toString());
+    p.on('message', keep);
+    p.chat('/m list');
+    await h.sleep(1500);
+    p.removeListener('message', keep);
+    for (const l of before) {
+      const m = l.match(/ID: (\d+) .*S: Rowena/);
+      if (m) { p.chat(`/m delete ${m[1]}`); await h.sleep(400); }
+    }
+    await h.sleep(1000);
     h.start(p);
     await h.sleep(800);
     h.mark('in');

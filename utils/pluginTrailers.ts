@@ -24,6 +24,9 @@ export interface PluginTrailer {
 }
 
 const CHAT_CAPTION = 'A recreated chat panel: every line is the plugin’s real output, captured from commands a bot player ran on a test server.';
+// A world clip: the test server's real world, as a spectator camera player
+// saw it, rendered in 3D by prismarine-viewer a frame at a time.
+const WORLD_CAPTION = 'Rendered in 3D from a test server’s real world, as a spectator camera player saw it while bot players used the plugin; the chat lines are recreated from the server’s real output.';
 
 export const PLUGIN_TRAILERS: Readonly<Record<string, PluginTrailer>> = {
     'medieval-factions': {
@@ -151,8 +154,16 @@ export const PLUGIN_TRAILERS: Readonly<Record<string, PluginTrailer>> = {
         webm: '/trailers/wild-pets.webm',
         mp4: '/trailers/wild-pets.mp4',
         aspect: '16:10',
-        alt: "Wild Pets in Minecraft chat: /wp tame, then right-clicks on a fox while holding sweet berries (each try costs 8 berries and can fail) until it replies Tamed., /wp rename Ember names the pet, and /wp follow replies Ember is now following you. A recreation of the chat panel; every line is the plugin's real output from a test server.",
-        caption: CHAT_CAPTION,
+        alt: "Wild Pets in Minecraft, rendered in 3D: a player tames a sheep standing beside them and tells it to follow; they walk off, and as they cross into the next chunk the sheep appears at their side. Chat lines from the plugin (Tamed., Ember is now following you.) appear in the corner, recreated from the server's real output.",
+        caption: WORLD_CAPTION,
+    },
+    'dans-spawn-system': {
+        poster: '/trailers/dans-spawn-system.jpg',
+        webm: '/trailers/dans-spawn-system.webm',
+        mp4: '/trailers/dans-spawn-system.mp4',
+        aspect: '16:10',
+        alt: "Dan's Spawn System in Minecraft, rendered in 3D: a player right-clicks a [Spawn] sign whose lines give a spawn point; the plugin replies Spawn set! and the camera follows them to that point, a stone platform down the meadow. They walk off and are killed, and respawn on the platform (Teleporting to custom spawn!). The chat lines are recreated from the server's real output; the sign is drawn from its real text on the server, since the 3D viewer draws no signs.",
+        caption: 'Rendered in 3D from a test server’s real world, as a spectator camera player saw it while a bot player used the plugin. The 3D viewer draws no signs, so the sign is drawn from its real text and position on the server; the chat lines are recreated from the server’s real output.',
     },
     'mini-factions': {
         poster: '/trailers/mini-factions.jpg',
