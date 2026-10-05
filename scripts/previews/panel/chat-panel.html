@@ -17,7 +17,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=block" rel="stylesheet">
 <style>
-  :root { --line: 25px; --font: 24px; }
+  /* Sized to read in the home page's desktop panel, which shows the 640x400
+     clip about 286 px wide (0.45x): 30 px text is drawn there at about 13 px.
+     A clip may ask for a smaller size (window.PANEL.font) when one of its
+     lines must not wrap (a table or a map); the window then holds more rows. */
+  :root { --font: 30px; --line: 32px; --rows: 8; --top: 48px; --bottom: 84px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; width: 640px; height: 400px; overflow: hidden; background: #1d2a1f; }
   body {
@@ -26,18 +30,18 @@
   }
   #stage { position: relative; width: 640px; height: 400px; }
   #tag {
-    position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 4px;
-    font: 600 12px/1.2 system-ui, sans-serif; color: #e8efe6; background: rgba(0, 0, 0, 0.45); letter-spacing: 0.01em;
+    position: absolute; top: 8px; right: 8px; padding: 4px 9px; border-radius: 5px;
+    font: 600 21px/1.2 system-ui, sans-serif; color: #e8efe6; background: rgba(0, 0, 0, 0.5); letter-spacing: 0.01em;
   }
-  /* A fixed window: older lines scroll off the top, as in the game. */
-  #chat { position: absolute; left: 6px; bottom: 70px; width: 540px; height: 300px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+  /* A fixed window of whole rows: older lines scroll off the top, as in the game. */
+  #chat { position: absolute; left: 6px; right: 6px; bottom: var(--bottom); height: calc(var(--line) * var(--rows)); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
   .line { flex: none; min-height: var(--line); line-height: var(--line); padding: 0 6px; background: rgba(0, 0, 0, 0.5); white-space: pre-wrap; }
   .line.sent { color: #fff; }
   #bar {
-    position: absolute; left: 0; right: 0; bottom: 42px; height: 25px; line-height: 25px; text-align: center;
+    position: absolute; left: 0; right: 0; bottom: calc(var(--line) + 16px); height: var(--line); line-height: var(--line); text-align: center;
     font-weight: 600; transition: opacity 0.35s;
   }
-  #input { position: absolute; left: 4px; right: 4px; bottom: 6px; height: 28px; line-height: 28px; padding: 0 6px; background: rgba(0, 0, 0, 0.5); white-space: pre; }
+  #input { position: absolute; left: 4px; right: 4px; bottom: 6px; height: calc(var(--line) + 4px); line-height: calc(var(--line) + 4px); padding: 0 6px; background: rgba(0, 0, 0, 0.5); white-space: pre; }
   #caret { display: inline-block; width: 0.55em; }
   .sq { display: inline-block; width: 0.82em; height: 0.82em; margin: 0 0.06em; vertical-align: -0.06em; }
   .blk { display: inline-block; width: 0.5em; height: 0.9em; vertical-align: -0.1em; }
@@ -167,7 +171,20 @@ window.playClip = () => new Promise((done) => {
   requestAnimationFrame(tick);
 });
 // Before playing: the state at the start of the clip, so a still is never blank.
+// The text size (window.PANEL.font, in px, from the clip) and the window's
+// rows: as many whole rows as fit between the tag and the action bar.
+function layout() {
+  const font = (window.PANEL && window.PANEL.font) || 30;
+  const line = font + 2;
+  const root = document.documentElement.style;
+  const bottom = 2 * line + 20; // the input bar and the action bar under the window
+  root.setProperty('--font', `${font}px`);
+  root.setProperty('--line', `${line}px`);
+  root.setProperty('--bottom', `${bottom}px`);
+  root.setProperty('--rows', String(Math.floor((400 - 48 - bottom) / line)));
+}
 window.addEventListener('DOMContentLoaded', () => {
+  layout();
   if (!window.CAPTURE) return;
   document.title = `Chat panel: ${window.CAPTURE.id}`;
 });

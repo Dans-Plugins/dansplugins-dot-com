@@ -190,6 +190,29 @@ describe('Plugin trailer files', () => {
         expect(PLUGIN_TRAILERS['dans-spawn-system'].alt).toMatch(/draws no signs/);
     });
 
+    // The home page's desktop panel shows a 640x400 clip about 286 px wide
+    // (0.45x), so the recreated chat is drawn large enough to read there,
+    // and the recreation tag stays in every chat and world clip.
+    it('draws chat clips large enough to read in the ~286 px desktop panel, with the recreation tag', () => {
+        const PREVIEWS = path.join(__dirname, '..', 'scripts', 'previews');
+        const panel = fs.readFileSync(path.join(PREVIEWS, 'panel', 'chat-panel.html'), 'utf8');
+        expect(panel).toContain('Recreated chat panel · real server output');
+        const fallback = Number(/PANEL\.font\) \|\| (\d+)/.exec(panel)?.[1]);
+        expect(fallback).toBeGreaterThanOrEqual(28);
+        // A clip's own size (for a line that must not wrap) is at most the panel's.
+        const clipsDir = path.join(PREVIEWS, 'clips');
+        for (const [slug] of chatClips) {
+            const source = fs.readFileSync(path.join(clipsDir, `${slug}.js`), 'utf8');
+            const own = /^\s*font: (\d+),/m.exec(source);
+            if (own) {
+                expect(Number(own[1]), slug).toBeGreaterThanOrEqual(24);
+                expect(Number(own[1]), slug).toBeLessThanOrEqual(fallback);
+            }
+        }
+        const world = fs.readFileSync(path.join(PREVIEWS, 'world', 'page.js'), 'utf8');
+        expect(Number(/#pv-chat \.line \{ font-size: (\d+)px/.exec(world)?.[1])).toBeGreaterThanOrEqual(40);
+    });
+
     // An emoji in chat is sent as Java's modified UTF-8 inside NBT; decoded as
     // standard UTF-8 it becomes U+FFFD (Mailboxes' 📎 once did). A capture with a
     // replacement character is a decoding fault in the capture, not real output.

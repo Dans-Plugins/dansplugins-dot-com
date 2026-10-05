@@ -26,14 +26,18 @@ module.exports = {
   // is the real page. Nothing on the map moves meanwhile: the claims are
   // fixed and the players stand still.
   capture: 'stepped',
-  viewport: { width: 960, height: 600 },
-  dsf: 1,
+  // Half the CSS size at twice the pixel density: the same map at the same
+  // resolution, but BlueMap's labels and markers (page elements, sized in CSS
+  // px) are twice as large in the frame, so they read in the home page's
+  // ~286 px desktop panel (at 960x600 they were drawn about 3 px tall there).
+  viewport: { width: 480, height: 300 },
+  dsf: 2,
   poster: 7.5,
   alt: 'BlueMap\'s web map of a Minecraft world with three Medieval Factions territories drawn by Bluemap_MedievalFactions in their faction colours (Riverhold blue, Ashford yellow, Southmarch red) and members\' player heads; the view zooms in on Southmarch and clicking it opens the label "Faction: Southmarch".',
   async play(h) {
     const { page } = h;
-    const from = { x: 8, z: 36, d: 200 };
-    const to = { x: 30, z: 66, d: 140 };
+    const from = { x: 8, z: 36, d: 150 };
+    const to = { x: 30, z: 66, d: 105 };
     await page.goto(`${this.url}#preview:${from.x}:64:${from.z}:${from.d}:0:0:0:1:flat`);
     await page.waitForFunction(() => window.bluemap && window.bluemap.mapViewer, null, { timeout: 60000 });
     // BlueMap's own buttons are hidden for the clip; the map is untouched.

@@ -49,11 +49,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // ------------------------------------------------------------------ record
 
 // A chat clip: the recreated panel, fed the capture, replayed on its clock.
-async function playChat(id, h) {
+async function playChat(id, clip, h) {
   const file = path.join(CAPTURES, `${id}.json`);
   if (!fs.existsSync(file)) throw new Error(`${id}: no capture at ${file} (run capture.js ${id} first)`);
   const capture = JSON.parse(fs.readFileSync(file, 'utf8'));
-  await h.page.addInitScript((c) => { window.CAPTURE = c; }, capture);
+  // The clip's text size, if it needs a smaller one than the panel's 30 px.
+  await h.page.addInitScript(({ c, panel }) => { window.CAPTURE = c; window.PANEL = panel; }, { c: capture, panel: { font: clip.font } });
   await h.page.goto('file://' + PANEL);
   await h.page.evaluate(() => document.fonts.ready);
   await h.sleep(600);
@@ -206,7 +207,7 @@ async function record(id, clip) {
     async shot(name) { await page.screenshot({ path: path.join(dir, `${name}.png`) }); },
   };
   try {
-    if (clip.kind === 'chat') await playChat(id, h);
+    if (clip.kind === 'chat') await playChat(id, clip, h);
     else if (clip.kind === 'world') await playWorld(id, clip, h);
     else await clip.play(h);
     if (recording) await h.stop();

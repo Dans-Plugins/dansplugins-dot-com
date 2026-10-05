@@ -4,6 +4,8 @@
 module.exports = {
   kind: 'chat',
   aspect: '16:10',
+  // 28 px, not the panel's 30: the 21-square /mf map must fit one line per row.
+  font: 28,
   poster: 8.4,
   alt: 'Medieval Factions in Minecraft chat: /mf create Oakvale founds a faction, /mf claim claims the chunk, and /mf map shows the new claim between two neighbouring factions\' territory. A recreation of the chat panel; every line is the plugin\'s real output from a test server.',
   // Setup the clip does not show: the neighbouring factions on the map were
