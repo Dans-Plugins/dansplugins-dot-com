@@ -1,0 +1,62 @@
+{
+  "id": "dans-spawn-system",
+  "note": "Captured from a local test server by scripts/previews/capture.js. Every line is the server's own output; nothing here is written by hand.",
+  "capturedAt": "2026-10-05T00:18:55.952Z",
+  "server": "This server is running CraftBukkit version 4344-Spigot-a759b62-19bf846 (MC: 1.21.1) (Implementing API version 1.21.1-R0.1-SNAPSHOT)",
+  "plugins": "Plugins (18): ActivityTracker, BlueMap, DansEssentials, DansPluginManager, DansSpawnSystem, NetherAccessController, KDRTracker, Mailboxes, WildPets, DansSetHome, EasyLinks, MedievalEconomy, MedievalFactions, Currencies, Democracy, MF_Bluemap, MedievalRoleplayEngine, Fiefs",
+  "minecraft": "1.21.1",
+  "player": "Corwin2",
+  "events": [
+    {
+      "t": 0.607,
+      "type": "actionbar",
+      "motd": "§#3E8E39Wilderness",
+      "text": "Wilderness"
+    },
+    {
+      "t": 1.2,
+      "type": "mark",
+      "text": "in"
+    },
+    {
+      "t": 1.714,
+      "type": "chat",
+      "motd": "§aSpawn set!",
+      "text": "Spawn set!"
+    },
+    {
+      "t": 4.712,
+      "type": "mark",
+      "text": "kill"
+    },
+    {
+      "t": 4.715,
+      "type": "chat",
+      "motd": "You now have 1 deaths.",
+      "text": "You now have 1 deaths."
+    },
+    {
+      "t": 4.716,
+      "type": "chat",
+      "motd": "Corwin2 was killed",
+      "text": "Corwin2 was killed"
+    },
+    {
+      "t": 4.756,
+      "type": "chat",
+      "motd": "§cYou have lost 1 power.",
+      "text": "You have lost 1 power."
+    },
+    {
+      "t": 4.808,
+      "type": "chat",
+      "motd": "§aTeleporting to custom spawn!",
+      "text": "Teleporting to custom spawn!"
+    },
+    {
+      "t": 8.216,
+      "type": "mark",
+      "text": "out"
+    }
+  ]
+}

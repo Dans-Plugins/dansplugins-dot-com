@@ -23,7 +23,8 @@ there), and `record.js` is that recorder adapted, encoder included.
 | `medieval-economy` | chat | a new player's `/balance`, `/deposit 10`, `/balance`, `/withdraw 4` |
 | `nether-access-controller` | chat | an operator's `/nac list`, `/nac allow Quill`, `/nac list` (Quill's portal-lighting is refused until then) |
 | `kdr-tracker` | chat | Bram defeats Cole; the kill is counted and `/kdrt info` shows it |
-| `wild-pets` | chat | `/wp tame`, right-clicks on a fox with sweet berries until it is tamed, `/wp rename Ember`, `/wp follow` |
+| `wild-pets` | world | a sheep summoned beside the player is tamed (`/wp tame`, a right-click with 8 wheat), named and told to follow; the player walks off and, as they cross into the next chunk, the sheep is teleported to their side (how Wild Pets 1.10.0 makes a pet follow) |
+| `dans-spawn-system` | world | an operator's `[Spawn]` sign (placed through RCON) names a spawn point on a stone platform; a right-click on it replies "Spawn set!" and takes the player there; they walk off, are killed (`/kill` through RCON) and respawn on the platform ("Teleporting to custom spawn!") |
 | `mini-factions` | chat | `/mf create Thornwall`, `/mf claim`, `/mf checkclaim`, `/mf info` (captured on a second server, see below) |
 
 ## Files
@@ -48,6 +49,72 @@ there), and `record.js` is that recorder adapted, encoder included.
   its `capture(h)` script (chat) or its `play(h)` script (map).
 - `setup-world.js`: builds the world the clips expect on a fresh server (see
   below) and keeps its bots online for BlueMap's player markers.
+- `world/` (world clips, below): `recorder.js` (the spectator camera player),
+  `replay.js` (serves prismarine-viewer's page and replays a scene into it),
+  `page.js` (the scripted camera, the chat overlay and the sign drawing).
+- `mutf8.js`: decodes Java's modified UTF-8, which the server uses for chat
+  strings (they are NBT since 1.20.3); `capture.js` installs it. Without it,
+  an emoji arrived as U+FFFD: Mailboxes' `📎` legend was captured as six
+  replacement characters in the first take. `npm test` fails on any capture
+  holding U+FFFD.
+
+## World clips
+
+A world clip shows the plugin in the game world, in 3D, rendered by
+prismarine-viewer 1.33.0 (mineflayer's in-browser viewer) from the test
+server's real state. It is made in two steps:
+
+1. **`capture.js <id>`** runs the scene on the server, as for a chat clip,
+   and also joins a spectator **camera player** (`h.camera`). Everything that
+   player's client is sent about the world (chunk columns, block changes,
+   every entity spawning, moving and leaving) is recorded through
+   prismarine-viewer's own `WorldView`, the stream its browser page draws
+   from, to `$PREVIEW_WORK/scenes/<id>.json` (~5 MB of chunks: not kept in
+   the repo). The player's chat goes to `captures/<id>.json` as usual, on the
+   same clock. Spectators are invisible to players and mobs and never drawn.
+2. **`record.js <id>`** serves prismarine-viewer's prebuilt page with a
+   socket that replays the scene (`world/replay.js`) and renders it **a frame
+   at a time** (20 fps of capture time): the scene is advanced 1/20 s, the
+   camera is placed, the frame is drawn and kept. No frame is dropped or late,
+   and nothing is sped up or slowed down. The world is the server's own:
+   nothing is added to the stream.
+
+**The camera** is the clip's, not the bot's. `world/page.js` wraps the page's
+`THREE.WebGLRenderer` as the page creates it, and before each frame is drawn
+puts the camera where `window.__shot` says (eye `x y z`, `yaw` and `pitch` in
+Minecraft's convention, `fov`); the page's orbit and first-person controls
+never get a say (the replay sends no position events). A clip's
+`shot(t, scene)` returns that shot for each moment; `scene` (from
+`replay.js inspect`) gives any entity's position at any time from the same
+recorded events (`player(name)`, `nearest(name, pos, t)`, `at`, `smooth`),
+plus the capture's marks and chat lines (`mark`, `line`), so a camera can
+track a player smoothly or ease between two framings. `start(s)`/`end(s)`
+give the part to render, in capture time.
+
+**Overlays.** A clip may draw chat lines over the world (`overlay`: which
+lines, how many at once, how long each stays). They are the capture's own
+lines with their colour codes, at the moments they arrived, and the clip says
+"Recreated chat · real server output" in its corner, as the chat clips do.
+
+**Signs.** prismarine-viewer draws no signs (their block model is empty and
+it has no block-entity renderer), so a sign a clip needs is noted during the
+capture (`h.sign(pos)`): its block, rotation and front text as the camera
+player's client holds them, from the server's block entity data. `record.js`
+draws it in the page at that block (`page.js drawSigns`): a post and board in
+oak with the text in black. It is the only thing drawn into the world, and
+the clip's caption and alt text say so.
+
+**What the viewer does not draw:** limbs (players and mobs glide without
+walking), held items, particles (no taming hearts), name tags beyond the
+player's name, death animations (a killed player just vanishes), lighting
+(it is always day), and signs (above). Clips are planned around that.
+
+**Set dressing.** World clips level a strip of meadow near (-150, 40) and
+clear grass and flowers around it (`fill` through RCON) before filming: tall
+grass is what video compresses worst, and the players stand out. Spawn
+System's spawn point is a 3×3 stone-brick platform with two lanterns. Earlier
+takes' pets are moved out of the way (Wild Pets keeps pets from harm, so
+`/kill` does not remove them).
 
 ## Rules
 
@@ -119,11 +186,14 @@ What the committed clips were recorded on (2026-10-04):
 
 ```sh
 npm i --no-save playwright mineflayer && npx playwright install chromium   # once (or NODE_PATH to existing installs)
+npm i --no-save prismarine-viewer@1.33.0          # world clips only (never a site dependency)
 # ffmpeg 6+ with libvpx-vp9 and libx264 on PATH (or FFMPEG=/path/to/ffmpeg)
 export RCON_PASSWORD=...                           # the test server's rcon.password
 node scripts/previews/capture.js medieval-factions # chat clips: capture first
 node scripts/previews/record.js medieval-factions  # record + encode
 node scripts/previews/record.js --encode currencies   # re-encode the last take
+node scripts/previews/capture.js wild-pets         # world clips: capture (films the scene too)
+node scripts/previews/record.js wild-pets          # render a frame at a time + encode (~2 min)
 npm test                                           # names, sizes, labels
 ```
 
@@ -133,6 +203,13 @@ Notes from the committed takes:
   disbands the previous take's faction first, and a take was redone until the
   colour stood apart from the wilderness green and the neighbours on the map
   (the ninth take, `#AD27AF`).
+- **Mailboxes**: the capture first deletes Rowena's messages from earlier
+  takes (off the record), so the list shows the new one. It was re-captured
+  on 2026-10-04 with modified-UTF-8 decoding, so the list's legend shows
+  `📎: has attachments` as the plugin sends it (drawn by the browser's
+  emoji font).
+- **Wild Pets** and **Dan's Spawn System** use fresh player names per take
+  (Wild Pets keeps each player's pets; Spawn System each player's spawn).
 - **Currencies** is captured as Rowena, Southmarch's founder; the capture gives
   her gold nuggets to hold first (the currency's item, and the cost of minting).
   A retake needs a new currency name, or a fresh server.
@@ -155,10 +232,6 @@ Notes from the committed takes:
 - **No More Creepers**: an absence of creepers; nothing to show.
 - **Player Lore**: lore shows in an item's tooltip, which nothing here draws;
   in chat it is a one-line confirmation.
-- **Dan's Spawn System**: the moment is right-clicking a `[Spawn]` sign and
-  being teleported; chat shows only "Spawn set!". A prismarine-viewer take was
-  tried (time-boxed): the camera did not turn to the sign, so sign text could
-  not be judged.
 
 ## Methods tried
 
@@ -171,8 +244,12 @@ Notes from the committed takes:
   not visible in the world, so a 3D clip of MF shows a player in a forest. The
   chat clip with `/mf map` shows the claim; the 3D view suits plugins with an
   in-world visual instead.
-- It was tried again for **Wild Pets** (time-boxed): the third-person camera
-  is a fixed aerial view in which the player and a fox are specks among trees,
-  the first-person camera did not follow the player's look, and taming by
-  right-click is a chance roll that often missed, so a pet following the
-  player was never caught on camera. Wild Pets has a chat clip instead.
+- A first try for **Wild Pets** used the stock mineflayer viewer: its
+  third-person camera is a fixed aerial view in which the player and a fox
+  are specks among trees, and its first-person camera did not follow the
+  player's look (with physics off, mineflayer emits no `move` event for a
+  look). The world clips replace that viewer's camera altogether (above).
+  Foxes also flee from a player who is not sneaking, so the clip tames a
+  sheep; the capture retries the 50% taming roll until it succeeds (up to 10
+  times, 8 wheat each, given only when the last 8 are gone) and the clip
+  starts just before the try that worked.

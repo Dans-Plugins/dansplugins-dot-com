@@ -18,6 +18,7 @@ import PluginTrailer, {REDUCED_MOTION_QUERY} from '../components/PluginTrailer';
 import PluginIconGrid, {type IconGridPlugin} from '../components/PluginIconGrid';
 import ResourcePage from '../pages/resources/[slug]';
 import {PLUGIN_TRAILERS, trailerAspectRatio, trailerFor} from '../utils/pluginTrailers';
+import {decode, isModified} from '../scripts/previews/mutf8.js';
 
 const PUBLIC = path.join(__dirname, '..', 'public');
 const CAPTURES = path.join(__dirname, '..', 'scripts', 'previews', 'captures');
@@ -110,12 +111,12 @@ describe('Plugin trailer files', () => {
     it('has a clip for each plugin given one, and none for a plugin without one', () => {
         expect(Object.keys(PLUGIN_TRAILERS).sort()).toEqual([
             'activity-tracker', 'bluemap-medieval-factions', 'currencies', 'dans-essentials', 'dans-plugin-manager',
-            'dans-set-home', 'democracy', 'easy-links', 'fiefs', 'kdr-tracker', 'mailboxes', 'medieval-economy',
+            'dans-set-home', 'dans-spawn-system', 'democracy', 'easy-links', 'fiefs', 'kdr-tracker', 'mailboxes', 'medieval-economy',
             'medieval-factions', 'medieval-roleplay-engine', 'mini-factions', 'nether-access-controller',
             'simple-skills', 'wild-pets',
         ]);
         // Dropped from the rollout, each for a reason in scripts/previews/README.md.
-        for (const slug of ['alternate-account-finder', 'conquest-recipes', 'more-recipes', 'food-spoilage', 'no-more-creepers', 'player-lore', 'dans-spawn-system']) {
+        for (const slug of ['alternate-account-finder', 'conquest-recipes', 'more-recipes', 'food-spoilage', 'no-more-creepers', 'player-lore']) {
             expect(trailerFor(slug)).toBeNull();
         }
     });
@@ -142,19 +143,25 @@ describe('Plugin trailer files', () => {
         }
     });
 
-    // A chat clip draws a capture file: the server's own output, kept in the repo.
-    const chatClips = TRAILERS.filter(([slug]) => fs.existsSync(path.join(CAPTURES, `${slug}.json`)));
+    // World clips: the test server's world rendered in 3D (scripts/previews/world/),
+    // with chat lines from the capture drawn over it.
+    const WORLD = ['dans-spawn-system', 'wild-pets'];
+    // Every clip with a capture file (the server's own output, kept in the repo):
+    // all but BlueMap's (a recording of its web map).
+    const captured = TRAILERS.filter(([slug]) => fs.existsSync(path.join(CAPTURES, `${slug}.json`)));
+    const chatClips = captured.filter(([slug]) => !WORLD.includes(slug));
 
-    it('keeps the capture behind each chat clip, with real commands and replies in it', () => {
-        // Every clip but BlueMap's (a recording of its web map) is a chat clip.
-        expect(chatClips.map(([slug]) => slug).sort()).toEqual(
+    it('keeps the capture behind each chat and world clip, with real commands and replies in it', () => {
+        expect(captured.map(([slug]) => slug).sort()).toEqual(
             TRAILERS.map(([slug]) => slug).filter((slug) => slug !== 'bluemap-medieval-factions').sort());
-        for (const [slug] of chatClips) {
+        for (const [slug] of captured) {
             const capture = JSON.parse(fs.readFileSync(path.join(CAPTURES, `${slug}.json`), 'utf8'));
             expect(capture.id).toBe(slug);
             expect(capture.server).toMatch(/Spigot/);
             const types = new Set(capture.events.map((e: {type: string}) => e.type));
-            expect(types.has('sent') && types.has('chat')).toBe(true);
+            expect(types.has('chat')).toBe(true);
+            // A command sent, except where the plugin is used by right-clicking a sign.
+            if (slug !== 'dans-spawn-system') expect(types.has('sent')).toBe(true);
             // Colour codes as the server sent them, not plain text typed in
             // (MiniFactions 0.3.0 sends its replies uncoloured).
             if (slug !== 'mini-factions') {
@@ -168,6 +175,44 @@ describe('Plugin trailer files', () => {
             expect(trailer.caption).toMatch(/recreated chat panel/i);
             expect(trailer.alt).toMatch(/recreation/i);
         }
+    });
+
+    it('says a world clip is rendered in 3D and its chat lines recreated, in its caption and alt text', () => {
+        for (const slug of WORLD) {
+            const trailer = PLUGIN_TRAILERS[slug];
+            expect(trailer.caption).toMatch(/rendered in 3D/i);
+            expect(trailer.caption).toMatch(/chat lines are recreated/i);
+            expect(trailer.alt).toMatch(/rendered in 3D/i);
+            expect(trailer.alt).toMatch(/recreated/i);
+        }
+        // The sign Dan's Spawn System's clip draws (the viewer draws none) is said so.
+        expect(PLUGIN_TRAILERS['dans-spawn-system'].caption).toMatch(/draws no signs/);
+        expect(PLUGIN_TRAILERS['dans-spawn-system'].alt).toMatch(/draws no signs/);
+    });
+
+    // An emoji in chat is sent as Java's modified UTF-8 inside NBT; decoded as
+    // standard UTF-8 it becomes U+FFFD (Mailboxes' 📎 once did). A capture with a
+    // replacement character is a decoding fault in the capture, not real output.
+    it('has no U+FFFD (a mis-decoded character) in any committed capture', () => {
+        for (const file of fs.readdirSync(CAPTURES)) {
+            const text = fs.readFileSync(path.join(CAPTURES, file), 'utf8');
+            expect(text.includes('\uFFFD'), file).toBe(false);
+        }
+        // Mailboxes' legend, as the plugin sends it.
+        const mailboxes = JSON.parse(fs.readFileSync(path.join(CAPTURES, 'mailboxes.json'), 'utf8'));
+        expect(mailboxes.events.some((e: {text: string}) => e.text.includes('📎: has attachments'))).toBe(true);
+    });
+
+    it('decodes modified UTF-8 (surrogate pairs, C0 80) and leaves standard UTF-8 as it was', () => {
+        // 📎 as Java's writeUTF sends it: two surrogates, three bytes each.
+        const clip = Buffer.from([0x44, 0x3a, 0x20, 0xed, 0xa0, 0xbd, 0xed, 0xb3, 0x8e]);
+        expect(clip.toString('utf8')).toBe('D: \uFFFD\uFFFD\uFFFD\uFFFD\uFFFD\uFFFD');
+        expect(isModified(clip, 0, clip.length)).toBe(true);
+        expect(decode(clip)).toBe('D: 📎');
+        expect(decode(Buffer.from([0xc0, 0x80, 0x41]))).toBe('\u0000A');
+        const plain = Buffer.from('héllo ✓ 📎 ⬛');
+        expect(isModified(plain, 0, plain.length)).toBe(false);
+        expect(decode(plain)).toBe('héllo ✓ 📎 ⬛');
     });
 });
 

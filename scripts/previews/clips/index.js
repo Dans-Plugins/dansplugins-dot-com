@@ -18,4 +18,5 @@ module.exports = {
   'kdr-tracker': require('./kdr-tracker'),
   'wild-pets': require('./wild-pets'),
   'mini-factions': require('./mini-factions'),
+  'dans-spawn-system': require('./dans-spawn-system'),
 };

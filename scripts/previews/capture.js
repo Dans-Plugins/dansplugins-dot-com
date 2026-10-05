@@ -11,9 +11,19 @@
 //   MC_HOST=127.0.0.1 MC_PORT=25567 MC_VERSION=1.21.1
 //   RCON_PORT=25577 RCON_PASSWORD=...   (required: setup only, e.g. moving a bot)
 //
+// A world clip (kind 'world') also films the scene in 3D: its capture starts a
+// spectator camera player (h.camera, world/recorder.js), and what that player
+// sees is saved to $PREVIEW_WORK/scenes/<id>.json for record.js to render.
+// That file is large (the world's chunks) and is not kept in the repo; the
+// chat capture beside it is.
+//
 // Never point this at a real server: it joins with offline-mode bots and
 // creates factions, currencies and claims.
 'use strict';
+
+// NBT strings (chat, since 1.20.3) are Java's modified UTF-8: decode them so
+// (an emoji would otherwise be captured as U+FFFD; see mutf8.js).
+require('./mutf8').install();
 
 const fs = require('fs');
 const net = require('net');
@@ -27,6 +37,7 @@ const VERSION = process.env.MC_VERSION || '1.21.1';
 const RCON_PORT = Number(process.env.RCON_PORT || 25577);
 const RCON_PASSWORD = process.env.RCON_PASSWORD;
 const OUT = path.join(__dirname, 'captures');
+const WORK = process.env.PREVIEW_WORK || path.join(require('os').tmpdir(), 'preview-work');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!['127.0.0.1', 'localhost', '::1'].includes(HOST)) {
@@ -78,13 +89,23 @@ function bot(username) {
 async function capture(id, clip) {
   const events = [];
   let t0 = null;
+  let origin = null; // t0, kept after stop() to time the camera's events
   let watched = null;
+  let camera = null;
   const h = {
     sleep, rcon, bot,
+    // World clips: starts the spectator camera at x y z (world/recorder.js).
+    async camera(opts) {
+      camera = await require('./world/recorder').startCamera(h, opts);
+      return camera.bot;
+    },
+    // World clips: notes the sign at pos for drawing (world/recorder.js).
+    sign(pos) { return camera.noteSign(pos); },
     // Starts keeping what `player` is sent (chat and the action bar).
     start(player) {
       watched = player;
       t0 = Date.now();
+      origin = t0;
       player.on('message', (msg, position) => {
         if (t0 === null) return;
         const type = position === 'game_info' ? 'actionbar' : 'chat';
@@ -125,6 +146,17 @@ async function capture(id, clip) {
     events: kept,
   }, null, 2) + '\n');
   console.log(`[${id}] ${kept.length} events -> ${path.relative(process.cwd(), file)}`);
+  if (camera) {
+    camera.stop();
+    const scenes = path.join(WORK, 'scenes');
+    fs.mkdirSync(scenes, { recursive: true });
+    const sceneFile = path.join(scenes, `${id}.json`);
+    // One clock for both: seconds since start(), as in the chat capture
+    // (the chunks loaded before it are at negative times).
+    const world = camera.events.map((e) => ({ t: (e.at - origin) / 1000, ev: e.ev, data: e.data }));
+    fs.writeFileSync(sceneFile, JSON.stringify({ id, capturedAt: new Date().toISOString(), version: camera.version, server, events: world, chat: kept, signs: camera.signs }));
+    console.log(`[${id}] ${world.length} world events (${(fs.statSync(sceneFile).size / 1048576).toFixed(1)} MB) -> ${sceneFile}`);
+  }
   for (const e of kept) console.log(`  ${e.t.toFixed(2).padStart(6)} ${e.type.padEnd(9)} ${e.type === 'sent' || e.type === 'mark' ? e.text : e.text}`);
 }
 

@@ -8,10 +8,13 @@
 //   node scripts/previews/record.js --encode <id>     re-encode the last recording
 //   node scripts/previews/record.js --list            list the clips it knows
 //
-// Two kinds of clip (clips/<id>.js):
+// Three kinds of clip (clips/<id>.js):
 //   chat  plays captures/<id>.json (made by capture.js from a real server) in
 //         panel/chat-panel.html, a recreated chat window, and records that;
-//   map   records a live web page, e.g. BlueMap served by the local test server.
+//   map   records a live web page, e.g. BlueMap served by the local test server;
+//   world renders the scene capture.js filmed with a spectator camera player
+//         ($PREVIEW_WORK/scenes/<id>.json) in prismarine-viewer's 3D viewer,
+//         a frame at a time, with the camera where the clip's shot() says.
 //
 // Honesty rules: every line of chat is the server's captured output and every
 // map frame is the real page; `speed` (> 1) speeds a clip up and must be
@@ -61,6 +64,58 @@ async function playChat(id, h) {
 }
 
 
+// A world clip: the recorded scene, replayed into prismarine-viewer's page a
+// frame at a time (world/replay.js), the camera placed by the clip for each
+// frame (world/page.js). Software WebGL could draw the viewer in real time,
+// but a frame at a time no frame is ever dropped or late: each shows the
+// world exactly as the camera player saw it at that moment of the capture.
+async function playWorld(id, clip, h) {
+  const { serve, load, inspect } = require('./world/replay');
+  const pv = require('./world/page');
+  const file = path.join(WORK, 'scenes', `${id}.json`);
+  if (!fs.existsSync(file)) throw new Error(`${id}: no scene at ${file} (run capture.js ${id} first)`);
+  const scene = load(file);
+  const s = inspect(scene);
+  const from = clip.start(s);
+  const to = clip.end(s);
+  const server = await serve(scene);
+  try {
+    server.advanceTo(from);
+    await h.page.addInitScript(pv.cameraHook);
+    await h.page.goto(server.url);
+    await pv.setShot(h.page, clip.shot(from, s));
+    // The viewer builds chunk meshes in web workers: wait until it is done.
+    let last = -1;
+    for (let i = 0; i < 90; i++) {
+      await h.sleep(1000);
+      const n = await pv.meshCount(h.page);
+      if (n > 50 && n === last) break;
+      last = n;
+    }
+    await pv.drawSigns(h.page, scene.signs);
+    if (clip.overlay) {
+      const o = clip.overlay;
+      // Server lines, and the commands the player sent (drawn as typed).
+      const lines = (scene.chat || [])
+        .filter((e) => (e.type === 'chat' || e.type === 'sent') && o.lines.some((re) => re.test(e.text)))
+        .map((e) => ({ t: e.t, motd: e.type === 'sent' ? e.text : e.motd }));
+      await pv.installOverlay(h.page, { tag: o.tag, lines, keep: o.keep, fade: o.fade });
+    }
+    await h.start();
+    h.mark('in');
+    for (let t = from; t < to; t += 1 / FPS) {
+      server.advanceTo(t);
+      if (clip.overlay) await pv.overlayAt(h.page, t);
+      await h.sleep(70); // the viewer eases each entity update over 50 ms
+      await pv.setShot(h.page, clip.shot(t, s));
+      await h.frame();
+    }
+    h.mark('out');
+  } finally {
+    server.close();
+  }
+}
+
 async function record(id, clip) {
   const dir = path.join(WORK, id);
   fs.rmSync(dir, { recursive: true, force: true });
@@ -92,7 +147,7 @@ async function record(id, clip) {
     if (recording) frames.push({ t: metadata.timestamp, data });
   });
   const marks = {};
-  const mode = clip.capture || 'shots';
+  const mode = clip.kind === 'world' ? 'stepped' : (clip.capture || 'shots');
   let shooting = null;
   // 'stepped' mode keeps its own clock: one frame per h.frame() call, each
   // lasting the time it is given, for a page too slow to record in real time
@@ -151,7 +206,9 @@ async function record(id, clip) {
     async shot(name) { await page.screenshot({ path: path.join(dir, `${name}.png`) }); },
   };
   try {
-    if (clip.kind === 'chat') await playChat(id, h); else await clip.play(h);
+    if (clip.kind === 'chat') await playChat(id, h);
+    else if (clip.kind === 'world') await playWorld(id, clip, h);
+    else await clip.play(h);
     if (recording) await h.stop();
   } catch (e) {
     await page.screenshot({ path: path.join(dir, 'error.png') }).catch(() => {});
