@@ -1,7 +1,7 @@
 import React from 'react';
-import {Box, Link} from '@mui/material';
+import {Box} from '@mui/material';
 import Markdown from 'markdown-to-jsx';
-import {resolveGuideLink} from '../utils/guides';
+import RepoLink from './RepoLink';
 
 // Themed styling for the rendered markdown elements (markdown-to-jsx emits plain
 // HTML tags, so these are descendant-selector rules rather than component props).
@@ -37,29 +37,6 @@ const guideBodyStyle = {
     '& th, & td': {border: '1px solid', borderColor: 'divider', p: 1, textAlign: 'left'},
 };
 
-interface GuideLinkProps {
-    // markdown-to-jsx passes through whatever the author wrote, so a malformed
-    // link can arrive without one.
-    href?: string;
-    // Supplied per-render through the override's `props`, since the repository a
-    // relative target resolves against differs per guide.
-    githubLink: string;
-    title?: string;
-    children?: React.ReactNode;
-}
-
-// Every link the guide body renders. A relative target is rewritten to point at
-// the repository the guide came from (see resolveGuideLink); anything that
-// leaves the site opens in a new tab with rel="noopener noreferrer", the way the
-// rest of the site's outbound links do. In-page anchors stay in the page.
-export const GuideLink: React.FC<GuideLinkProps> = ({href, githubLink, title, children}) => {
-    const target = resolveGuideLink(githubLink, href ?? '');
-    const staysOnPage = target === '' || target.startsWith('#');
-    return staysOnPage
-        ? <Link href={target} title={title}>{children}</Link>
-        : <Link href={target} title={title} target="_blank" rel="noopener noreferrer">{children}</Link>;
-};
-
 interface GuideMarkdownProps {
     markdown: string;
     // The plugin's repository, used to resolve the guide's relative links.
@@ -76,7 +53,7 @@ const GuideMarkdown: React.FC<GuideMarkdownProps> = ({markdown, githubLink}) => 
         <Markdown
             options={{
                 disableParsingRawHTML: true,
-                overrides: {a: {component: GuideLink, props: {githubLink}}},
+                overrides: {a: {component: RepoLink, props: {githubLink}}},
             }}
         >
             {markdown}
