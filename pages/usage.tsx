@@ -125,7 +125,7 @@ const Usage: NextPage<UsagePageProps> = ({rows, renderedAt}) => {
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                     Servers running our plugins report when they start, through{' '}
-                    <Link href="https://github.com/Stephenson-Software/trace" target="_blank" rel="noopener noreferrer">trace</Link>.
+                    <Link href="https://trace.danielstephenson.dev" target="_blank" rel="noopener noreferrer">trace</Link>.
                     These are the last 30 days of those reports.
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>

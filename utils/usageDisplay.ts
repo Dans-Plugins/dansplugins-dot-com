@@ -14,7 +14,7 @@ import {relativeTimeFrom} from './relativeTime';
 import type {ProgramUsage} from './traceUsage';
 
 /** Where the figures come from and how they are collected; every usage view links it. */
-export const TRACE_HOW_IT_WORKS_URL = 'https://github.com/Stephenson-Software/trace#usage-reporting';
+export const TRACE_HOW_IT_WORKS_URL = 'https://danielstephenson.dev/usage-reporting';
 
 /** How many versions get a bar of their own before the rest are grouped as "Other versions". */
 export const TOP_VERSIONS = 5;
