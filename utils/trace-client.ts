@@ -1,5 +1,5 @@
 /**
- * trace-client 0.4.0 -- https://github.com/Stephenson-Software/trace-client-js
+ * trace-client 0.4.1 -- https://github.com/Stephenson-Software/trace-client-js
  *
  * One call to report that a program was used. Copy this file into a project
  * as is; there is nothing else to add. Zero dependencies and no Node-only
@@ -13,7 +13,7 @@
  * MIT licensed. Keep this header when vendoring so the file can be found again.
  */
 
-export const TRACE_CLIENT_VERSION = "0.4.0";
+export const TRACE_CLIENT_VERSION = "0.4.1";
 
 // Everything added since 0.1.0 hangs off TraceClient (static members) rather
 // than being a new top-level export, so the file's exported values stay
@@ -125,7 +125,7 @@ export interface ReportOptions {
  * `"config"` or `"no key"`; `null` when on) so the program can say so in its
  * notice. Programs that run on other people's machines should expose that
  * switch in their settings and say so once, pointing at
- * https://github.com/Stephenson-Software/trace#usage-reporting.
+ * https://danielstephenson.dev/usage-reporting.
  *
  * Every event carries the program's own version as the tag `version` -- the
  * required `version` option -- so a `page-view` or `command` event can be
