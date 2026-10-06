@@ -18,6 +18,8 @@ import ScienceIcon from '@mui/icons-material/Science';
 import Markdown from 'markdown-to-jsx';
 import {downloadsLabel, latestStableTag, siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
 import {formatFileSize} from '../utils/fileSize';
+import {parseGithubRepo} from '../utils/github';
+import RepoLink from './RepoLink';
 import {absoluteDateFrom} from '../utils/relativeTime';
 
 interface PluginVersionListProps {
@@ -60,11 +62,29 @@ const changelogStyle = {
 // not fetch from a repository file it controls — a mirrored release note is
 // whatever GitHub returned. components/GuideMarkdown.tsx disables it for the
 // same reason, and reviews and comments will need this off too.
-const Changelog: React.FC<{markdown: string}> = ({markdown}) => (
-    <Box sx={changelogStyle}>
-        <Markdown options={{disableParsingRawHTML: true}}>{markdown}</Markdown>
-    </Box>
-);
+//
+// Links go through RepoLink for the reason guides do: a note saying "see
+// [COMMANDS.md](COMMANDS.md)" is written against the repository, and rendered
+// at /resources/<slug> it would otherwise resolve to /resources/COMMANDS.md and
+// 404. The repository is read off the release's own GitHub URL, so every
+// plugin's notes resolve against their own repository without the page having
+// to pass it down.
+const Changelog: React.FC<{markdown: string; htmlUrl: string}> = ({markdown, htmlUrl}) => {
+    const repo = parseGithubRepo(htmlUrl);
+    const githubLink = repo ? `https://github.com/${repo}` : undefined;
+    return (
+        <Box sx={changelogStyle}>
+            <Markdown
+                options={{
+                    disableParsingRawHTML: true,
+                    overrides: {a: {component: RepoLink, props: {githubLink}}},
+                }}
+            >
+                {markdown}
+            </Markdown>
+        </Box>
+    );
+};
 
 // Each file links through dpc-api's counting redirect (siteDownloadUrl), so a
 // download from here shows up in the figures the page presents; nofollow keeps
@@ -163,7 +183,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
                 <Stack direction="row" spacing={1} alignItems="center" sx={{flexWrap: 'wrap', rowGap: 1, mb: 1}}>
                     <VersionHeading version={latest} isLatest={latest.tag === latestTag}/>
                 </Stack>
-                {latest.changelog ? <Changelog markdown={latest.changelog}/> : (
+                {latest.changelog ? <Changelog markdown={latest.changelog} htmlUrl={latest.htmlUrl}/> : (
                     <Typography variant="body2" color="text.secondary">
                         No release notes were published for this version.
                     </Typography>
@@ -177,7 +197,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
                         <VersionHeading version={version} isLatest={version.tag === latestTag}/>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {version.changelog ? <Changelog markdown={version.changelog}/> : (
+                        {version.changelog ? <Changelog markdown={version.changelog} htmlUrl={version.htmlUrl}/> : (
                             <Typography variant="body2" color="text.secondary">
                                 No release notes were published for this version.
                             </Typography>
