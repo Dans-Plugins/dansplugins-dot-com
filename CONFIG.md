@@ -223,5 +223,6 @@ Additional Next.js configuration is found in `next.config.js` in the project roo
 | Option | Value | Why |
 | --- | --- | --- |
 | `reactStrictMode` | `true` | Opts into React's additional development-mode checks (double-invoked effects, deprecated API warnings) to catch issues early. |
+| `rewrites` | `/version.json` → `/api/version` | Serves `GET /version.json` from `pages/api/version.ts`, which answers `{"version": "<version>"}` with the `package.json` version the build was made from (never cached), so a deploy can be verified by the version it reports. |
 
 `swcMinify` used to be set here to restate Next 12's default. Next.js made the SWC minifier the default in v13 and removed the option in v15, so on `next` 14 the line said nothing and has been dropped.
