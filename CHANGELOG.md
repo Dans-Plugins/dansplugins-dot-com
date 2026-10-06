@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `utils/trace-client.ts` is re-vendored unmodified from `Stephenson-Software/trace-client-js` 0.4.1 (tag `0.4.1`, commit 0bb9eb7). Its doc comment's usage-reporting link now points at the public https://danielstephenson.dev/usage-reporting instead of a private repository; apart from the version string, nothing else in the client changed, so what a page view sends is unchanged.
 - The usage-reporting "Details" link (the server's startup line, the usage panel's "how it works" link and the README) now points at https://danielstephenson.dev/usage-reporting, a public page, and the /usage page's "trace" link now points at https://trace.danielstephenson.dev; both previously led to a private repository and returned 404 for visitors.
+- `USER_GUIDE.md` now matches the site as it renders. The home page is walked through as the icon grid it became, with a panel on hover or focus, a bottom sheet on touch screens and the controls behind **Search & filter**, rather than as the plugin cards it replaced. The plugin-page walk-through gains the Usage, Verified before release and Expansions sections, in page order (Versions now comes before Expansions and Related plugins). The account link is named as it appears, **Sign in** or the signed-in username, rather than "Account". The Dev Portal (`/dev`), `/usage` and `/releases`, which had no entry, each get one. `CONFIG.md`'s `next.config.js` table also lists the `/version.json` rewrite, which it omitted.
 
 ### Added
 

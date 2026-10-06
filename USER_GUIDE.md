@@ -9,21 +9,21 @@ No special software is required to use the website. Simply visit [https://danspl
 ## First Steps
 
 1. Open your web browser and navigate to [https://dansplugins.com](https://dansplugins.com).
-2. Browse the list of available DPC plugins on the home page.
-3. Each plugin has its own card. Use the buttons at the bottom of a card to learn more: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases.
+2. Browse the grid of DPC plugin icons on the home page, each with the plugin's name beneath it.
+3. On a computer, hover over an icon (or move to it with the keyboard) to open a panel with the plugin's description and buttons: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases. Clicking the icon itself goes straight to the plugin's page. On a phone or tablet, a tap on an icon opens the same details in a sheet at the bottom of the screen.
 
 ## Common Scenarios
 
 ### Finding a Plugin
 
 1. Visit the [home page](https://dansplugins.com).
-2. Browse the plugin cards displayed on the page, or narrow them down:
+2. Browse the plugin icons displayed on the page, or narrow them down with **Search & filter**, the button above the grid that unfolds the search and filter controls (they unfold by themselves while a filter is active):
    - Type in the **Search plugins…** box to filter by plugin name or description. A "Showing N of M plugins" count appears while a search is active, and the ✕ clears it.
    - Use the **By Popularity** / **Most Liked** / **Most Downloaded** / **Alphabetical** buttons to reorder the catalogue. Popularity is by bStats server count; Most Downloaded is by downloads made through this site.
-   - Click a **tag** (admin, factions, survival, …) to show only plugins for that purpose; click it again, or **All**, to clear it. Each card lists its own tags, and clicking one there does the same.
+   - Click a **tag** (admin, factions, survival, …) to show only plugins for that purpose; click it again, or **All**, to clear it. Each plugin's panel lists its own tags, and clicking one there does the same.
    - Pick a **Minecraft version** to show only plugins whose SpigotMC page lists that version as tested. A plugin whose tested versions are not known is left out rather than assumed to work — the answer to "does this run on my server?" is a no, not a guess.
    - Search, tag and version combine, and the search box also matches tags. A "Showing N of M plugins" line appears while any of them is active; if nothing matches, **Clear filters** resets all three.
-3. A card may carry a few small chips between the description and the buttons, each shown only when the figure behind it is available:
+3. A plugin's panel may carry a few small chips between the description and the buttons, each shown only when the figure behind it is available:
    - **N servers** — how many servers are running the plugin, as reported by bStats. Plugins with no bStats project, or none reporting yet, show no such chip.
    - **Latest: vX.Y.Z** — the plugin's newest release. A plugin that has published no release, or whose releases have not yet been mirrored from GitHub, shows no such chip.
    - **N downloads** — how many times the plugin has been downloaded through this site, once it has been.
@@ -31,8 +31,8 @@ No special software is required to use the website. Simply visit [https://danspl
    - **★ 4.7** — the plugin's average rating on SpigotMC, shown once it has at least three reviews there. Hover the chip for the number of reviews. This is SpigotMC's figure, not this site's; the plugin's own page links to the reviews behind it.
 
    These figures are repeated on the plugin's own page (see below), so there is no need to open it just to read them.
-4. Once you have found a plugin, use the buttons on its card:
-   - **Details** — that plugin's own page on this site (see below). Its name is a link to the same place.
+4. Once you have found a plugin, use the buttons in its panel:
+   - **Details** — that plugin's own page on this site (see below). On a computer, clicking its icon goes to the same place.
    - **Download** — the latest release's plugin jar, straight from GitHub; the same file Dan's Plugin Manager would install. The button is shown only when the release named by the **Latest** chip attaches a jar, and the file is served by GitHub, not by this site.
    - **Guide** — that plugin's user guide, on this site.
    - **GitHub** — the plugin's source code and releases.
@@ -42,7 +42,7 @@ No special software is required to use the website. Simply visit [https://danspl
 
 ### Viewing a Plugin's Page
 
-1. From the home page, click a plugin's name or its **Details** button (or visit `/resources/<plugin>` directly — for example `/resources/medieval-factions`).
+1. From the home page, click a plugin's icon or the **Details** button in its panel (or visit `/resources/<plugin>` directly — for example `/resources/medieval-factions`).
 2. The page shows the plugin's description, how many servers are running it, its latest release version, how many times its mirrored releases have been downloaded from GitHub, the Minecraft versions it has been tested on, and — for plugins with at least three reviews on SpigotMC — their SpigotMC rating and download count, along with the heart to like it. The rating chip opens the reviews on SpigotMC; it is their figure, shown here until this site has reviews of its own. A line beneath states when the plugin was first released and last updated, as its GitHub releases record it; either half is left out when it is not known. The plugin's tags follow its description. Below those, a **Downloads** box counts downloads made through this site the way SpigotMC counts its own: the total across every release, and the latest release's.
 3. Use the buttons to act on it:
    - **Download** — the plugin's releases on GitHub, where its builds are published. The website does not host plugin files itself.
@@ -50,9 +50,12 @@ No special software is required to use the website. Simply visit [https://danspl
    - **Source** — the plugin's source code.
    - **SpigotMC** — its SpigotMC page, for plugins that have one.
 4. A plugin with a **preview clip** shows it under the buttons, with a line saying how it was made. Most clips are *recreations* of the in-game chat window: every line in them is the plugin's real output, captured when a test player ran the commands on a test server, redrawn as a chat panel. The BlueMap Medieval Factions clip is BlueMap's own web map, recorded on a test server.
-5. **Related plugins** lists the plugins that share a tag with this one, those with the most in common first — Currencies and Fiefs both extend Medieval Factions, for instance, and each names the other here. Plugins sharing no tag with anything show no such section.
-6. Under **Versions**, the newest release is shown open, with its release notes, how many times it has been downloaded through this site, and a download button for each file it publishes; earlier releases sit below it and expand when clicked. Every download link leads to the file on GitHub — the site only counts the download on the way past. Plugins that have never published a release show no Versions section.
-7. At the bottom, **Report a bug** opens a new issue on that plugin's issue tracker, and **Suggest a feature** goes to the Dev Portal, where ideas can be submitted and upvoted.
+5. **Usage** shows how much the plugin is in use on real servers over the last 30 days, as reported to [trace](https://trace.danielstephenson.dev): active servers where the plugin reports them, otherwise when it was last reported in use and how many server starts were seen. Its **Usage of every plugin** link opens the `/usage` page (see below). Plugins with no figures yet, or a page rendered while trace could not be reached, show no Usage section.
+6. **Verified before release** lists the release checks the plugin's current stable release passed, each linking to its public run, with a **How releases work** link to `/releases` (see below). Releases whose notes record no checks show nothing here.
+7. Under **Versions**, the newest release is shown open, with its release notes, how many times it has been downloaded through this site, and a download button for each file it publishes; earlier releases sit below it and expand when clicked. Every download link leads to the file on GitHub — the site only counts the download on the way past. Plugins that have never published a release show no Versions section.
+8. **Expansions** lists the plugins that cannot run without this one, such as the Medieval Factions add-ons; each add-on's own page says which plugin it requires, with a link back.
+9. **Related plugins** lists the plugins that share a tag with this one, those with the most in common first — Currencies and Fiefs both extend Medieval Factions, for instance, and each names the other here. A plugin already listed under Expansions is not repeated. Plugins sharing no tag with anything show no such section.
+10. At the bottom, **Report a bug** opens a new issue on that plugin's issue tracker, and **Suggest a feature** goes to the Dev Portal, where ideas can be submitted and upvoted.
 
 ### Reading the Latest News
 
@@ -82,6 +85,23 @@ No special software is required to use the website. Simply visit [https://danspl
 2. Review the planned, in-progress, and completed work.
 3. Follow the linked GitHub issue tracker for day-to-day detail.
 
+### Following Development in the Dev Portal
+
+1. Click **Dev Portal** in the top navigation bar (or visit `/dev`).
+2. Review every open issue and pull request across the Dans-Plugins GitHub organization in one place: totals at the top, a row per repository, and the open items themselves, which can be narrowed by repository and type. The view is a mirror that refreshes on a schedule; GitHub stays the source of truth.
+3. Under **feature requests**, submit an idea for a plugin or upvote someone else's. A plugin page's **Suggest a feature** button leads here.
+
+### Checking Plugin Usage
+
+1. Visit `/usage`, or follow **Usage of every plugin** from a plugin page's Usage section.
+2. Review which plugins are in use on real servers over the last 30 days, as reported to trace. Plugins that report a server ID are counted as active servers; for the rest, the page says when the plugin was last reported in use and how many server starts were seen. A server start is not a server: one server restarting every night counts thirty times.
+3. If trace cannot be reached, the page says the figures are unavailable rather than showing none.
+
+### Learning How Releases Are Checked
+
+1. Visit `/releases`, or follow **How releases work** from the About page or a plugin page's **Verified before release** section.
+2. Read what the release gates check before a stable release is published, the difference between the stable and dev channels, which Minecraft versions are supported, and what happens when a check fails or a release has to be pulled.
+
 ### Requesting a Commission
 
 1. Click **Commissions** in the top navigation bar (or visit `/commissions`).
@@ -90,7 +110,7 @@ No special software is required to use the website. Simply visit [https://danspl
 
 ### Managing Your Account
 
-1. Click **Account** in the top navigation bar (or visit `/account`).
+1. Click **Sign in** in the top navigation bar (or visit `/account`). Once you are signed in, the same link shows your username instead.
 2. Register a new account, or log in with an existing username and password. You stay signed in on that browser for up to thirty days: the site renews its session in the background, and only a logout (or a password reset) ends it sooner.
 3. Once logged in, create or delete the API keys used to connect a server to the DPC community data API.
 4. The **My likes** section lists the plugins and guides you've liked, linking to each one — your personal toolbox.
