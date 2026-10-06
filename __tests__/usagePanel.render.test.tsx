@@ -40,7 +40,7 @@ describe('UsagePanel', () => {
         render(<UsagePanel usage={usageWithoutInstalls()} now={NOW}/>);
 
         const link = screen.getByRole('link', {name: /how it works/});
-        expect(link.getAttribute('href')).toBe('https://github.com/Stephenson-Software/trace#usage-reporting');
+        expect(link.getAttribute('href')).toBe('https://danielstephenson.dev/usage-reporting');
         expect(screen.getByTestId('trace-attribution').textContent).toContain('CI and test servers are excluded');
         expect(screen.getByRole('link', {name: 'Usage of every plugin'}).getAttribute('href')).toBe('/usage');
     });

@@ -21,7 +21,7 @@ export const PROGRAM_NAME = 'dansplugins-dot-com';
 export const DEFAULT_ENDPOINT = 'https://trace.danielstephenson.dev';
 
 /** What is and is not sent, and every way to turn it off. */
-export const DETAILS_URL = 'https://github.com/Stephenson-Software/trace#usage-reporting';
+export const DETAILS_URL = 'https://danielstephenson.dev/usage-reporting';
 
 /**
  * The build the events are tagged with: `version` from package.json, passed to

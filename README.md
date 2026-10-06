@@ -96,7 +96,7 @@ Reporting is off unless a key is set, and any of these turns it off:
 
 `USAGE_REPORTING_ENDPOINT` sends the reports to a different trace server. With a key set, the
 server logs one line on its first request saying whether reporting is on and, if it is off, which
-switch turned it off. Details: https://github.com/Stephenson-Software/trace#usage-reporting
+switch turned it off. Details: https://danielstephenson.dev/usage-reporting
 
 ## Contributing
 

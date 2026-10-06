@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The usage-reporting "Details" link (the server's startup line, the usage panel's "how it works" link and the README) now points at https://danielstephenson.dev/usage-reporting, a public page, and the /usage page's "trace" link now points at https://trace.danielstephenson.dev; both previously led to a private repository and returned 404 for visitors.
+
 ### Added
 
 - **3D preview clips** for **Wild Pets** (replacing its chat clip) and **Dan's Spawn System** (which had none): the test server's real world, rendered by prismarine-viewer 1.33.0 from what a spectator camera player was sent while a bot used the plugin, with a scripted camera. Wild Pets: a sheep is tamed, told to follow, and is teleported to the player's side as they cross into the next chunk (10.0 s, 312 KB WebM / 541 KB MP4). Dan's Spawn System: a right-click on a `[Spawn]` sign ("Spawn set!") takes the player to its spawn point, and after being killed they respawn there (7.4 s, 311 KB / 397 KB). Chat lines over the world are the capture's own, labelled "Recreated chat · real server output"; the viewer draws no signs, so the `[Spawn]` sign is drawn from its real text and position on the server, which the caption and alt text say. Rendered a frame at a time from the recorded scene (no speed-up). New `kind: 'world'` clips in `scripts/previews/` (`world/recorder.js`, `world/replay.js`, `world/page.js`; README section "World clips"); prismarine-viewer is installed only for recording, never a site dependency.
