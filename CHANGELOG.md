@@ -9,9 +9,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - `USER_GUIDE.md` corrections: a plugin page's SpigotMC download count is described as shown whenever SpigotMC reports one (only the rating waits for three reviews); the preview-clip step names the 3D world clips (Wild Pets, Dan's Spawn System) alongside the chat and BlueMap clips; and the catalogue-editing steps say to use **Sign in** in the navigation bar rather than an "Account" page link that no longer appears under that name.
+- `CHANGELOG.md` gives releases 0.15.0, 0.15.1 and 0.15.2 their own sections; their entries had all been left under `[Unreleased]`.
+
+## [0.15.2] – 2026-10-10
+
+### Tests
+
+- `FeatureRequestSection` is covered (`__tests__/featureRequestSection.render.test.tsx`): its load, submit and convert paths.
+
+## [0.15.1] – 2026-10-07
+
+### Changed
+
+- The preview clips are re-rendered to read in the home page's desktop panel, which draws every clip 286 px wide. The chat clips are replayed from the same captures with larger text and a larger recreation tag, the 3D world clips get a larger chat overlay over unchanged world frames, and BlueMap Medieval Factions is re-recorded with markers and labels twice as large.
 - `utils/trace-client.ts` is re-vendored unmodified from `Stephenson-Software/trace-client-js` 0.4.1 (tag `0.4.1`, commit 0bb9eb7). Its doc comment's usage-reporting link now points at the public https://danielstephenson.dev/usage-reporting instead of a private repository; apart from the version string, nothing else in the client changed, so what a page view sends is unchanged.
 - The usage-reporting "Details" link (the server's startup line, the usage panel's "how it works" link and the README) now points at https://danielstephenson.dev/usage-reporting, a public page, and the /usage page's "trace" link now points at https://trace.danielstephenson.dev; both previously led to a private repository and returned 404 for visitors.
 - `USER_GUIDE.md` now matches the site as it renders. The home page is walked through as the icon grid it became, with a panel on hover or focus, a bottom sheet on touch screens and the controls behind **Search & filter**, rather than as the plugin cards it replaced. The plugin-page walk-through gains the Usage, Verified before release and Expansions sections, in page order (Versions now comes before Expansions and Related plugins). The account link is named as it appears, **Sign in** or the signed-in username, rather than "Account". The Dev Portal (`/dev`), `/usage` and `/releases`, which had no entry, each get one. `CONFIG.md`'s `next.config.js` table also lists the `/version.json` rewrite, which it omitted.
+
+### Fixed
+
+- Relative links in a plugin's release notes (such as `[COMMANDS.md](COMMANDS.md)`) now lead to the file in the plugin's repository, read off the release's own GitHub URL, instead of resolving to `/resources/COMMANDS.md` and returning 404. Guides and release notes share the rewrite in `components/RepoLink.tsx`.
+
+## [0.15.0] – 2026-10-04
 
 ### Added
 
