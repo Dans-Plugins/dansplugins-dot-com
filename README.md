@@ -4,6 +4,14 @@
 
 Dan's Plugins Community Website is the central hub for the Dan's Plugins Community. It showcases DPC plugins, provides links to documentation and support resources, and acts as the public face of the community at [https://dansplugins.com](https://dansplugins.com).
 
+<p align="center">
+  <img src="docs/images/home-desktop.png" alt="The dansplugins.com home page: an icon grid of the community's plugins (Medieval Factions, Wild Pets, SimpleSkills, Fiefs and more) under the navigation bar" width="640">
+  <img src="docs/images/home-mobile.png" alt="The same plugin grid at phone width, four icons per row with a menu button" width="160">
+</p>
+<p align="center"><em>The live site at <a href="https://dansplugins.com">dansplugins.com</a>, desktop and phone width.</em></p>
+
+<sub>How these were captured: headless Chromium (Playwright) against the live public site on 2026-10-18 at 1280×800 and 390×844, with the first-visit splash pre-dismissed via its <code>dpc-experience-chosen</code> localStorage key.</sub>
+
 This repository holds both halves of the site:
 
 | Path | What it is | Toolchain |
