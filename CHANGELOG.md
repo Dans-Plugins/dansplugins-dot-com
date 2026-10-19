@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `CONFIG.md`'s crawler-document notes and `RESOURCE_HUB.md`'s tags row no longer name the deleted `pages/data/plugins.json` as a source: the sitemap's per-plugin pages come from the catalogue `dpc-api` serves (and include the `/resources/[slug]` pages, which the note left out), and tags live in `plugin_tags`, edited at `/admin/plugins`.
 - `CHANGELOG.md` gives releases 0.15.0, 0.15.1 and 0.15.2 their own sections; their entries had all been left under `[Unreleased]`.
 
+### Tests
+
+- `ReleaseVerification` is covered (`__tests__/releaseVerification.render.test.tsx`): it speaks only for the first stable release, renders nothing when that release records no gate run (without falling back to an older one), lists Minecraft versions as written, and links each run and `/releases`.
+
 ## [0.15.2] – 2026-10-10
 
 ### Tests
