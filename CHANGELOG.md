@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Tests
 
 - `ReleaseVerification` is covered (`__tests__/releaseVerification.render.test.tsx`): it speaks only for the first stable release, renders nothing when that release records no gate run (without falling back to an older one), lists Minecraft versions as written, and links each run and `/releases`.
+- `StartsSparkline` is covered directly (`__tests__/startsSparkline.render.test.tsx`): it renders nothing for no days, names no peak and draws a flat line when no server started, names the first of two equal peaks, draws one day as a single point, groups thousands, shows a day that is not a date as trace sent it, keeps its accessible name when `showLabels` is off, and sizes the drawing to `height`.
 
 ## [0.15.2] – 2026-10-10
 
