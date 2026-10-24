@@ -60,7 +60,7 @@ module.exports = {
       await h.frame();
     }
     await page.evaluate(() => { window.bluemap.mapViewer.controlsManager.controls = window.__mapControls; });
-    await sleep(2500); // the closer tiles load
+    await sleep(8000); // the closer tiles load
     await h.frame(0.6);
     // Click inside Southmarch's claim (world x 40, z 85): BlueMap opens the
     // label Bluemap_MedievalFactions gave the claim.
@@ -70,7 +70,7 @@ module.exports = {
       return { x: ((p.x + 1) / 2) * innerWidth, y: ((1 - p.y) / 2) * innerHeight };
     });
     await page.mouse.click(at.x, at.y);
-    await page.waitForSelector('.bm-marker-labelpopup', { timeout: 5000 });
+    await page.waitForSelector('.bm-marker-labelpopup', { timeout: 180000 });
     await sleep(800);
     await h.frame(3.2);
     h.mark('out');

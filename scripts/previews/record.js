@@ -188,7 +188,9 @@ async function record(id, clip) {
     // 'stepped' mode: the page as it is now, shown for `seconds` of the clip.
     async frame(seconds = 1 / FPS) {
       if (mode !== 'stepped' || !recording) throw new Error('h.frame() is for stepped clips, after start()');
-      const buf = await page.screenshot({ type: 'jpeg', quality: 92, clip: area });
+      // A long timeout: under software WebGL on a busy machine one BlueMap
+      // frame took longer than Playwright's default 30 s to draw.
+      const buf = await page.screenshot({ type: 'jpeg', quality: 92, clip: area, timeout: 300000 });
       frames.push({ t: vt, data: buf.toString('base64') });
       vt += seconds;
     },

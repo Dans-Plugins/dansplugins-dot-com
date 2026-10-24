@@ -155,7 +155,8 @@ What the committed clips were recorded on (2026-10-04):
   In `spigot.yml`, `timeout-time: 900` and `restart-on-crash: false` (Medieval
   Factions saves on the server thread when a bot quits; see the mfbot notes).
 - Plugins, the latest stable releases: Medieval Factions 7.0.0, Currencies
-  3.0.0, Bluemap_MedievalFactions 1.0.0 (`MF_Bluemap-1.0.0.jar`), and BlueMap
+  3.0.0, Bluemap_MedievalFactions 1.0.0 (`MF_Bluemap-1.0.0.jar`; 1.1.2 for the
+  2026-10-24 BlueMap take, below), and BlueMap
   **5.16**, the newest BlueMap built for Java 21 (5.17 and later need Java 25).
 - Before the first boot with plugins:
   - `plugins/trace/config.yml`: `enabled: false`, and start the server with
@@ -223,15 +224,16 @@ Notes from the committed takes:
 - **Currencies** is captured as Rowena, Southmarch's founder; the capture gives
   her gold nuggets to hold first (the currency's item, and the cost of minting).
   A retake needs a new currency name, or a fresh server.
-- **BlueMap Medieval Factions**: the claims were made before recording, and
-  `setup-world.js` ends with `bluemap reload`: Bluemap_MedievalFactions 1.0.0
-  draws a faction's claims as they stood before its newest claim (it reads them
-  when Medieval Factions announces the claim, before the claim is saved), so
-  claims appearing live on the map would lag one behind. It was re-recorded
-  on 2026-10-04 at 480x300 (above), with the camera a little closer (distance
-  150 to 105, was 200 to 140) so the larger markers do not hide the claims;
-  `setup-world.js` was run again on the same server first, to bring the bots
-  online (every claim was already in place, so it claimed nothing).
+- **BlueMap Medieval Factions**: re-recorded on 2026-10-24 with
+  Bluemap_MedievalFactions **1.1.2** (`MF_Bluemap-1.1.2.jar`, in place of
+  1.0.0; everything else as above) and **no `bluemap reload`**. The take ran
+  on a copy of the test server with Medieval Factions' database removed, so
+  `setup-world.js` made all 45 claims afresh while the plugin drew them; the
+  map then held every claim, each faction's last one included, before anything
+  was recorded. (1.0.0 drew a faction's claims as they stood before its newest
+  claim, so the 2026-10-04 takes reloaded BlueMap to catch up; 1.1.0 fixed
+  that.) The framing is the 2026-10-04 one: 480x300 at device scale 2, camera
+  distance 150 to 105.
 
 ## Plugins without a clip
 

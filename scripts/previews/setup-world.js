@@ -16,10 +16,10 @@
 //
 // Setup-only RCON use: gamemode (creative while placing, so nobody takes fall
 // damage and loses power), spreadplayers (puts a bot on the ground in a chunk)
-// and a final `bluemap reload`. Bluemap_MedievalFactions 1.0.0 draws a
-// faction's claims as they stood just before its latest claim (it reads them
-// when MF announces the claim, before MF has saved it), so the reload is what
-// makes the map show every claim.
+// and a final `save-all flush`. The map is drawn as the claims are made:
+// Bluemap_MedievalFactions 1.1.0 and later read a faction's claims when its
+// redraw fires, so no `bluemap reload` is needed (1.0.0 drew them one claim
+// behind, and the 2026-10-04 take reloaded BlueMap to catch up).
 'use strict';
 
 const net = require('net');
@@ -143,7 +143,6 @@ const place = ([x, z], who) => rcon([`spreadplayers ${x} ${z} 0 1 false ${who}`]
   }
   await rcon(['save-all flush']);
   await sleep(2000);
-  console.log((await rcon(['bluemap reload'])).join(' '));
   console.log('World ready; bots stay online for the BlueMap clip. Ctrl-C to disconnect them.');
   process.on('SIGINT', () => { Object.values(bots).forEach((b) => b.quit()); setTimeout(() => process.exit(0), 1500); });
 })().catch((e) => { console.error(e); process.exit(1); });
