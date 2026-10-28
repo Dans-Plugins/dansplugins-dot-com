@@ -183,23 +183,33 @@ export const PLUGIN_TRAILERS: Readonly<Record<string, PluginTrailer>> = {
     },
 };
 
-// World renders: a plugin's data drawn over a Minecraft world by the owner's own
-// tools rather than recorded from a server, shown on the plugin's page under
-// its clip. Files in public/renders/, made by scripts/previews/strata/ (see the
-// README there). Only example data, never a real server's factions or players.
-export const PLUGIN_WORLD_RENDERS: Readonly<Record<string, PluginTrailer>> = {
-    'medieval-factions': {
-        poster: '/renders/medieval-factions-claims.jpg',
-        webm: '/renders/medieval-factions-claims.webm',
-        mp4: '/renders/medieval-factions-claims.mp4',
-        aspect: '16:9',
-        alt: 'A Minecraft world from above, rendered in 3D, with three example factions’ claims tinted and outlined in their colours: Northwatch in red over the hills, Saltmarsh in yellow over a lake and Fernhollow in purple over a stony rise. The sun crosses the sky from sunrise to sunset and the shadows move with it.',
-        caption: 'Medieval Factions claims over a fresh vanilla 26.3 world, using example factions (no real server’s data). Exported by Minecraft-USD-Exporter and rendered headless by Strata 0.6.0, the sun moving from sunrise to sunset.',
-    },
+// World renders: a plugin's data drawn by the owner's own tools rather than
+// recorded from a server, shown on the plugin's page under its clip, in order.
+// Files in public/renders/, made by scripts/previews/strata/ (see the README
+// there). Only example data, never a real server's factions or players.
+export const PLUGIN_WORLD_RENDERS: Readonly<Record<string, readonly PluginTrailer[]>> = {
+    'medieval-factions': [
+        {
+            poster: '/renders/medieval-factions-claims.jpg',
+            webm: '/renders/medieval-factions-claims.webm',
+            mp4: '/renders/medieval-factions-claims.mp4',
+            aspect: '16:9',
+            alt: 'A Minecraft world from above, rendered in 3D, with three example factions’ claims tinted and outlined in their colours: Northwatch in red over the hills, Saltmarsh in yellow over a lake and Fernhollow in purple over a stony rise. The sun crosses the sky from sunrise to sunset and the shadows move with it.',
+            caption: 'Medieval Factions claims over a fresh vanilla 26.3 world, using example factions (no real server’s data). Exported by Minecraft-USD-Exporter and rendered headless by Strata 0.6.0, the sun moving from sunrise to sunset.',
+        },
+        {
+            poster: '/renders/medieval-factions-archipelago.jpg',
+            webm: '/renders/medieval-factions-archipelago.webm',
+            mp4: '/renders/medieval-factions-archipelago.mp4',
+            aspect: '16:9',
+            alt: 'A circling view of an archipelago of example factions, rendered in 3D: each faction is an island in its colour with a small keep and banner, larger for more members. Arched timber bridges join the allies Northwatch and Saltmarsh, and Fernhollow and Gullhaven. Across a red line of buoys, the fleets of Northwatch and Greymoor, and of Saltmarsh and Fernhollow, sail out to meet each other at war. Three smaller islets, the vassals Thornby, Kelpmoor and Brackwater, are chained to their lieges.',
+            caption: 'Example factions as islands, sized by member count: bridges are alliances, fleets across a red line are wars, and chained islets are vassals. A made-up world (no real server’s data) in the shape Medieval Factions reports factions to this site, rendered headless by Strata 0.6.0.',
+        },
+    ],
 };
 
-/** The plugin's world render, or null when it has none. */
-export const worldRenderFor = (slug: string): PluginTrailer | null => PLUGIN_WORLD_RENDERS[slug] ?? null;
+/** The plugin's world renders, in page order; empty when it has none. */
+export const worldRendersFor = (slug: string): readonly PluginTrailer[] => PLUGIN_WORLD_RENDERS[slug] ?? [];
 
 /** The plugin's clip, or null when it has none. */
 export const trailerFor = (slug: string): PluginTrailer | null => PLUGIN_TRAILERS[slug] ?? null;

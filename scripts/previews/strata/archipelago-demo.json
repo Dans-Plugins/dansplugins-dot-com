@@ -1,0 +1,29 @@
+{
+  "about": "A made-up demo world for the faction archipelago render. No real server's factions are in it. Each entry in `factions` has the shape Medieval Factions posts to POST /api/v1/factions (name, serverId, memberCount, description), and memberCount sets each island's size. The API carries no relations between factions, so `relations` is invented here to show Medieval Factions' alliances, wars and vassals.",
+  "factions": [
+    {"name": "Northwatch", "serverId": "example-archipelago", "memberCount": 24, "description": "Example faction"},
+    {"name": "Saltmarsh", "serverId": "example-archipelago", "memberCount": 16, "description": "Example faction"},
+    {"name": "Fernhollow", "serverId": "example-archipelago", "memberCount": 11, "description": "Example faction"},
+    {"name": "Gullhaven", "serverId": "example-archipelago", "memberCount": 8, "description": "Example faction"},
+    {"name": "Greymoor", "serverId": "example-archipelago", "memberCount": 19, "description": "Example faction"},
+    {"name": "Thornby", "serverId": "example-archipelago", "memberCount": 4, "description": "Example faction"},
+    {"name": "Kelpmoor", "serverId": "example-archipelago", "memberCount": 3, "description": "Example faction"},
+    {"name": "Brackwater", "serverId": "example-archipelago", "memberCount": 3, "description": "Example faction"}
+  ],
+  "relations": {
+    "alliances": [["Northwatch", "Saltmarsh"], ["Fernhollow", "Gullhaven"]],
+    "wars": [["Northwatch", "Greymoor"], ["Saltmarsh", "Fernhollow"]],
+    "vassals": [
+      {"vassal": "Thornby", "liege": "Northwatch"},
+      {"vassal": "Kelpmoor", "liege": "Saltmarsh"},
+      {"vassal": "Brackwater", "liege": "Greymoor"}
+    ]
+  },
+  "colors": {
+    "Northwatch": "#c0392b",
+    "Saltmarsh": "#e2b13c",
+    "Fernhollow": "#8e5bb5",
+    "Gullhaven": "#e8eef2",
+    "Greymoor": "#3d6fa8"
+  }
+}

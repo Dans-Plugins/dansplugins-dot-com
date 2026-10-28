@@ -17,7 +17,7 @@ import {CATALOGUE_OPEN_DELAY_MS as OPEN_DELAY_MS, TOUCH_ONLY_QUERY} from '@kingd
 import PluginTrailer, {REDUCED_MOTION_QUERY} from '../components/PluginTrailer';
 import PluginIconGrid, {type IconGridPlugin} from '../components/PluginIconGrid';
 import ResourcePage from '../pages/resources/[slug]';
-import {PLUGIN_TRAILERS, PLUGIN_WORLD_RENDERS, trailerAspectRatio, trailerFor, worldRenderFor} from '../utils/pluginTrailers';
+import {PLUGIN_TRAILERS, PLUGIN_WORLD_RENDERS, trailerAspectRatio, trailerFor, worldRendersFor} from '../utils/pluginTrailers';
 import {decode, isModified} from '../scripts/previews/mutf8.js';
 
 const PUBLIC = path.join(__dirname, '..', 'public');
@@ -241,14 +241,18 @@ describe('Plugin trailer files', () => {
 });
 
 describe('World renders', () => {
-    const RENDERS = Object.entries(PLUGIN_WORLD_RENDERS);
+    const RENDERS = Object.entries(PLUGIN_WORLD_RENDERS).flatMap(([slug, renders]) => renders.map((r) => [slug, r] as const));
     // A render is one more clip on a page that already has one, so it keeps
     // to a tighter budget than the clips.
     const RENDER_BUDGET = {webm: 300 * 1024, mp4: 300 * 1024, jpg: 100 * 1024};
 
-    it('has a render for Medieval Factions only', () => {
+    it('has renders for Medieval Factions only: the claims, then the archipelago', () => {
         expect(Object.keys(PLUGIN_WORLD_RENDERS)).toEqual(['medieval-factions']);
-        expect(worldRenderFor('currencies')).toBeNull();
+        expect(worldRendersFor('medieval-factions').map((r) => r.poster)).toEqual([
+            '/renders/medieval-factions-claims.jpg',
+            '/renders/medieval-factions-archipelago.jpg',
+        ]);
+        expect(worldRendersFor('currencies')).toEqual([]);
     });
 
     it.each(RENDERS)('%s: files exist in public/renders, are small and 16:9', (slug, render) => {
@@ -262,13 +266,43 @@ describe('World renders', () => {
         expect(width / height).toBeCloseTo(16 / 9, 2);
     });
 
-    it('says it is example data rendered by Strata, and credits the exporter', () => {
+    it('says each is example data rendered by Strata', () => {
         for (const [, render] of RENDERS) {
             expect(render.caption).toMatch(/example factions/i);
+            expect(render.caption).toMatch(/no real server/i);
             expect(render.caption).toMatch(/Strata 0\.6\.0/);
-            expect(render.caption).toMatch(/Minecraft-USD-Exporter/);
             expect(render.alt).toMatch(/example factions/i);
         }
+    });
+
+    it('credits the exporter for the claims render', () => {
+        const [claims] = worldRendersFor('medieval-factions');
+        expect(claims.caption).toMatch(/Minecraft-USD-Exporter/);
+    });
+
+    it('says what the archipelago shows: islands by member count, bridges, fleets and chained vassals', () => {
+        const archipelago = worldRendersFor('medieval-factions')[1];
+        expect(archipelago.caption).toMatch(/sized by member count/i);
+        expect(archipelago.caption).toMatch(/bridges are alliances/i);
+        expect(archipelago.caption).toMatch(/wars/i);
+        expect(archipelago.caption).toMatch(/vassals/i);
+        expect(archipelago.caption).toMatch(/made-up world/i);
+    });
+
+    it('keeps the archipelago demo world in the API\'s faction shape, with relations only between its own factions', () => {
+        const world = JSON.parse(fs.readFileSync(path.join(PUBLIC, '..', 'scripts', 'previews', 'strata', 'archipelago-demo.json'), 'utf8'));
+        const names = new Set<string>();
+        for (const f of world.factions) {
+            expect(Object.keys(f).sort()).toEqual(['description', 'memberCount', 'name', 'serverId']);
+            expect(f.serverId).toBe('example-archipelago');
+            expect(f.name.length).toBeGreaterThan(0);
+            expect(f.name.length).toBeLessThanOrEqual(64);
+            expect(Number.isInteger(f.memberCount) && f.memberCount >= 0).toBe(true);
+            names.add(f.name);
+        }
+        const pairs = [...world.relations.alliances, ...world.relations.wars,
+            ...world.relations.vassals.map((v: {vassal: string; liege: string}) => [v.vassal, v.liege])];
+        for (const pair of pairs) for (const name of pair) expect(names.has(name), name).toBe(true);
     });
 
     it('leaves no file in public/renders that no render uses', () => {
@@ -411,17 +445,22 @@ describe('Preview clip on the plugin page', () => {
         expect(figure.querySelector('figcaption')?.textContent).toMatch(/recreated chat panel/i);
     });
 
-    it('shows the world render under the clip, after it in the page, with its caption', () => {
+    it('shows the world renders under the clip, in order, each lazy with its caption', () => {
         stubObserver();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         render(<ResourcePage {...(props(PLUGIN_TRAILERS['medieval-factions']) as any)}/>);
         const clip = screen.getByTestId('plugin-preview');
-        const world = screen.getByTestId('plugin-world-render');
-        expect(clip.compareDocumentPosition(world) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-        const poster = within(world).getByTestId('plugin-trailer-poster');
-        expect(poster.getAttribute('src')).toBe('/renders/medieval-factions-claims.jpg');
-        expect(poster.getAttribute('loading')).toBe('lazy');
-        expect(world.querySelector('figcaption')?.textContent).toMatch(/rendered headless by Strata/i);
+        const worlds = screen.getAllByTestId('plugin-world-render');
+        expect(worlds).toHaveLength(2);
+        expect(clip.compareDocumentPosition(worlds[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(worlds[0].compareDocumentPosition(worlds[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const srcs = worlds.map((w) => within(w).getByTestId('plugin-trailer-poster'));
+        expect(srcs.map((p) => p.getAttribute('src'))).toEqual([
+            '/renders/medieval-factions-claims.jpg',
+            '/renders/medieval-factions-archipelago.jpg',
+        ]);
+        for (const poster of srcs) expect(poster.getAttribute('loading')).toBe('lazy');
+        for (const world of worlds) expect(world.querySelector('figcaption')?.textContent).toMatch(/rendered headless by Strata/i);
     });
 
     it('has no world render on a plugin without one', () => {
