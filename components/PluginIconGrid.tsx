@@ -1,11 +1,12 @@
 import React from 'react';
 import {Avatar} from '@mui/material';
-import {CatalogueGrid} from '@kingdom-community/community-site-kit';
+import {TieredCatalogueGrid} from '@kingdom-community/community-site-kit';
 import PluginDetails, {type PluginDetailsProps} from './PluginDetails';
 import {pluginsBoxStyle} from '../styles/styles';
 import {colorForTitle} from '../utils/pluginAvatar';
 import {resourcePath} from '../utils/resources';
 import {trailerFor} from '../utils/pluginTrailers';
+import {PLUGIN_TIERS, pluginTier} from '../utils/pluginTiers';
 
 // The home page catalogue: one icon per plugin and nothing else. Everything the
 // old cards carried — description, figures, actions — lives in a panel that
@@ -52,11 +53,13 @@ const PluginIcon: React.FC<{plugin: IconGridPlugin}> = ({plugin}) => (
 );
 
 const PluginIconGrid: React.FC<PluginIconGridProps> = ({plugins, likeCounts, likedSet, token, onTagClick, toolbar, empty}) => (
-    <CatalogueGrid
+    <TieredCatalogueGrid
         items={plugins}
+        // Most established first; see utils/pluginTiers.
+        tiers={PLUGIN_TIERS}
+        tierOf={pluginTier}
         heading="Plugins"
         sectionId="plugins"
-        idPrefix="plugin"
         getHref={(plugin) => resourcePath(plugin.id)}
         // A Like keeps its state (and its sign-in notice) between openings,
         // and every tile stays described by its plugin's description.
