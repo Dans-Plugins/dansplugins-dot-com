@@ -1,6 +1,6 @@
 {
   "name": "dpc-website",
-  "version": "0.15.4-SNAPSHOT",
+  "version": "0.16.0",
   "private": true,
   "engines": {
     "node": ">=18.17"
