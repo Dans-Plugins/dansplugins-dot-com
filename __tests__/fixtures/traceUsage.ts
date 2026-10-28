@@ -38,7 +38,7 @@ export const usageWithoutInstalls = (): ProgramUsage => ({
 });
 
 /**
- * trace's /api/public/summary as it reads since trace#152: `installs` counts
+ * trace's /api/public/summary as it reads once trace summarises servers: `installs` counts
  * distinct servers (newer clients only), `count` and `uninstalled` are raw
  * events. Fiefs' huge raw count stands in for one server's command flood.
  */
