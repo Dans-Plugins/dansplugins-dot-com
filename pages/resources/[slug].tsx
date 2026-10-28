@@ -42,7 +42,7 @@ import {DPM_SLUG, DSH_URL, resourceDescription, resourcePath} from '../../utils/
 import {expansionsOf, relatedPlugins, requiredPlugins} from '../../utils/catalogueFilter';
 import {traceNameFor} from '../../utils/traceNames';
 import {getProgramUsage, ProgramUsage} from '../../utils/traceUsage';
-import {trailerFor, type PluginTrailer as Trailer} from '../../utils/pluginTrailers';
+import {trailerFor, worldRenderFor, type PluginTrailer as Trailer} from '../../utils/pluginTrailers';
 
 const version = require('../../package.json').version;
 
@@ -257,6 +257,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     // release ever cut, so the chip says where it is from without claiming to
     // be a lifetime total.
     const githubDownloadCount = totalDownloads(versions);
+    const worldRender = worldRenderFor(slug);
     return (
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo
@@ -495,6 +496,17 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                         <PluginTrailer trailer={trailer}/>
                         <Typography component="figcaption" variant="caption" color="text.secondary" sx={{display: 'block', mt: 1}}>
                             {trailer.caption}
+                        </Typography>
+                    </Box>
+                ) : null}
+
+                {worldRender ? (
+                    // Under the clip, so it is never the first large image on
+                    // the page: its poster waits until it is near the viewport.
+                    <Box component="figure" sx={{m: 0, mb: 4, maxWidth: 560}} data-testid="plugin-world-render">
+                        <PluginTrailer trailer={worldRender}/>
+                        <Typography component="figcaption" variant="caption" color="text.secondary" sx={{display: 'block', mt: 1}}>
+                            {worldRender.caption}
                         </Typography>
                     </Box>
                 ) : null}
