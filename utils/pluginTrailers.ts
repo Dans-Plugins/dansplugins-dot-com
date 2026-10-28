@@ -6,7 +6,7 @@
 // catalogue edit. No column, no migration. A slug the catalogue no longer has
 // is simply never looked up.
 
-export type TrailerAspect = '1:1' | '16:10';
+export type TrailerAspect = '1:1' | '16:10' | '16:9';
 
 export interface PluginTrailer {
     // A still from the clip: the only part the server renders, and all a
@@ -183,9 +183,27 @@ export const PLUGIN_TRAILERS: Readonly<Record<string, PluginTrailer>> = {
     },
 };
 
+// World renders: a plugin's data drawn over a Minecraft world by the owner's own
+// tools rather than recorded from a server, shown on the plugin's page under
+// its clip. Files in public/renders/, made by scripts/previews/strata/ (see the
+// README there). Only example data, never a real server's factions or players.
+export const PLUGIN_WORLD_RENDERS: Readonly<Record<string, PluginTrailer>> = {
+    'medieval-factions': {
+        poster: '/renders/medieval-factions-claims.jpg',
+        webm: '/renders/medieval-factions-claims.webm',
+        mp4: '/renders/medieval-factions-claims.mp4',
+        aspect: '16:9',
+        alt: 'A Minecraft world from above, rendered in 3D, with three example factions’ claims tinted and outlined in their colours: Northwatch in red over the hills, Saltmarsh in yellow over a lake and Fernhollow in purple over a stony rise. The sun crosses the sky from sunrise to sunset and the shadows move with it.',
+        caption: 'Medieval Factions claims over a fresh vanilla 26.3 world, using example factions (no real server’s data). Exported by Minecraft-USD-Exporter and rendered headless by Strata 0.6.0, the sun moving from sunrise to sunset.',
+    },
+};
+
+/** The plugin's world render, or null when it has none. */
+export const worldRenderFor = (slug: string): PluginTrailer | null => PLUGIN_WORLD_RENDERS[slug] ?? null;
+
 /** The plugin's clip, or null when it has none. */
 export const trailerFor = (slug: string): PluginTrailer | null => PLUGIN_TRAILERS[slug] ?? null;
 
 /** A clip's aspect as a CSS aspect-ratio value. */
 export const trailerAspectRatio = (trailer: Pick<PluginTrailer, 'aspect'>): string =>
-    trailer.aspect === '16:10' ? '16 / 10' : '1 / 1';
+    trailer.aspect === '16:10' ? '16 / 10' : trailer.aspect === '16:9' ? '16 / 9' : '1 / 1';

@@ -17,7 +17,7 @@ import {CATALOGUE_OPEN_DELAY_MS as OPEN_DELAY_MS, TOUCH_ONLY_QUERY} from '@kingd
 import PluginTrailer, {REDUCED_MOTION_QUERY} from '../components/PluginTrailer';
 import PluginIconGrid, {type IconGridPlugin} from '../components/PluginIconGrid';
 import ResourcePage from '../pages/resources/[slug]';
-import {PLUGIN_TRAILERS, trailerAspectRatio, trailerFor} from '../utils/pluginTrailers';
+import {PLUGIN_TRAILERS, PLUGIN_WORLD_RENDERS, trailerAspectRatio, trailerFor, worldRenderFor} from '../utils/pluginTrailers';
 import {decode, isModified} from '../scripts/previews/mutf8.js';
 
 const PUBLIC = path.join(__dirname, '..', 'public');
@@ -106,6 +106,7 @@ describe('Plugin trailer files', () => {
     it('turns an aspect into a CSS aspect ratio, square by default', () => {
         expect(trailerAspectRatio({})).toBe('1 / 1');
         expect(trailerAspectRatio({aspect: '16:10'})).toBe('16 / 10');
+        expect(trailerAspectRatio({aspect: '16:9'})).toBe('16 / 9');
     });
 
     it('has a clip for each plugin given one, and none for a plugin without one', () => {
@@ -239,6 +240,45 @@ describe('Plugin trailer files', () => {
     });
 });
 
+describe('World renders', () => {
+    const RENDERS = Object.entries(PLUGIN_WORLD_RENDERS);
+    // A render is one more clip on a page that already has one, so it keeps
+    // to a tighter budget than the clips.
+    const RENDER_BUDGET = {webm: 300 * 1024, mp4: 300 * 1024, jpg: 100 * 1024};
+
+    it('has a render for Medieval Factions only', () => {
+        expect(Object.keys(PLUGIN_WORLD_RENDERS)).toEqual(['medieval-factions']);
+        expect(worldRenderFor('currencies')).toBeNull();
+    });
+
+    it.each(RENDERS)('%s: files exist in public/renders, are small and 16:9', (slug, render) => {
+        for (const file of [render.poster, render.webm, render.mp4] as string[]) {
+            expect(file.startsWith(`/renders/${slug}-`), file).toBe(true);
+            const ext = path.extname(file).slice(1) as keyof typeof RENDER_BUDGET;
+            expect(fs.statSync(path.join(PUBLIC, file)).size, file).toBeLessThan(RENDER_BUDGET[ext]);
+        }
+        expect(render.aspect).toBe('16:9');
+        const [width, height] = jpegSize(path.join(PUBLIC, render.poster));
+        expect(width / height).toBeCloseTo(16 / 9, 2);
+    });
+
+    it('says it is example data rendered by Strata, and credits the exporter', () => {
+        for (const [, render] of RENDERS) {
+            expect(render.caption).toMatch(/example factions/i);
+            expect(render.caption).toMatch(/Strata 0\.6\.0/);
+            expect(render.caption).toMatch(/Minecraft-USD-Exporter/);
+            expect(render.alt).toMatch(/example factions/i);
+        }
+    });
+
+    it('leaves no file in public/renders that no render uses', () => {
+        const used = new Set(RENDERS.flatMap(([, r]) => [r.poster, r.webm, r.mp4].map((f) => path.basename(f!))));
+        for (const file of fs.readdirSync(path.join(PUBLIC, 'renders'))) {
+            expect(used.has(file), file).toBe(true);
+        }
+    });
+});
+
 describe('PluginTrailer', () => {
     const trailer = PLUGIN_TRAILERS['medieval-factions'];
 
@@ -369,6 +409,26 @@ describe('Preview clip on the plugin page', () => {
         const figure = screen.getByTestId('plugin-preview');
         expect(within(figure).getByTestId('plugin-trailer-poster').getAttribute('src')).toBe('/trailers/medieval-factions.jpg');
         expect(figure.querySelector('figcaption')?.textContent).toMatch(/recreated chat panel/i);
+    });
+
+    it('shows the world render under the clip, after it in the page, with its caption', () => {
+        stubObserver();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        render(<ResourcePage {...(props(PLUGIN_TRAILERS['medieval-factions']) as any)}/>);
+        const clip = screen.getByTestId('plugin-preview');
+        const world = screen.getByTestId('plugin-world-render');
+        expect(clip.compareDocumentPosition(world) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const poster = within(world).getByTestId('plugin-trailer-poster');
+        expect(poster.getAttribute('src')).toBe('/renders/medieval-factions-claims.jpg');
+        expect(poster.getAttribute('loading')).toBe('lazy');
+        expect(world.querySelector('figcaption')?.textContent).toMatch(/rendered headless by Strata/i);
+    });
+
+    it('has no world render on a plugin without one', () => {
+        stubObserver();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        render(<ResourcePage {...({...props(PLUGIN_TRAILERS.currencies), slug: 'currencies'}) as any}/>);
+        expect(screen.queryByTestId('plugin-world-render')).toBeNull();
     });
 
     it('has no preview section for a plugin without a clip', () => {
