@@ -6,6 +6,7 @@ import {NextLinkComposed} from './NextLinkComposed';
 import StartsSparkline from './StartsSparkline';
 import type {ProgramUsage} from '../utils/traceUsage';
 import {
+    SERVERS_COUNTED_NOTE,
     TRACE_HOW_IT_WORKS_URL,
     percentLabel,
     usageHeadline,
@@ -51,30 +52,32 @@ const UsagePanel: React.FC<UsagePanelProps> = ({usage, now}) => {
             </Stack>
 
             {headline.activeServers !== null ? (
-                <Box sx={{mb: 1}} data-testid="usage-active-servers">
-                    <Typography variant="h4" component="p" sx={{fontWeight: 700, lineHeight: 1.1, m: 0}}>
-                        {headline.activeServers.toLocaleString('en-US')}
+                <>
+                    <Box sx={{mb: 1}} data-testid="usage-active-servers">
+                        <Typography variant="h4" component="p" sx={{fontWeight: 700, lineHeight: 1.1, m: 0}}>
+                            {headline.activeServers.toLocaleString('en-US')}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">Active servers (30 days)</Typography>
+                    </Box>
+                    <Typography variant="body2" data-testid="usage-last-reported">
+                        {headline.lastReported ?? 'No use reported yet'}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">Active servers (30 days)</Typography>
-                </Box>
-            ) : null}
-
-            {headline.lastReported ? (
-                <Typography variant="body1" data-testid="usage-last-reported">{headline.lastReported}</Typography>
+                </>
             ) : (
-                <Typography variant="body1" data-testid="usage-last-reported">No use reported yet</Typography>
-            )}
-            {headline.starts ? (
-                <Typography variant="body2" color="text.secondary" data-testid="usage-starts">
-                    {headline.starts}
+                <Typography variant="body1" data-testid="usage-last-reported">
+                    {headline.lastReported ?? 'No use reported yet'}
                 </Typography>
-            ) : null}
-
-            {usage.startups30d > 0 && usage.days.length > 0 ? (
-                <Box sx={{mt: 2}}>
-                    <Typography variant="subtitle2" component="h3" gutterBottom>Server starts per day</Typography>
-                    <StartsSparkline days={usage.days}/>
-                </Box>
+            )}
+            <Typography variant="caption" color="text.secondary" component="p" sx={{mt: 0.5, mb: 0}} data-testid="usage-servers-note">
+                {headline.activeServers !== null
+                    ? SERVERS_COUNTED_NOTE
+                    : 'Servers are counted only from newer plugin versions, which send a per-server ID. '
+                        + 'None of this plugin\'s recent reports came from one, so no server count is shown.'}
+            </Typography>
+            {headline.starts ? (
+                <Typography variant="caption" color="text.secondary" component="p" sx={{m: 0}} data-testid="usage-starts">
+                    {headline.starts} (one server can start many times)
+                </Typography>
             ) : null}
 
             {shares ? (
@@ -97,6 +100,13 @@ const UsagePanel: React.FC<UsagePanelProps> = ({usage, now}) => {
                             </Box>
                         ))}
                     </Stack>
+                </Box>
+            ) : null}
+
+            {usage.startups30d > 0 && usage.days.length > 0 ? (
+                <Box sx={{mt: 2}}>
+                    <Typography variant="subtitle2" component="h3" gutterBottom>Server starts per day</Typography>
+                    <StartsSparkline days={usage.days}/>
                 </Box>
             ) : null}
 

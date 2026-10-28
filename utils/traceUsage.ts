@@ -3,7 +3,8 @@
  * it, read from trace's public, unauthenticated endpoints:
  *
  *   GET /api/public/programs/{name}  one program's last 30 days
- *   GET /api/public/summary          every program's name and last-seen time
+ *   GET /api/public/summary          every program's name, last-seen time and,
+ *                                    once trace counts them, distinct servers
  *
  * The per-program figures exclude CI, test-server, service and page-view
  * events, so they describe real servers. They are still *starts*, not
@@ -54,6 +55,11 @@ export interface ProgramUsage {
 export interface SummaryRow {
     application: string;
     lastSeen: string | null;
+    // Distinct servers trace has seen over roughly the last year, counted only
+    // from trace clients new enough to send a per-server ID (`install` tag).
+    // Null when trace does not send it (before it deployed the field) or when
+    // the value is not a count.
+    installs: number | null;
 }
 
 type Entry<T> = { value: T | undefined; fetchedAt: number };
@@ -124,7 +130,11 @@ export function parseProgramUsage(body: unknown): ProgramUsage | undefined {
     };
 }
 
-/** Validates the summary payload, keeping only the name and last-seen time (never the raw count). */
+/**
+ * Validates the summary payload, keeping the name, last-seen time and server
+ * count. The raw event counts (`count`, `uninstalled`) are dropped: they
+ * include restarts and, before trace filtered it, one server's command spam.
+ */
 export function parseSummary(body: unknown): SummaryRow[] | undefined {
     if (!Array.isArray(body)) {
         return undefined;
@@ -135,6 +145,7 @@ export function parseSummary(body: unknown): SummaryRow[] | undefined {
         .map((row) => ({
             application: row.application as string,
             lastSeen: isDateOrNull(row.lastSeen ?? null) ? (row.lastSeen ?? null) as string | null : null,
+            installs: isCount(row.installs) ? row.installs : null,
         }));
 }
 
@@ -186,7 +197,7 @@ export function getProgramUsage(traceName: string): Promise<ProgramUsage | undef
     );
 }
 
-/** Every program trace knows, with its last-seen time; undefined when unreachable. */
+/** Every program trace knows, with its last-seen time and server count; undefined when unreachable. */
 export function getUsageSummary(): Promise<SummaryRow[] | undefined> {
     return cached(
         summaryCache,

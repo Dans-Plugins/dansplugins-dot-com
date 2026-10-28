@@ -36,3 +36,14 @@ export const usageWithoutInstalls = (): ProgramUsage => ({
     ],
     days: thirtyDays(),
 });
+
+/**
+ * trace's /api/public/summary as it reads since trace#152: `installs` counts
+ * distinct servers (newer clients only), `count` and `uninstalled` are raw
+ * events. Fiefs' huge raw count stands in for one server's command flood.
+ */
+export const summaryWithInstalls = () => [
+    {application: 'MedievalFactions', count: 2400, installs: 31, uninstalled: 900, lastSeen: '2026-10-03T14:00:00Z'},
+    {application: 'Fiefs', count: 425000, installs: 3, uninstalled: 424000, lastSeen: '2026-10-03T00:00:00Z'},
+    {application: 'Currencies', count: 900, installs: null, uninstalled: 900, lastSeen: '2026-10-02T00:00:00Z'},
+];

@@ -16,7 +16,8 @@ describe('UsagePanel', () => {
         render(<UsagePanel usage={usageWithInstalls()} now={NOW}/>);
 
         expect(screen.getByTestId('usage-active-servers').textContent).toBe('57Active servers (30 days)');
-        expect(screen.getByTestId('usage-starts').textContent).toBe('412 server starts in the last 30 days');
+        expect(screen.getByTestId('usage-servers-note').textContent).toMatch(/only from newer plugin versions/);
+        expect(screen.getByTestId('usage-starts').textContent).toBe('412 server starts in the last 30 days (one server can start many times)');
         const versions = screen.getByTestId('usage-versions');
         expect(versions.getAttribute('data-basis')).toBe('servers');
         expect(versions.textContent).toContain('share of active servers');
@@ -28,12 +29,25 @@ describe('UsagePanel', () => {
 
         expect(screen.queryByTestId('usage-active-servers')).toBeNull();
         expect(screen.getByTestId('usage-last-reported').textContent).toBe('Last reported in use 2 days ago');
-        expect(screen.getByTestId('usage-starts').textContent).toBe('412 server starts in the last 30 days');
+        expect(screen.getByTestId('usage-servers-note').textContent).toMatch(/only from newer plugin versions.*no server count is shown/);
+        expect(screen.getByTestId('usage-starts').textContent).toBe('412 server starts in the last 30 days (one server can start many times)');
         const versions = screen.getByTestId('usage-versions');
         expect(versions.getAttribute('data-basis')).toBe('starts');
         expect(versions.textContent).toContain('share of server starts');
         expect(versions.textContent).toContain('73% · 300 starts');
         expect(container.textContent).not.toMatch(/install|active server/i);
+    });
+
+    it('leads with servers: the server count comes before starts, and starts come last', () => {
+        render(<UsagePanel usage={usageWithInstalls()} now={NOW}/>);
+
+        const order = ['usage-active-servers', 'usage-last-reported', 'usage-starts', 'usage-versions']
+            .map((id) => screen.getByTestId(id));
+        for (let i = 1; i < order.length; i++) {
+            expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        }
+        // The starts chart sits below the versions.
+        expect(order[3].compareDocumentPosition(screen.getByRole('img')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('attributes the figures to trace, links how it works, and says CI is excluded', () => {
