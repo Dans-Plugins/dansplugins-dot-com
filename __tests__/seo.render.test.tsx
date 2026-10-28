@@ -12,6 +12,8 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {cleanup, render} from '@testing-library/react';
 import type {ReactNode} from 'react';
+import {readFileSync} from 'fs';
+import {join} from 'path';
 
 vi.hoisted(() => {
     process.env.NEXT_PUBLIC_BASE_URL = 'https://dansplugins.com';
@@ -21,7 +23,7 @@ const router = vi.hoisted(() => ({asPath: '/'}));
 vi.mock('next/router', () => ({useRouter: () => ({pathname: router.asPath, asPath: router.asPath, query: {}, push: vi.fn()})}));
 vi.mock('next/head', () => ({default: ({children}: {children: ReactNode}) => <>{children}</>}));
 
-import Seo from '../components/Seo';
+import Seo, {DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE_ALT, SOCIAL_IMAGE_HEIGHT, SOCIAL_IMAGE_WIDTH} from '../components/Seo';
 
 const SITE_NAME = "Dan's Plugins Community";
 
@@ -116,9 +118,24 @@ describe('Seo social image', () => {
         expect(meta(container, 'og:image')).toBe('https://dansplugins.com/social-card.png');
         expect(meta(container, 'og:image:width')).toBe('1200');
         expect(meta(container, 'og:image:height')).toBe('630');
-        expect(meta(container, 'og:image:alt')).toMatch(/^Dan's Plugins Community — /);
+        expect(meta(container, 'og:image:type')).toBe('image/png');
+        expect(meta(container, 'og:image:alt')).toBe(DEFAULT_SOCIAL_IMAGE_ALT);
         expect(meta(container, 'twitter:card')).toBe('summary_large_image');
         expect(meta(container, 'twitter:image')).toBe('https://dansplugins.com/social-card.png');
+        expect(meta(container, 'twitter:image:alt')).toBe(DEFAULT_SOCIAL_IMAGE_ALT);
+    });
+
+    it('points at a real PNG of the declared size, whose alt text is its card spec\'s', () => {
+        const root = join(__dirname, '..');
+        const bytes = readFileSync(join(root, 'public', DEFAULT_SOCIAL_IMAGE));
+        expect(bytes.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+        expect({width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20)}).toEqual({
+            width: Number(SOCIAL_IMAGE_WIDTH),
+            height: Number(SOCIAL_IMAGE_HEIGHT)
+        });
+        const spec = JSON.parse(readFileSync(join(root, 'og-card', 'card.json'), 'utf8'));
+        expect(spec.output).toBe(`../public${DEFAULT_SOCIAL_IMAGE}`);
+        expect(DEFAULT_SOCIAL_IMAGE_ALT).toBe(spec.alt);
     });
 
     it('declares no dimensions for a page-supplied image, and alt text only when given', () => {

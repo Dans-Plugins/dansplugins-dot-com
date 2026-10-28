@@ -20,12 +20,17 @@ const BASE_URL = siteBaseUrl();
 // whenever a dansplugins.com link is shared (Discord above all, which is where
 // the community lives). The dimensions are the size Open Graph consumers
 // expect for a large card, and are declared below so scrapers can reserve the
-// right space before the image loads.
-const DEFAULT_SOCIAL_IMAGE = '/social-card.png';
-const SOCIAL_IMAGE_WIDTH = '1200';
-const SOCIAL_IMAGE_HEIGHT = '630';
-const DEFAULT_SOCIAL_IMAGE_ALT =
-    "Dan's Plugins Community — free, open-source plugins for Minecraft servers";
+// right space before the image loads. It is drawn from og-card/card.json
+// (invented faction claims rendered with Strata, the name over it; see
+// og-card/README.md), and DEFAULT_SOCIAL_IMAGE_ALT is that spec's alt text,
+// word for word — __tests__/seo.render.test.tsx fails if the two drift apart.
+export const DEFAULT_SOCIAL_IMAGE = '/social-card.png';
+export const SOCIAL_IMAGE_WIDTH = '1200';
+export const SOCIAL_IMAGE_HEIGHT = '630';
+export const DEFAULT_SOCIAL_IMAGE_ALT =
+    'A blocky Minecraft-style landscape divided into coloured faction claims, with banners and small houses, ' +
+    "rendered in 3D with Strata. Over it: the name Dan's Plugins Community, the tagline “Free, open-source " +
+    'plugins for Minecraft servers”, and the address dansplugins.com.';
 
 interface SeoProps {
     // Page-specific title; the site name is appended automatically. Omit on the
@@ -69,6 +74,7 @@ const Seo: React.FC<SeoProps> = ({title, description, path, image, imageAlt}) =>
             {imageUrl ? <meta property="og:image" content={imageUrl}/> : null}
             {/* Only the site card's dimensions are known here; a page supplying
                 its own image would be misdescribed by hard-coded values. */}
+            {imageUrl && usingDefaultImage ? <meta property="og:image:type" content="image/png"/> : null}
             {imageUrl && usingDefaultImage ? <meta property="og:image:width" content={SOCIAL_IMAGE_WIDTH}/> : null}
             {imageUrl && usingDefaultImage ? <meta property="og:image:height" content={SOCIAL_IMAGE_HEIGHT}/> : null}
             {imageUrl && alt ? <meta property="og:image:alt" content={alt}/> : null}
