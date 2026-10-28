@@ -15,7 +15,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
-    "@kingdom-community/community-site-kit": "github:kingdom-community/community-site-kit#4e81b629ad59104fe4119b41efee56c39ffa6f2f",
+    "@kingdom-community/community-site-kit": "github:kingdom-community/community-site-kit#d5945ac5259e20d47332cdf8a54bb1b77aff50af",
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.8.7",
     "markdown-to-jsx": "^9.8.2",
