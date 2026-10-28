@@ -1,0 +1,45 @@
+{
+  "tool": "community-site-kit tools/og-card/og_card.py",
+  "tool_repository": "https://github.com/kingdom-community/community-site-kit",
+  "tool_commit": "0a22904074f8f633ff1495eadae1625d271da140",
+  "command": "python3 tools/og-card/og_card.py <site>/og-card/card.json",
+  "renderer": {
+    "engine": "Strata",
+    "version": "0.6.0",
+    "asset": "libstrata-0.6.0-linux-x64.so",
+    "asset_sha256": "3815068f90afa67b42177359a7ea918a5de321d7f7bad8706fa5275c4906af2a",
+    "library_sha256": "3815068f90afa67b42177359a7ea918a5de321d7f7bad8706fa5275c4906af2a",
+    "binding": "strata-engine 0.6.0",
+    "gpu": "llvmpipe (LLVM 12.0.0, 256 bits) | 4.5 (Core Profile) Mesa 21.2.6"
+  },
+  "text": {
+    "pillow": "10.4.0",
+    "fonts": {
+      "DejaVuSans-Bold.ttf": "aa2ebed70cf6a389400a49feeb976c785de411f387d0cff998472590760cc2b6",
+      "DejaVuSans.ttf": "437a5ecec2ec177cba9284cbffc56055311347f3e9fe4f2b4b40323d0290a6db"
+    }
+  },
+  "python": "3.11.15",
+  "spec": {
+    "accent": "#5c7cfa",
+    "alt": "A blocky Minecraft-style landscape divided into coloured faction claims, with banners and small houses, rendered in 3D with Strata. Over it: the name Dan's Plugins Community, the tagline \u201cFree, open-source plugins for Minecraft servers\u201d, and the address dansplugins.com.",
+    "credit": "Rendered with Strata",
+    "output": "../public/social-card.png",
+    "scene": "claims",
+    "seed": 11,
+    "subtitle": "Free, open-source plugins for Minecraft servers",
+    "sun": {
+      "azimuth": 75.0,
+      "elevation": 45.0
+    },
+    "title": "Dan's Plugins Community",
+    "url": "dansplugins.com",
+    "wordmark": "Minecraft plugins"
+  },
+  "output": {
+    "path": "../public/social-card.png",
+    "width": 1200,
+    "height": 630,
+    "sha256": "076d90651a4469e5051448d768e299cbd0deefa0fa0a0080a1f2ac232bf3b520"
+  }
+}

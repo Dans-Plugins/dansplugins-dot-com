@@ -1,0 +1,16 @@
+{
+  "comment": "The link-preview card (public/social-card.png). Rendered by community-site-kit tools/og-card; see og-card/README.md.",
+  "output": "../public/social-card.png",
+  "scene": "claims",
+  "seed": 11,
+  "sun": {
+    "azimuth": 75,
+    "elevation": 45
+  },
+  "wordmark": "Minecraft plugins",
+  "title": "Dan's Plugins Community",
+  "subtitle": "Free, open-source plugins for Minecraft servers",
+  "url": "dansplugins.com",
+  "accent": "#5c7cfa",
+  "alt": "A blocky Minecraft-style landscape divided into coloured faction claims, with banners and small houses, rendered in 3D with Strata. Over it: the name Dan's Plugins Community, the tagline “Free, open-source plugins for Minecraft servers”, and the address dansplugins.com."
+}

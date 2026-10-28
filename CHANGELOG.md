@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- The social card (`public/social-card.png`) is redrawn as a 3D scene: a blocky landscape divided into invented faction claims, with banners and houses, rendered with [Strata](https://github.com/Preponderous-Software/strata), with the name, tagline and address over it. Its alt text now describes the picture, and `components/Seo.tsx` also emits `og:image:type`. The card is drawn from `og-card/card.json` by community-site-kit's `tools/og-card` and is pre-rendered, so nothing 3D runs on the site.
 - `USER_GUIDE.md` corrections: a plugin page's SpigotMC download count is described as shown whenever SpigotMC reports one (only the rating waits for three reviews); the preview-clip step names the 3D world clips (Wild Pets, Dan's Spawn System) alongside the chat and BlueMap clips; and the catalogue-editing steps say to use **Sign in** in the navigation bar rather than an "Account" page link that no longer appears under that name.
 - `CONFIG.md`'s crawler-document notes and `RESOURCE_HUB.md`'s tags row no longer name the deleted `pages/data/plugins.json` as a source: the sitemap's per-plugin pages come from the catalogue `dpc-api` serves (and include the `/resources/[slug]` pages, which the note left out), and tags live in `plugin_tags`, edited at `/admin/plugins`.
 - `CONFIG.md` and `README.md` list every value of `USAGE_REPORTING_ENABLED` that turns page-view reporting off — `false`, `0`, `no` and `off`, in any case — where they named only `false`.
