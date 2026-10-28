@@ -6,7 +6,7 @@ import {
     getUsageSummary,
     parseProgramUsage
 } from '../utils/traceUsage';
-import {usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
+import {summaryWithInstalls, usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
 
 const ok = (body: unknown) => ({ok: true, json: async () => body} as unknown as Response);
 const status = (code: number, text: string) => ({ok: false, status: code, statusText: text} as Response);
@@ -120,8 +120,26 @@ describe('getUsageSummary', () => {
             {application: 'MedievalFactions', count: 9000, lastSeen: '2026-10-03T00:00:00Z'},
             {nonsense: true},
         ])));
-        expect(await getUsageSummary()).toEqual([{application: 'MedievalFactions', lastSeen: '2026-10-03T00:00:00Z'}]);
+        // A trace from before installs were summarised: no server count, not a zero.
+        expect(await getUsageSummary()).toEqual([{application: 'MedievalFactions', lastSeen: '2026-10-03T00:00:00Z', installs: null}]);
         expect(fetchMock().mock.calls[0][0]).toBe('https://trace.danielstephenson.dev/api/public/summary');
+    });
+
+    it('keeps the distinct-server count and drops both raw event counts', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok(summaryWithInstalls())));
+        expect(await getUsageSummary()).toEqual([
+            {application: 'MedievalFactions', lastSeen: '2026-10-03T14:00:00Z', installs: 31},
+            {application: 'Fiefs', lastSeen: '2026-10-03T00:00:00Z', installs: 3},
+            {application: 'Currencies', lastSeen: '2026-10-02T00:00:00Z', installs: null},
+        ]);
+    });
+
+    it('treats a server count that is not a count as absent', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok([
+            {application: 'A', installs: -1, lastSeen: null},
+            {application: 'B', installs: '12', lastSeen: null},
+        ])));
+        expect((await getUsageSummary())?.map((r) => r.installs)).toEqual([null, null]);
     });
 
     it('resolves to undefined when trace cannot be reached, and caches that', async () => {

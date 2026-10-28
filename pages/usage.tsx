@@ -13,7 +13,13 @@ import {colorForTitle} from '../utils/pluginAvatar';
 import {resourcePath} from '../utils/resources';
 import {TRACE_PROGRAM_NAMES, traceReportingSlugs} from '../utils/traceNames';
 import {getProgramUsage, getUsageSummary, ProgramUsage} from '../utils/traceUsage';
-import {activeServersLabel, rankUsage, usageHeadline} from '../utils/usageDisplay';
+import {
+    SERVERS_COUNTED_NOTE,
+    activeServersLabel,
+    rankUsage,
+    serversSeenLabel,
+    usageHeadline
+} from '../utils/usageDisplay';
 
 const version = require('../package.json').version;
 
@@ -23,6 +29,9 @@ interface UsageRow {
     icon: string | null;
     // Null when trace has no figures for the plugin, or can't be reached.
     usage: ProgramUsage | null;
+    // Distinct servers over about the past year, from trace's summary; null
+    // until trace sends the field, or for a plugin no newer version reported.
+    serversYear: number | null;
 }
 
 interface UsagePageProps {
@@ -36,10 +45,11 @@ export const getServerSideProps: GetServerSideProps<UsagePageProps> = async () =
     // plugin that has never reported costs no request of its own. If the
     // summary itself is unavailable every plugin is asked; each answer is
     // cached (utils/traceUsage.ts) and a failure is just a row without figures.
-    // The summary's own counts are raw events, CI runs included, and are
-    // deliberately not shown.
+    // The summary's distinct-server count (`installs`) is used; its raw event
+    // counts are dropped in utils/traceUsage.ts and never shown.
     const [catalogue, summary] = await Promise.all([getCatalogue(), getUsageSummary()]);
     const known = summary ? new Set(summary.map((row) => row.application)) : null;
+    const installsByName = new Map((summary ?? []).map((row) => [row.application, row.installs]));
     const slugs = traceReportingSlugs();
     const usages = await Promise.all(slugs.map((slug) => {
         const name = TRACE_PROGRAM_NAMES[slug];
@@ -52,6 +62,7 @@ export const getServerSideProps: GetServerSideProps<UsagePageProps> = async () =
             title: plugin?.title ?? TRACE_PROGRAM_NAMES[slug],
             icon: plugin?.icon ?? null,
             usage: usages[i] ?? null,
+            serversYear: installsByName.get(TRACE_PROGRAM_NAMES[slug]) ?? null,
         };
     });
     return {props: {rows: rankUsage(rows), renderedAt: Date.now()}};
@@ -77,18 +88,29 @@ const UsageListRow: React.FC<{row: UsageRow; now: number}> = ({row, now}) => {
                 <Link component={NextLinkComposed} to={resourcePath(row.slug)} variant="subtitle1" sx={{fontWeight: 600}}>
                     {row.title}
                 </Link>
-                {headline ? (
+                {headline || row.serversYear !== null ? (
                     <>
-                        {headline.activeServers !== null ? (
-                            <Typography variant="body2" sx={{fontWeight: 600}} data-testid="usage-row-servers">
+                        {headline?.activeServers != null ? (
+                            <Typography variant="body1" sx={{fontWeight: 700}} data-testid="usage-row-servers">
                                 {activeServersLabel(headline.activeServers)} (30 days)
                             </Typography>
                         ) : null}
-                        <Typography variant="body2" data-testid="usage-row-last-reported">
-                            {headline.lastReported ?? 'No use reported yet'}
-                        </Typography>
-                        {headline.starts ? (
-                            <Typography variant="body2" color="text.secondary" data-testid="usage-row-starts">
+                        {row.serversYear !== null ? (
+                            <Typography
+                                variant={headline?.activeServers != null ? 'body2' : 'body1'}
+                                sx={{fontWeight: headline?.activeServers != null ? 400 : 700}}
+                                data-testid="usage-row-servers-year"
+                            >
+                                {serversSeenLabel(row.serversYear)}
+                            </Typography>
+                        ) : null}
+                        {headline ? (
+                            <Typography variant="body2" data-testid="usage-row-last-reported">
+                                {headline.lastReported ?? 'No use reported yet'}
+                            </Typography>
+                        ) : null}
+                        {headline?.starts ? (
+                            <Typography variant="caption" color="text.secondary" component="p" sx={{m: 0}} data-testid="usage-row-starts">
                                 {headline.starts}
                             </Typography>
                         ) : null}
@@ -109,13 +131,14 @@ const UsageListRow: React.FC<{row: UsageRow; now: number}> = ({row, now}) => {
 };
 
 const Usage: NextPage<UsagePageProps> = ({rows, renderedAt}) => {
-    const anyFigures = rows.some((row) => row.usage !== null);
-    const anyServerCounts = rows.some((row) => typeof row.usage?.activeInstalls30d === 'number');
+    const anyFigures = rows.some((row) => row.usage !== null || row.serversYear !== null);
+    const anyServerCounts = rows.some((row) =>
+        typeof row.usage?.activeInstalls30d === 'number' || row.serversYear !== null);
     return (
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo
                 title="Plugin usage"
-                description="Which Dan's Plugins are in use on real servers, as reported by trace over the last 30 days. CI and test servers are excluded."
+                description="How many servers run each of Dan's Plugins, as reported by trace: active servers in the last 30 days and servers seen in the past year. CI and test servers are excluded."
                 path="/usage"
             />
             <TopBar/>
@@ -124,16 +147,16 @@ const Usage: NextPage<UsagePageProps> = ({rows, renderedAt}) => {
                     Plugin usage
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    Servers running our plugins report when they start, through{' '}
-                    <Link href="https://trace.danielstephenson.dev" target="_blank" rel="noopener noreferrer">trace</Link>.
-                    These are the last 30 days of those reports.
+                    How many servers run each plugin, as the plugins report to{' '}
+                    <Link href="https://trace.danielstephenson.dev" target="_blank" rel="noopener noreferrer">trace</Link>:
+                    active servers in the last 30 days, and servers seen in the past year.
                 </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                    A server start is not a server: one server restarting every night counts thirty times. Plugins that
-                    report a server ID are counted as active servers; for the rest, this page says only when the plugin
-                    was last reported in use and how many starts were seen.
+                <Typography variant="body2" color="text.secondary" gutterBottom data-testid="usage-servers-note">
+                    {SERVERS_COUNTED_NOTE} A plugin with no newer version in use shows only when it was last reported
+                    in use. Server starts are shown in small print: one server restarting every night counts thirty
+                    times, so starts are not servers.
                     {anyServerCounts
-                        ? ' Plugins are listed by active servers, then by how recently they were reported.'
+                        ? ' Plugins are listed by active servers, then by servers seen in the past year, then by how recently they were reported.'
                         : ' Plugins are listed by how recently they were reported in use.'}
                 </Typography>
                 <Box sx={{mb: 3}}>

@@ -1,5 +1,13 @@
 import {describe, expect, it} from 'vitest';
-import {percentLabel, rankUsage, startsLabel, usageHeadline, versionShares} from '../utils/usageDisplay';
+import {
+    SERVERS_COUNTED_NOTE,
+    percentLabel,
+    rankUsage,
+    serversSeenLabel,
+    startsLabel,
+    usageHeadline,
+    versionShares
+} from '../utils/usageDisplay';
 import type {ProgramUsage} from '../utils/traceUsage';
 import {usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
 
@@ -29,6 +37,17 @@ describe('usageHeadline', () => {
     it('labels a single start in the singular', () => {
         expect(startsLabel(1)).toBe('1 server start in the last 30 days');
         expect(startsLabel(1234)).toBe('1,234 server starts in the last 30 days');
+    });
+});
+
+describe('server labels', () => {
+    it('counts servers seen in the past year, singular and grouped', () => {
+        expect(serversSeenLabel(1)).toBe('1 server seen in the past year');
+        expect(serversSeenLabel(1234)).toBe('1,234 servers seen in the past year');
+    });
+
+    it('says that only newer plugin versions are counted', () => {
+        expect(SERVERS_COUNTED_NOTE).toMatch(/only from newer plugin versions/);
     });
 });
 
@@ -96,5 +115,16 @@ describe('rankUsage', () => {
             row('NeverSeen', {lastSeen: null}),
         ]);
         expect(ranked.map((r) => r.title)).toEqual(['ManyServers', 'FewServers', 'Recent', 'OldButBusy', 'NeverSeen', 'Nothing']);
+    });
+
+    it('ranks by servers seen in the past year after active servers and before recency', () => {
+        const ranked = rankUsage([
+            {...row('Recent', {lastSeen: '2026-10-03T00:00:00Z', startups30d: 425000}), serversYear: null},
+            {...row('YearFew', {lastSeen: '2026-09-01T00:00:00Z'}), serversYear: 2},
+            {...row('YearMany', {lastSeen: '2026-09-01T00:00:00Z'}), serversYear: 20},
+            {...row('Active', {activeInstalls30d: 1}), serversYear: 1},
+            {...row('YearOnly', null), serversYear: 5},
+        ]);
+        expect(ranked.map((r) => r.title)).toEqual(['Active', 'YearMany', 'YearOnly', 'YearFew', 'Recent']);
     });
 });

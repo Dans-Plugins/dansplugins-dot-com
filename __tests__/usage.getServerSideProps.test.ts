@@ -5,13 +5,14 @@ import {getServerSideProps} from '../pages/usage';
 import {clearTraceUsageCache} from '../utils/traceUsage';
 import {clearCatalogueCache} from '../services/pluginCatalogueService';
 import {catalogueResponse} from './fixtures/catalogue';
-import {usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
+import {summaryWithInstalls, usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
 
 interface Row {
     slug: string;
     title: string;
     icon: string | null;
     usage: {application: string} | null;
+    serversYear: number | null;
 }
 
 const ctx = {} as GetServerSidePropsContext;
@@ -73,6 +74,21 @@ describe('/usage getServerSideProps', () => {
         expect(rows[0].title).toBe('Currencies');
         expect(rows.find((r) => r.slug === 'wild-pets')?.title).toBe('WildPets');
         expect(rows.slice(2).every((r) => r.usage === null)).toBe(true);
+    });
+
+    it('carries the summary\'s servers-in-the-past-year count and ranks by it, never by raw events', async () => {
+        stub(summaryWithInstalls(), {
+            MedievalFactions: {...usageWithoutInstalls(), application: 'MedievalFactions'},
+            Fiefs: {...usageWithoutInstalls(), application: 'Fiefs', startups30d: 425000},
+            Currencies: {...usageWithoutInstalls(), application: 'Currencies'},
+        });
+
+        const {rows} = await run();
+
+        expect(rows.slice(0, 3).map((r) => [r.slug, r.serversYear])).toEqual([
+            ['medieval-factions', 31], ['fiefs', 3], ['currencies', null],
+        ]);
+        expect(rows.find((r) => r.slug === 'wild-pets')?.serversYear).toBeNull();
     });
 
     it('asks about every plugin when the summary is unavailable, and degrades to no figures on 404s', async () => {

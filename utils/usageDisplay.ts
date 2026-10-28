@@ -1,12 +1,16 @@
 // How trace's usage figures are put into words. Pure functions, so the
 // labelling rules — the reason this exists — are pinned by unit tests.
 //
-// The rules (from a 2026-10-03 audit that found raw event counts misleading):
-//  - A raw event count is never called "installs" or "servers". "Active
-//    servers" appears only when trace counted distinct servers
-//    (activeInstalls30d is a number).
-//  - Otherwise the plugin gets "Last reported in use <when>", plus its starts
-//    in the last 30 days, labelled as starts.
+// The rules (from a 2026-10-03 audit that found raw event counts misleading,
+// and a 2026-10 flood of one third-party server's command events):
+//  - Servers lead. A raw event count is never called "installs" or
+//    "servers". "Active servers" appears only when trace counted distinct
+//    servers (activeInstalls30d is a number); "servers seen in the past year"
+//    only when trace's summary counted them (its `installs`).
+//  - Every server figure is a floor: only plugin versions on a newer trace
+//    client send a server ID, so each view says so (SERVERS_COUNTED_NOTE).
+//  - Without a server count the plugin gets "Last reported in use <when>".
+//    Starts in the last 30 days are secondary text, labelled as starts.
 //  - Version adoption is a share of active servers when trace has per-version
 //    server counts, and a share of starts — labelled so — when it does not.
 
@@ -20,6 +24,11 @@ export const TRACE_HOW_IT_WORKS_URL = 'https://danielstephenson.dev/usage-report
 export const TOP_VERSIONS = 5;
 
 const plural = (n: number, one: string, many: string): string => `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
+
+/** Shown wherever a server count is: why the figure can be lower than the real number. */
+export const SERVERS_COUNTED_NOTE =
+    'Servers are counted only from newer plugin versions, which send a per-server ID; '
+    + 'servers on older versions are not counted, so the real number can be higher.';
 
 export const startsLabel = (starts: number): string =>
     `${plural(starts, 'server start', 'server starts')} in the last 30 days`;
@@ -44,6 +53,9 @@ export function usageHeadline(usage: ProgramUsage, now: number): UsageHeadline {
 }
 
 export const activeServersLabel = (n: number): string => plural(n, 'active server', 'active servers');
+
+export const serversSeenLabel = (n: number): string =>
+    `${plural(n, 'server', 'servers')} seen in the past year`;
 
 export interface VersionShareRow {
     label: string;
@@ -99,15 +111,19 @@ export interface RankableUsage {
     slug: string;
     title: string;
     usage: ProgramUsage | null;
+    // Distinct servers over the past year, from trace's summary; null or absent when not counted.
+    serversYear?: number | null;
 }
 
 /**
- * The /usage page's order: plugins with a server count first (most servers
- * first), then the rest by how recently they were last reported in use, then
- * plugins trace has nothing for, alphabetically. Never by raw starts.
+ * The /usage page's order: plugins with an active-server count first (most
+ * first), then by servers seen in the past year, then the rest by how
+ * recently they were last reported in use, then plugins trace has nothing
+ * for, alphabetically. Never by raw starts.
  */
 export function rankUsage<T extends RankableUsage>(rows: readonly T[]): T[] {
     const servers = (r: T) => (typeof r.usage?.activeInstalls30d === 'number' ? r.usage.activeInstalls30d : null);
+    const year = (r: T) => (typeof r.serversYear === 'number' ? r.serversYear : null);
     const seen = (r: T) => {
         const t = r.usage?.lastSeen ? new Date(r.usage.lastSeen).getTime() : NaN;
         return Number.isNaN(t) ? null : t;
@@ -119,6 +135,13 @@ export function rankUsage<T extends RankableUsage>(rows: readonly T[]): T[] {
             if (sa === null) return 1;
             if (sb === null) return -1;
             if (sa !== sb) return sb - sa;
+        }
+        const ya = year(a);
+        const yb = year(b);
+        if (ya !== null || yb !== null) {
+            if (ya === null) return 1;
+            if (yb === null) return -1;
+            if (ya !== yb) return yb - ya;
         }
         const ta = seen(a);
         const tb = seen(b);
