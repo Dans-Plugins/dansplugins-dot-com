@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Faction Map and FlyCommand are in the plugin catalogue (`V27`, additive). Both have had a stable GitHub release with a jar since the last audit of the organization (FlyCommand 1.0.0, Faction Map 0.1.0 and 0.2.0); neither is on SpigotMC yet. Radios, Cellphones and the planned plugins are still left out, having no stable release.
 - The Medieval Factions page shows two world renders under its preview clip, both drawn from example data with [Strata](https://github.com/Preponderous-Software/strata) 0.6.0 rather than recorded from a server: example factions' claims over a vanilla world, and a faction archipelago (islands sized by member count, bridges for alliances, fleets for wars, chained islets for vassals). `PLUGIN_WORLD_RENDERS` in `utils/pluginTrailers.ts` now holds a list per plugin (`worldRendersFor`), shown in order; the files are in `public/renders/` and are made by `scripts/previews/strata/` (see its README).
 
 ### Changed
