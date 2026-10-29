@@ -162,6 +162,21 @@ class FlywayMigrationTest {
     }
 
     @Test
+    void factionMapAndFlyCommandAreCatalogued() {
+        // V27 adds the two plugins that gained a stable release since V21's audit.
+        Plugin factionMap = pluginRepository.findBySlug("faction-map").orElseThrow();
+        assertThat(factionMap.getTitle()).isEqualTo("Faction Map");
+        assertThat(factionMap.getGithubUrl()).isEqualTo("https://github.com/Dans-Plugins/Faction-Map");
+        assertThat(factionMap.getSpigotmcUrl()).isNull();
+        // A soft dependency on Medieval Factions only, so no requires edge.
+        assertThat(factionMap.getRequires()).isEmpty();
+
+        Plugin flyCommand = pluginRepository.findBySlug("flycommand").orElseThrow();
+        assertThat(flyCommand.getTitle()).isEqualTo("FlyCommand");
+        assertThat(flyCommand.getGithubUrl()).isEqualTo("https://github.com/Dans-Plugins/FlyCommand");
+    }
+
+    @Test
     void pluginVersionsRoundTripWithTheirAssets() {
         // V16's two tables are created empty, so this is the only place their
         // shape is exercised against real Postgres: the foreign key to plugins,
