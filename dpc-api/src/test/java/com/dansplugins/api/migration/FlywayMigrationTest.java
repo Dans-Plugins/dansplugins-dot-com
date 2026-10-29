@@ -135,9 +135,13 @@ class FlywayMigrationTest {
                 .isEqualTo("Dan's Essentials");
 
         // The catalogue file spells "no SpigotMC page" as ""; the table stores NULL.
-        Plugin unpublished = pluginRepository.findBySlug("medieval-cookery").orElseThrow();
+        Plugin unpublished = pluginRepository.findBySlug("bluemap-medieval-factions").orElseThrow();
         assertThat(unpublished.getSpigotmcUrl()).isNull();
         assertThat(unpublished.getBstatsId()).isNull();
+
+        // V28 fills in a SpigotMC link only where none was set.
+        assertThat(pluginRepository.findBySlug("medieval-cookery").orElseThrow().getSpigotmcUrl())
+                .isEqualTo("https://www.spigotmc.org/resources/medieval-cookery.140092/");
     }
 
     @Test
