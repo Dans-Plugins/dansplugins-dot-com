@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The Medieval Factions page shows two world renders under its preview clip, both drawn from example data with [Strata](https://github.com/Preponderous-Software/strata) 0.6.0 rather than recorded from a server: example factions' claims over a vanilla world, and a faction archipelago (islands sized by member count, bridges for alliances, fleets for wars, chained islets for vassals). `PLUGIN_WORLD_RENDERS` in `utils/pluginTrailers.ts` now holds a list per plugin (`worldRendersFor`), shown in order; the files are in `public/renders/` and are made by `scripts/previews/strata/` (see its README).
+
 ### Changed
 
 - `/usage` and a plugin page's Usage panel lead with servers instead of raw event counts. `/usage` reads trace's distinct-server count from `/api/public/summary` (`installs`, servers seen over about the past year; absent on a trace that does not send it yet, in which case the row falls back to what it showed before) and shows it beside active servers (30 days); plugins are ranked by active servers, then servers in the past year, then recency. Server starts move to small print, the panel's starts-per-day chart moves below the versions, and both views say servers are counted only from newer plugin versions, so the real number can be higher. The summary's raw `count` and `uninstalled` event counts are still dropped and never shown.
