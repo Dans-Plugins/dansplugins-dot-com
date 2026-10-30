@@ -5,7 +5,7 @@
 import {afterEach, describe, expect, it} from 'vitest';
 import {cleanup, render, screen} from '@testing-library/react';
 import UsagePanel from '../components/UsagePanel';
-import {usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
+import {usageWithDailyServers, usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
 
 afterEach(cleanup);
 
@@ -64,5 +64,35 @@ describe('UsagePanel', () => {
 
         const chart = screen.getByRole('img');
         expect(chart.getAttribute('aria-label')).toMatch(/^Server starts per day from Sep 4 to Oct 3: \d+ in total, peaking at 7 on /);
+        expect(chart.getAttribute('aria-label')).toMatch(/(Up|Down) \d+%|Steady/);
+    });
+
+    it('draws only the starts trend while trace serves no per-day server count, and says how it changed', () => {
+        render(<UsagePanel usage={usageWithInstalls()} now={NOW}/>);
+
+        expect(screen.queryByTestId('trend-servers')).toBeNull();
+        expect(screen.getByRole('heading', {name: 'Server starts per day'})).toBeTruthy();
+        expect(screen.getByTestId('trend-starts-change').textContent).toMatch(/: last 14 days vs the 14 before$/);
+    });
+
+    it('draws the servers trend first once trace sends per-day servers, the headline still on top', () => {
+        render(<UsagePanel usage={usageWithDailyServers()} now={NOW}/>);
+
+        const headline = screen.getByTestId('usage-active-servers');
+        const servers = screen.getByTestId('trend-servers');
+        const starts = screen.getByTestId('trend-starts');
+        expect(headline.compareDocumentPosition(servers) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(servers.compareDocumentPosition(starts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(screen.getByRole('heading', {name: 'Active servers per day'})).toBeTruthy();
+        expect(screen.getByTestId('trend-servers-change').textContent).toBe('Up 50%: last 14 days vs the 14 before');
+        // Starts count coalesced repeats: 430 uses, not 412 raw starts.
+        expect(screen.getByTestId('usage-starts').textContent).toMatch(/^430 server starts/);
+    });
+
+    it('draws no trend when nothing started and no servers were counted per day', () => {
+        render(<UsagePanel usage={{...usageWithoutInstalls(), startups30d: 0, days: []}} now={NOW}/>);
+
+        expect(screen.queryByTestId('usage-trends')).toBeNull();
+        expect(screen.queryByRole('img')).toBeNull();
     });
 });

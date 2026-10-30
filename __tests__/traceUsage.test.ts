@@ -6,7 +6,7 @@ import {
     getUsageSummary,
     parseProgramUsage
 } from '../utils/traceUsage';
-import {summaryWithInstalls, usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
+import {liveProgramBody, summaryWithInstalls, usageWithDailyServers, usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
 
 const ok = (body: unknown) => ({ok: true, json: async () => body} as unknown as Response);
 const status = (code: number, text: string) => ({ok: false, status: code, statusText: text} as Response);
@@ -111,6 +111,34 @@ describe('parseProgramUsage', () => {
     it('treats an absent activeInstalls30d as null', () => {
         const {activeInstalls30d: _omitted, ...rest} = usageWithInstalls();
         expect(parseProgramUsage(rest)?.activeInstalls30d).toBeNull();
+    });
+
+    it('keeps the uses trace serves today: startupUses30d and each day\'s startupUses', () => {
+        const usage = parseProgramUsage(liveProgramBody());
+        expect(usage?.startupUses30d).toBe(1626);
+        expect(usage?.days).toEqual([
+            {day: '2026-10-27', startups: 50, startupUses: 50},
+            {day: '2026-10-28', startups: 48, startupUses: 48},
+            {day: '2026-10-29', startups: 40, startupUses: 40},
+        ]);
+    });
+
+    it('keeps a per-day server count when one is sent, null included', () => {
+        expect(parseProgramUsage(usageWithDailyServers())?.days[0].installs).toBe(20);
+        const body = {...usageWithInstalls(), days: [{day: '2026-10-01', startups: 2, installs: null}]};
+        expect(parseProgramUsage(body)?.days).toEqual([{day: '2026-10-01', startups: 2, installs: null}]);
+    });
+
+    it('leaves out (never sets undefined) uses and servers that are absent or not counts', () => {
+        const body = {
+            ...usageWithInstalls(),
+            startupUses30d: 'many',
+            days: [{day: '2026-10-01', startups: 2}, {day: '2026-10-02', startups: 3, startupUses: -1, installs: 'x'}],
+        };
+        const usage = parseProgramUsage(body)!;
+        expect('startupUses30d' in usage).toBe(false);
+        expect(usage.days).toEqual([{day: '2026-10-01', startups: 2}, {day: '2026-10-02', startups: 3}]);
+        expect(usage.days.every((d) => !('startupUses' in d) && !('installs' in d))).toBe(true);
     });
 });
 

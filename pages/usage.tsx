@@ -4,7 +4,7 @@ import React from 'react';
 import TopBar from '../components/TopBar';
 import Seo from '../components/Seo';
 import BottomBar from '../components/BottomBar';
-import StartsSparkline from '../components/StartsSparkline';
+import TrendSparkline from '../components/TrendSparkline';
 import {TraceAttribution} from '../components/UsagePanel';
 import {NextLinkComposed} from '../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles';
@@ -20,6 +20,7 @@ import {
     serversSeenLabel,
     usageHeadline
 } from '../utils/usageDisplay';
+import {usageTrends} from '../utils/usageTrends';
 
 const version = require('../package.json').version;
 
@@ -70,6 +71,7 @@ export const getServerSideProps: GetServerSideProps<UsagePageProps> = async () =
 
 const UsageListRow: React.FC<{row: UsageRow; now: number}> = ({row, now}) => {
     const headline = row.usage ? usageHeadline(row.usage, now) : null;
+    const trends = row.usage ? usageTrends(row.usage, now) : null;
     return (
         <Paper
             component="li"
@@ -121,9 +123,15 @@ const UsageListRow: React.FC<{row: UsageRow; now: number}> = ({row, now}) => {
                     </Typography>
                 )}
             </Box>
-            {row.usage && row.usage.startups30d > 0 && row.usage.days.length > 0 ? (
-                <Box sx={{flex: '1 1 8rem', maxWidth: {xs: '100%', sm: 180}}}>
-                    <StartsSparkline days={row.usage.days} height={32} showLabels={false}/>
+            {trends && (trends.servers || trends.starts) ? (
+                // Full width under the text on a phone; a narrow column beside it from sm up.
+                <Box
+                    sx={{flex: '1 1 8rem', maxWidth: {xs: '100%', sm: 180}, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.75}}
+                    data-testid="usage-row-trends"
+                >
+                    {[trends.servers, trends.starts].map((trend) => (trend
+                        ? <TrendSparkline key={trend.kind} trend={trend} height={28} variant="compact"/>
+                        : null))}
                 </Box>
             ) : null}
         </Paper>
@@ -154,7 +162,9 @@ const Usage: NextPage<UsagePageProps> = ({rows, renderedAt}) => {
                 <Typography variant="body2" color="text.secondary" gutterBottom data-testid="usage-servers-note">
                     {SERVERS_COUNTED_NOTE} A plugin with no newer version in use shows only when it was last reported
                     in use. Server starts are shown in small print: one server restarting every night counts thirty
-                    times, so starts are not servers.
+                    times, so starts are not servers. Each row&apos;s small chart shows server starts per day over the
+                    last 30 days, and whether its later half is up or down on its earlier half (today, still
+                    under way, is left out of that comparison).
                     {anyServerCounts
                         ? ' Plugins are listed by active servers, then by servers seen in the past year, then by how recently they were reported.'
                         : ' Plugins are listed by how recently they were reported in use.'}
