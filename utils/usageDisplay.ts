@@ -16,6 +16,7 @@
 
 import {relativeTimeFrom} from './relativeTime';
 import type {ProgramUsage} from './traceUsage';
+import {windowStarts} from './usageTrends';
 
 /** Where the figures come from and how they are collected; every usage view links it. */
 export const TRACE_HOW_IT_WORKS_URL = 'https://danielstephenson.dev/usage-reporting';
@@ -48,7 +49,8 @@ export function usageHeadline(usage: ProgramUsage, now: number): UsageHeadline {
     return {
         activeServers,
         lastReported: when ? `Last reported in use ${when}` : null,
-        starts: usage.startups30d > 0 ? startsLabel(usage.startups30d) : null,
+        // Coalesced starts count as the starts they stand for (startupUses30d).
+        starts: windowStarts(usage) > 0 ? startsLabel(windowStarts(usage)) : null,
     };
 }
 

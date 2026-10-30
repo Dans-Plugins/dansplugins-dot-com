@@ -3,7 +3,7 @@ import {Box, Link, Paper, Stack, Typography} from '@mui/material';
 import InsightsIcon from '@mui/icons-material/Insights';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {NextLinkComposed} from './NextLinkComposed';
-import StartsSparkline from './StartsSparkline';
+import TrendSparkline from './TrendSparkline';
 import type {ProgramUsage} from '../utils/traceUsage';
 import {
     SERVERS_COUNTED_NOTE,
@@ -12,6 +12,7 @@ import {
     usageHeadline,
     versionShares
 } from '../utils/usageDisplay';
+import {usageTrends} from '../utils/usageTrends';
 
 /** The "where these figures come from" line every usage view carries. */
 export const TraceAttribution: React.FC = () => (
@@ -38,6 +39,7 @@ interface UsagePanelProps {
 const UsagePanel: React.FC<UsagePanelProps> = ({usage, now}) => {
     const headline = usageHeadline(usage, now);
     const shares = versionShares(usage);
+    const trends = usageTrends(usage, now);
     return (
         <Paper
             component="section"
@@ -103,10 +105,15 @@ const UsagePanel: React.FC<UsagePanelProps> = ({usage, now}) => {
                 </Box>
             ) : null}
 
-            {usage.startups30d > 0 && usage.days.length > 0 ? (
-                <Box sx={{mt: 2}}>
-                    <Typography variant="subtitle2" component="h3" gutterBottom>Server starts per day</Typography>
-                    <StartsSparkline days={usage.days}/>
+            {trends.servers || trends.starts ? (
+                <Box sx={{mt: 2, display: 'flex', flexDirection: 'column', gap: 2}} data-testid="usage-trends">
+                    {/* Servers first: they lead here as in the headline. */}
+                    {[trends.servers, trends.starts].map((trend) => (trend ? (
+                        <Box key={trend.kind}>
+                            <Typography variant="subtitle2" component="h3" gutterBottom>{trend.heading}</Typography>
+                            <TrendSparkline trend={trend}/>
+                        </Box>
+                    ) : null))}
                 </Box>
             ) : null}
 

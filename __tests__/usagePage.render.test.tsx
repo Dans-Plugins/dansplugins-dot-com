@@ -10,7 +10,7 @@ import {cleanup, render, screen, within} from '@testing-library/react';
 vi.mock('next/router', () => ({useRouter: () => ({pathname: '/usage', asPath: '/usage', query: {}, push: vi.fn()})}));
 
 import Usage from '../pages/usage';
-import {usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
+import {usageWithDailyServers, usageWithInstalls, usageWithoutInstalls} from './fixtures/traceUsage';
 
 afterEach(cleanup);
 
@@ -62,5 +62,26 @@ describe('/usage page', () => {
         expect(screen.getByTestId('usage-row-servers-year').textContent).toBe('4 servers seen in the past year');
         expect(screen.queryByTestId('usage-row-none')).toBeNull();
         expect(screen.queryByTestId('usage-unavailable')).toBeNull();
+    });
+
+    it('gives a row a compact starts trend that says how starts changed, described in full for screen readers', () => {
+        renderPage([row('medieval-factions', 'Medieval Factions', usageWithInstalls(), 31)]);
+        const trends = screen.getByTestId('usage-row-trends');
+        expect(within(trends).queryByTestId('trend-servers')).toBeNull();
+        expect(within(trends).getByTestId('trend-starts').textContent).toMatch(/^Starts\/day: (up \d+%|down \d+%|steady)$/);
+        expect(within(trends).getByRole('img').getAttribute('aria-label')).toMatch(/^Server starts per day from Sep 4 to Oct 3: /);
+    });
+
+    it('puts the servers trend above the starts trend once trace sends per-day servers', () => {
+        renderPage([row('medieval-factions', 'Medieval Factions', usageWithDailyServers(), 31)]);
+        const [servers, starts] = within(screen.getByTestId('usage-row-trends')).getAllByRole('img');
+        expect(servers.getAttribute('aria-label')).toMatch(/^Active servers per day/);
+        expect(starts.getAttribute('aria-label')).toMatch(/^Server starts per day/);
+        expect(screen.getByTestId('trend-servers').textContent).toBe('Servers/day: up 50%');
+    });
+
+    it('draws no trend for a row without per-plugin figures', () => {
+        renderPage([row('herald', 'Herald', null, 4)]);
+        expect(screen.queryByTestId('usage-row-trends')).toBeNull();
     });
 });

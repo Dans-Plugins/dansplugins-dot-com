@@ -2,7 +2,8 @@
  * Plugin usage as trace (https://github.com/Stephenson-Software/trace) reports
  * it, read from trace's public, unauthenticated endpoints:
  *
- *   GET /api/public/programs/{name}  one program's last 30 days
+ *   GET /api/public/programs/{name}  one program's last 30 days, with a
+ *                                    per-day series (utils/usageTrends.ts)
  *   GET /api/public/summary          every program's name, last-seen time and,
  *                                    once trace counts them, distinct servers
  *
@@ -40,6 +41,15 @@ export interface VersionUsage {
 export interface DailyStarts {
     day: string;
     startups: number;
+    // The same starts with a coalesced event counted as the starts it stands
+    // for (trace-client 0.7.0+); equal to `startups` until a plugin ships it.
+    // Absent from a trace that does not serve it — read it through
+    // utils/usageTrends.ts, which falls back to `startups`.
+    startupUses?: number;
+    // Distinct servers that reported that day. trace does not serve a per-day
+    // server count yet; kept if it ever does, so the servers trend can draw.
+    // Absent (not null) when not sent; null when sent as "not counted".
+    installs?: number | null;
 }
 
 export interface ProgramUsage {
@@ -47,6 +57,8 @@ export interface ProgramUsage {
     lastSeen: string | null;
     window: string;
     startups30d: number;
+    // startups30d with coalesced events expanded; absent from an older trace.
+    startupUses30d?: number;
     activeInstalls30d: number | null;
     versions: VersionUsage[];
     days: DailyStarts[];
@@ -117,13 +129,23 @@ export function parseProgramUsage(body: unknown): ProgramUsage | undefined {
         if (typeof r.day !== 'string' || !isCount(r.startups)) {
             return undefined;
         }
-        days.push({day: r.day, startups: r.startups});
+        // The optional fields are only copied when they are counts, and are
+        // left out (never set to undefined, which Next cannot serialize) when not.
+        const day: DailyStarts = {day: r.day, startups: r.startups};
+        if (isCount(r.startupUses)) {
+            day.startupUses = r.startupUses;
+        }
+        if (r.installs !== undefined && isCountOrNull(r.installs)) {
+            day.installs = r.installs;
+        }
+        days.push(day);
     }
     return {
         application: b.application,
         lastSeen: (b.lastSeen ?? null) as string | null,
         window: typeof b.window === 'string' ? b.window : 'P30D',
         startups30d: b.startups30d,
+        ...(isCount(b.startupUses30d) ? {startupUses30d: b.startupUses30d} : {}),
         activeInstalls30d: (b.activeInstalls30d ?? null) as number | null,
         versions,
         days,
