@@ -6,17 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `/usage` and a plugin page's Usage panel show per-day trends over trace's 30-day window (`utils/usageTrends.ts`, `components/TrendSparkline.tsx`, which replaces `StartsSparkline`). Starts per day are drawn from each day's `startupUses` (starts with coalesced repeats counted, from trace-client 0.7.0 on), falling back to `startups` when trace does not send it, and the starts figure in small print uses `startupUses30d` the same way. An active-servers-per-day line is drawn above it, servers first, only for a plugin with an active-server count and only once trace's `days` carry a per-day server count (`installs`), which trace does not serve yet. Each chart says in words whether the later half of the window is up, down or steady on the earlier half, leaving today's partial day out; the panel shows that with first/last/peak labels, and each `/usage` row shows a compact caption such as "Starts/day: up 12%". The headline stays active servers.
+
+- `CHANGELOG.md` gives releases 0.15.3, 0.16.0 and 0.17.0 their own sections, each entry placed by when its pull request merged against the release pull requests (#435, #459, #472); their entries had all been left under `[Unreleased]`.
+
+## [0.17.0] – 2026-10-29
+
 ### Added
 
 - Faction Map and FlyCommand are in the plugin catalogue (`V27`, additive). Both have had a stable GitHub release with a jar since the last audit of the organization (FlyCommand 1.0.0, Faction Map 0.1.0 and 0.2.0); neither is on SpigotMC yet. Radios, Cellphones and the planned plugins are still left out, having no stable release.
 - The Medieval Factions page shows two world renders under its preview clip, both drawn from example data with [Strata](https://github.com/Preponderous-Software/strata) 0.6.0 rather than recorded from a server: example factions' claims over a vanilla world, and a faction archipelago (islands sized by member count, bridges for alliances, fleets for wars, chained islets for vassals). `PLUGIN_WORLD_RENDERS` in `utils/pluginTrailers.ts` now holds a list per plugin (`worldRendersFor`), shown in order; the files are in `public/renders/` and are made by `scripts/previews/strata/` (see its README).
 
+## [0.16.0] – 2026-10-28
+
 ### Changed
 
-- `/usage` and a plugin page's Usage panel show per-day trends over trace's 30-day window (`utils/usageTrends.ts`, `components/TrendSparkline.tsx`, which replaces `StartsSparkline`). Starts per day are drawn from each day's `startupUses` (starts with coalesced repeats counted, from trace-client 0.7.0 on), falling back to `startups` when trace does not send it, and the starts figure in small print uses `startupUses30d` the same way. An active-servers-per-day line is drawn above it, servers first, only for a plugin with an active-server count and only once trace's `days` carry a per-day server count (`installs`), which trace does not serve yet. Each chart says in words whether the later half of the window is up, down or steady on the earlier half, leaving today's partial day out; the panel shows that with first/last/peak labels, and each `/usage` row shows a compact caption such as "Starts/day: up 12%". The headline stays active servers.
 - `/usage` and a plugin page's Usage panel lead with servers instead of raw event counts. `/usage` reads trace's distinct-server count from `/api/public/summary` (`installs`, servers seen over about the past year; absent on a trace that does not send it yet, in which case the row falls back to what it showed before) and shows it beside active servers (30 days); plugins are ranked by active servers, then servers in the past year, then recency. Server starts move to small print, the panel's starts-per-day chart moves below the versions, and both views say servers are counted only from newer plugin versions, so the real number can be higher. The summary's raw `count` and `uninstalled` event counts are still dropped and never shown.
-
 - The social card (`public/social-card.png`) is redrawn as a 3D scene: a blocky landscape divided into invented faction claims, with banners and houses, rendered with [Strata](https://github.com/Preponderous-Software/strata), with the name, tagline and address over it. Its alt text now describes the picture, and `components/Seo.tsx` also emits `og:image:type`. The card is drawn from `og-card/card.json` by community-site-kit's `tools/og-card` and is pre-rendered, so nothing 3D runs on the site.
+
+### Tests
+
+- The public profile page, `/u/[username]`, is covered (`__tests__/publicProfile.render.test.tsx`): it loads the profile for the username in the URL, heads it with the display name (the username beneath) or else the username alone, shows the join date, labels known badge codes and renders unknown ones raw, names liked items from the catalogue sorted by title (a guide linking to its page, a plugin to the catalogue, a like no longer in the catalogue by its raw id), says so when nothing is liked, shows a not-found notice naming the username, and keeps its spinner without asking for a profile until the router supplies a username.
+
+## [0.15.3] – 2026-10-24
+
+### Changed
+
 - `USER_GUIDE.md` corrections: a plugin page's SpigotMC download count is described as shown whenever SpigotMC reports one (only the rating waits for three reviews); the preview-clip step names the 3D world clips (Wild Pets, Dan's Spawn System) alongside the chat and BlueMap clips; and the catalogue-editing steps say to use **Sign in** in the navigation bar rather than an "Account" page link that no longer appears under that name.
 - `CONFIG.md`'s crawler-document notes and `RESOURCE_HUB.md`'s tags row no longer name the deleted `pages/data/plugins.json` as a source: the sitemap's per-plugin pages come from the catalogue `dpc-api` serves (and include the `/resources/[slug]` pages, which the note left out), and tags live in `plugin_tags`, edited at `/admin/plugins`.
 - `CONFIG.md` and `README.md` list every value of `USAGE_REPORTING_ENABLED` that turns page-view reporting off — `false`, `0`, `no` and `off`, in any case — where they named only `false`.
@@ -24,7 +41,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Tests
 
-- The public profile page, `/u/[username]`, is covered (`__tests__/publicProfile.render.test.tsx`): it loads the profile for the username in the URL, heads it with the display name (the username beneath) or else the username alone, shows the join date, labels known badge codes and renders unknown ones raw, names liked items from the catalogue sorted by title (a guide linking to its page, a plugin to the catalogue, a like no longer in the catalogue by its raw id), says so when nothing is liked, shows a not-found notice naming the username, and keeps its spinner without asking for a profile until the router supplies a username.
 - `ReleaseVerification` is covered (`__tests__/releaseVerification.render.test.tsx`): it speaks only for the first stable release, renders nothing when that release records no gate run (without falling back to an older one), lists Minecraft versions as written, and links each run and `/releases`.
 - `StartsSparkline` is covered directly (`__tests__/startsSparkline.render.test.tsx`): it renders nothing for no days, names no peak and draws a flat line when no server started, names the first of two equal peaks, draws one day as a single point, groups thousands, shows a day that is not a date as trace sent it, keeps its accessible name when `showLabels` is off, and sizes the drawing to `height`.
 - `TopBar` is covered directly (`__tests__/topBar.render.test.tsx`): it marks only the current page's link with `aria-current="page"` (none on a page outside the nav), links its eight in-site destinations and the wordmark in the same tab, labels the account link "Sign in" with no stored token, the token's `sub` when it has one and "Account" when it does not, opens the Community menu's four off-site links in a new tab, lists every destination in the mobile drawer with the current page selected, and calls the color-mode toggle from the dark-mode switch.
