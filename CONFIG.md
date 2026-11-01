@@ -178,7 +178,7 @@ A plugin page can also show **world renders** under its clip: renders drawn from
 
 - Files live in `public/renders/`, named `/renders/<slug>-<name>.{jpg,webm,mp4}`. Each render has all three files and is `16:9`.
 - A render loads on a page that already has a clip, so its budget is tighter: WebM and MP4 < 300 KB each, still < 100 KB.
-- The caption and `alt` must say the data is example factions (the caption also says no real server's data), and the caption names the Strata release the render was made with.
+- The caption and `alt` must say the data is example factions (the caption also says no real server's data), and the caption names the Strata release the render was made with. The test pins that release (`Strata 0.6.0`), so a render made with a newer one needs the test updated with it.
 - A test fails if a file in `public/renders/` is not used by any render.
 
 Renders are made with `scripts/previews/strata/` (see its README for how to reproduce each one).
