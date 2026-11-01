@@ -167,10 +167,21 @@ Some plugins have a short preview clip, listed in `PLUGIN_TRAILERS` in `utils/pl
 | `poster` | yes | `/trailers/<slug>.jpg`, a still from the clip. The only part the server renders, and all a visitor who prefers reduced motion sees. |
 | `webm`, `mp4` | at least one | `/trailers/<slug>.webm` (VP9) and `/trailers/<slug>.mp4` (H.264, for Safari). |
 | `alt` | yes | What the clip shows, for screen readers. A chat clip must say it is a recreation. |
-| `aspect` | no | `16:10` or `1:1` (the default). |
-| `caption` | yes | Shown under the clip on the plugin's page: how it was made. A **chat clip is a recreation** of the chat window drawn from captured server output, and its caption must say so ("A recreated chat panel: …"); a test fails otherwise. |
+| `aspect` | no | `16:10`, `16:9` or `1:1` (the default). Every preview clip is `16:10`; `16:9` is what the world renders below use. |
+| `caption` | yes | Shown under the clip on the plugin's page: how it was made. A **chat clip is a recreation** of the chat window drawn from captured server output, and its caption must say so ("A recreated chat panel: …"); a **world clip** (the test server's world rendered in 3D, currently Wild Pets and Dan's Spawn System) must say it is rendered in 3D and that its chat lines are recreated, in both caption and `alt`. A test fails otherwise. |
 
-Where a clip shows: in the plugin's desktop details panel on the home page while the panel is open (hover or keyboard focus), and on the plugin's page (`/resources/<slug>`) under the buttons. The touch bottom sheet shows none. Each clip is muted, looping and inline, with a pause button. `__tests__/pluginTrailers.test.tsx` checks names, shapes and sizes (WebM < 450 KB, MP4 < 650 KB, still < 120 KB), that no unused file sits in `public/trailers/`, and that each chat clip keeps its capture in `scripts/previews/captures/`. Clips are recorded with `scripts/previews/` (see its README).
+Where a clip shows: in the plugin's desktop details panel on the home page while the panel is open (hover or keyboard focus), and on the plugin's page (`/resources/<slug>`) under the buttons. The touch bottom sheet shows none. Each clip is muted, looping and inline, with a pause button. `__tests__/pluginTrailers.test.tsx` checks names, shapes and sizes (WebM < 450 KB, MP4 < 650 KB, still < 120 KB), that no unused file sits in `public/trailers/`, and that each chat and world clip (every clip but BlueMap's, which is recorded from its web map) keeps its capture in `scripts/previews/captures/`. Clips are recorded with `scripts/previews/` (see its README).
+
+### World renders
+
+A plugin page can also show **world renders** under its clip: renders drawn from example data with [Strata](https://github.com/Preponderous-Software/strata) rather than recorded from a server. They are listed in `PLUGIN_WORLD_RENDERS` in the same file, as a list per plugin slug (`worldRendersFor`) shown in list order, with the same fields as a clip. Only Medieval Factions has any (its claims and its archipelago). They appear on the plugin's page only, never in the home page's details panel, and their stills load lazily.
+
+- Files live in `public/renders/`, named `/renders/<slug>-<name>.{jpg,webm,mp4}`. Each render has all three files and is `16:9`.
+- A render loads on a page that already has a clip, so its budget is tighter: WebM and MP4 < 300 KB each, still < 100 KB.
+- The caption and `alt` must say the data is example factions (the caption also says no real server's data), and the caption names the Strata release the render was made with. The test pins that release (`Strata 0.6.0`), so a render made with a newer one needs the test updated with it.
+- A test fails if a file in `public/renders/` is not used by any render.
+
+Renders are made with `scripts/previews/strata/` (see its README for how to reproduce each one).
 
 ## Editing News Posts
 
