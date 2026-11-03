@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `CHANGELOG.md` gives releases 0.15.3, 0.16.0 and 0.17.0 their own sections, each entry placed by when its pull request merged against the release pull requests (#435, #459, #472); their entries had all been left under `[Unreleased]`.
 - `CONFIG.md`'s Plugin Preview Clips section documents the world renders (`PLUGIN_WORLD_RENDERS`, `public/renders/`, their 16:9 shape and tighter size budget), lists `16:9` among the `aspect` values, and states the caption rule for world clips; it had described only `public/trailers/` clips with a `16:10` or `1:1` shape.
+- `scripts/previews/README.md` lists every environment variable the preview scripts read, with defaults and which script reads each. `MC_HOST` (and its local-only check), `MC_VERSION` and `BLUEMAP_URL` were not mentioned in it before. `capture.js`'s header comment no longer says `RCON_PASSWORD` is needed only for setup: every capture reads the server's plugin list and version over RCON first.
 
 ## [0.17.0] – 2026-10-29
 

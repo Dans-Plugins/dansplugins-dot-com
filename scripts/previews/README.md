@@ -193,6 +193,25 @@ What the committed clips were recorded on (2026-10-04):
     not show the first-time replies); setup through RCON (`give`, `clear`, `op`,
     `summon`, `fill`, `spreadplayers`) is described at the top of each clip.
 
+## Environment variables
+
+Every variable the scripts read. The defaults match the test server above, so
+only `RCON_PASSWORD` needs to be set.
+
+| Variable | Read by | Default | Meaning |
+| --- | --- | --- | --- |
+| `MC_HOST` | `capture.js`, `setup-world.js` | `127.0.0.1` | The test server's host. Must be `127.0.0.1`, `localhost` or `::1`: anything else is refused (exit 2), since clips come from local servers only. |
+| `MC_PORT` | `capture.js`, `setup-world.js` | `25567` | The test server's game port. |
+| `MC_VERSION` | `capture.js`, `setup-world.js` | `1.21.1` | The Minecraft version the bots connect as. |
+| `RCON_PORT` | `capture.js`, `setup-world.js` | `25577` | The test server's `rcon.port`. |
+| `RCON_PASSWORD` | `capture.js`, `setup-world.js` | none | The test server's `rcon.password`. Required by both: `setup-world.js` exits without it, and `capture.js` fails without it before the clip starts, when it asks the server over RCON for its plugin list and version (recorded with every take). |
+| `PREVIEW_WORK` | `capture.js`, `record.js` | `<os tmpdir>/preview-work` | Scratch directory for takes: frames, contact sheets, and world clips' recorded scenes (`scenes/<id>.json`). |
+| `FFMPEG` | `record.js` | `ffmpeg` | The ffmpeg binary used to encode. |
+| `BLUEMAP_URL` | `clips/bluemap-medieval-factions.js` | `http://127.0.0.1:8199/` | The test server's BlueMap web map (`port: 8199` in `webserver.conf`). Unlike `MC_HOST`, it is not checked to be local. |
+
+The second-server capture above (`MC_PORT=25568 RCON_PORT=25578`) is the one
+case where a default is overridden.
+
 ## Re-record a clip
 
 ```sh

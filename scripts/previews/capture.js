@@ -9,7 +9,7 @@
 //
 // Environment (defaults suit the README's local server):
 //   MC_HOST=127.0.0.1 MC_PORT=25567 MC_VERSION=1.21.1
-//   RCON_PORT=25577 RCON_PASSWORD=...   (required: setup only, e.g. moving a bot)
+//   RCON_PORT=25577 RCON_PASSWORD=...   (required: every take records the server's plugin list and version over RCON)
 //
 // A world clip (kind 'world') also films the scene in 3D: its capture starts a
 // spectator camera player (h.camera, world/recorder.js), and what that player
