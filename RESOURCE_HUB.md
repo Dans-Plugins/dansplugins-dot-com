@@ -95,7 +95,7 @@ precise about the gap rather than discovering it mid-implementation:
 * The only inbound server data is faction sync, from Medieval Factions. It
   carries a faction name, a free-text `serverId`, a member count, and contact
   details — no plugin identity at all. Every other plugin in the catalogue
-  reports nothing.
+  reports nothing to `dpc-api`.
 * `ApiKeyAuthFilter` only checks that *some* valid key was presented. It does
   not resolve the key's owner, so even the faction rows that do arrive are not
   attributable to a user.
