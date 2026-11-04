@@ -9,7 +9,7 @@ No special software is required to use the website. Simply visit [https://danspl
 ## First Steps
 
 1. Open your web browser and navigate to [https://dansplugins.com](https://dansplugins.com).
-2. Browse the grid of DPC plugin icons on the home page, each with the plugin's name beneath it.
+2. Browse the grid of DPC plugin icons on the home page, each with the plugin's name beneath it. The grid is split into three tiers, most proven first: **Established** (a 1.0 or later release, and listed on SpigotMC), **Growing** (one of the two), and **Early releases** (neither, so try these on a test server first).
 3. On a computer, hover over an icon (or move to it with the keyboard) to open a panel with the plugin's description and buttons: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases. Clicking the icon itself goes straight to the plugin's page. On a phone or tablet, a tap on an icon opens the same details in a sheet at the bottom of the screen.
 
 ## Common Scenarios
@@ -19,7 +19,7 @@ No special software is required to use the website. Simply visit [https://danspl
 1. Visit the [home page](https://dansplugins.com).
 2. Browse the plugin icons displayed on the page, or narrow them down with **Search & filter**, the button above the grid that unfolds the search and filter controls (they unfold by themselves while a filter is active):
    - Type in the **Search plugins…** box to filter by plugin name or description. A "Showing N of M plugins" count appears while a search is active, and the ✕ clears it.
-   - Use the **By Popularity** / **Most Liked** / **Most Downloaded** / **Alphabetical** buttons to reorder the catalogue. Popularity is by bStats server count; Most Downloaded is by downloads made through this site.
+   - Use the **By Popularity** / **Most Liked** / **Most Downloaded** / **Alphabetical** buttons to reorder the plugins within each tier. Popularity is by bStats server count; Most Downloaded is by downloads made through this site.
    - Click a **tag** (admin, factions, survival, …) to show only plugins for that purpose; click it again, or **All**, to clear it. Each plugin's panel lists its own tags, and clicking one there does the same.
    - Pick a **Minecraft version** to show only plugins whose SpigotMC page lists that version as tested. A plugin whose tested versions are not known is left out rather than assumed to work — the answer to "does this run on my server?" is a no, not a guess.
    - Search, tag and version combine, and the search box also matches tags. A "Showing N of M plugins" line appears while any of them is active; if nothing matches, **Clear filters** resets all three.
@@ -89,7 +89,8 @@ No special software is required to use the website. Simply visit [https://danspl
 
 1. Click **Dev Portal** in the top navigation bar (or visit `/dev`).
 2. Review every open issue and pull request across the Dans-Plugins GitHub organization in one place: totals at the top, a row per repository, and the open items themselves, which can be narrowed by repository and type. The view is a mirror that refreshes on a schedule; GitHub stays the source of truth.
-3. Under **feature requests**, submit an idea for a plugin or upvote someone else's. A plugin page's **Suggest a feature** button leads here.
+3. Once signed in, use the heart in an item's **Interested** column to show you want it done, or **I'm working on this** in its **Claimed** column so nobody duplicates your work. Everyone sees who has claimed an item; **Release** gives your claim back, and a claim is released automatically after thirty days.
+4. Under **Feature requests**, submit an idea for a plugin or upvote someone else's. A plugin page's **Suggest a feature** button leads here. An admin can turn a wanted idea into a real GitHub issue, and the idea then links to it.
 
 ### Checking Plugin Usage
 

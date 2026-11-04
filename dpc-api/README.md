@@ -5,7 +5,7 @@ Spring Boot back end for the DPC (Dan's Plugins Community) website providing a R
 ## Prerequisites
 
 - Java 17+
-- Maven 3.9+
+- Maven 3.9+ (optional: the bundled `./mvnw` fetches Maven 3.9.6, and every command below uses it)
 - Docker & Docker Compose (for local development)
 
 ## Local Development
@@ -85,7 +85,7 @@ Configuration is managed via environment variables:
 | `DPC_RELEASE_SYNC_INITIAL_DELAY_MS` | `15000` | How long after startup the first release sync runs. Staggered behind the backlog sync. |
 | `DPC_RELEASE_SYNC_ENABLED` | `true` | Set to `false` for local runs that should not call the real GitHub API |
 | `DPC_RELEASE_SYNC_MAX_RELEASES` | `20` | How many releases per plugin the mirror keeps, and the point past which the sync stops assuming it has seen a plugin's whole release history (see [Plugin versions](#plugin-versions)) |
-| `DPC_CLAIMS_AUTO_RELEASE_DAYS` | `30` | A dev-portal claim with no activity for this many days is released automatically |
+| `DPC_CLAIMS_AUTO_RELEASE_DAYS` | `30` | A dev-portal claim held for longer than this many days is released automatically, whatever its holder has done since claiming it |
 | `DPC_ADMIN_USERNAMES` | *(empty)* | Comma-separated UserAuth usernames allowed to edit the plugin catalogue and to convert a feature request into a real GitHub issue. Empty by default, which means **nobody** can do either until it is set. `GET /api/v1/profile/me` reports the flag as `admin`. |
 | `DPC_FEATURE_REQUEST_GITHUB_TOKEN` | *(falls back to `DPC_BACKLOG_GITHUB_TOKEN`)* | Classic PAT used to create the GitHub issue a converted feature request becomes. Creating an issue is a write, so this one needs at least the `public_repo` scope — unlike the read-only backlog token it falls back to. |
 
@@ -135,6 +135,11 @@ Response (the token is issued by UserAuth):
 }
 ```
 
+Registration answers `201`. The account is created first and logged in second, so
+if that login fails the answer is still `201`, with
+`{ "registered": true, "tokenIssued": false, "message": "..." }` in place of the
+token: the account exists, and the caller should log in rather than register again.
+
 #### Login
 
 ```bash
@@ -168,9 +173,10 @@ The `keyPrefix` (first 8 characters) can be used to identify the key later.
 ### Plugins
 
 The plugin catalogue: one row per plugin, keyed by the `slug` that the website's
-guide routes, resource routes and like targets all use. Public and, for now,
-read-only — the rows are seeded by `V15__create_plugins_table.sql` and changed by
-migration rather than over HTTP, so there is no write path to authenticate.
+guide routes, resource routes and like targets all use. Reads are public; writes
+need a signed-in admin. The rows were seeded by `V15__create_plugins_table.sql`,
+and a migration can still add to them, but day-to-day edits go through the write
+endpoints below, which the site's `/admin/plugins` page drives.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -375,18 +381,72 @@ Assets are deliberately not served here: a caller that wants files wants the ful
 
 ### Likes
 
-Likes on plugins and guides. A target is keyed by the plugin's catalogue slug
-(a guide's id is its plugin's slug). Liking is
-idempotent; counts are public.
+Likes on plugins and guides, and for the dev portal, "interested" marks on
+backlog items and upvotes on feature requests. Liking is idempotent; counts are
+public.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/v1/likes` | Bearer | Like a plugin or guide (idempotent); returns the new count |
-| `DELETE` | `/api/v1/likes` | Bearer | Unlike a plugin or guide; returns the new count |
-| `GET` | `/api/v1/likes/counts?type=plugin\|guide` | Public | Aggregate like counts for a target type (`targetId` → count) |
+| `POST` | `/api/v1/likes` | Bearer | Like a target (idempotent); returns the new count |
+| `DELETE` | `/api/v1/likes` | Bearer | Remove a like; returns the new count |
+| `GET` | `/api/v1/likes/counts?type=<targetType>` | Public | Aggregate like counts for a target type (`targetId` → count) |
 | `GET` | `/api/v1/likes/me` | Bearer | The current user's liked targets |
 
-The `POST`/`DELETE` body is `{ "targetType": "plugin" | "guide", "targetId": "<id>" }`.
+The `POST`/`DELETE` body is `{ "targetType": "<type>", "targetId": "<id>" }`:
+
+| `targetType` | `targetId` |
+|---|---|
+| `plugin` | The plugin's catalogue slug |
+| `guide` | The guide's id, which is its plugin's slug |
+| `issue` | A backlog item's `targetId` (`repo#number`) |
+| `feature_request` | The feature request's `id` |
+
+### Dev portal
+
+The data behind the site's `/dev` page: a mirror of the organization's open
+GitHub issues and pull requests, who has claimed what, and community feature
+requests. A claim or a feature request is a record in this service, and neither
+grants any access on GitHub.
+
+#### Backlog
+
+Read-only. `BacklogSyncService` refreshes the mirror on the schedule set by
+`DPC_BACKLOG_SYNC_INTERVAL_MS`, and GitHub stays the source of truth.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/backlog` | Public | Open issues and pull requests; `?repo=<name>` narrows to one repository |
+| `GET` | `/api/v1/backlog/summary` | Public | One row per repository: open issue, open PR and draft PR counts and the oldest open item's date, sorted by backlog size |
+
+#### Claims
+
+A claim says "I'm working on this", so two people do not unknowingly duplicate
+the same work.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/claims` | Bearer | Claim a backlog item; idempotent for the holder, `409` if someone else holds it |
+| `DELETE` | `/api/v1/claims` | Bearer | Release your own claim; `204` (also when nothing is claimed), `403` if someone else holds it |
+| `GET` | `/api/v1/claims/active` | Public | Every active claim, across all repositories |
+| `GET` | `/api/v1/claims/me` | Bearer | The current user's active claims |
+
+The `POST`/`DELETE` body is `{ "repo": "Medieval-Factions", "number": 1947 }`.
+A daily job releases any claim older than `DPC_CLAIMS_AUTO_RELEASE_DAYS`, so an
+abandoned claim does not block anyone indefinitely.
+
+#### Feature requests
+
+Ideas for a plugin that are not GitHub issues yet. Upvotes are likes (see
+[Likes](#likes)).
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/feature-requests` | Bearer | Submit an idea: `{ "repo": "...", "title": "...", "description": "..." }`, title at most 200 characters, description at most 4000 |
+| `GET` | `/api/v1/feature-requests` | Public | Every request, newest first; `?repo=<name>` narrows to one repository |
+| `POST` | `/api/v1/feature-requests/{id}/convert` | Bearer, admin | Create a real GitHub issue from the request. Repeating it returns the same result without a second issue; `403` for a non-admin, `404` for an unknown id |
+
+Converting needs `DPC_ADMIN_USERNAMES` to name the caller and
+`DPC_FEATURE_REQUEST_GITHUB_TOKEN` to be able to write to the repository.
 
 ### Factions
 

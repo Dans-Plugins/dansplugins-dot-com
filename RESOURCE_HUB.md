@@ -32,8 +32,8 @@ as resource pages.
 | SpigotMC concept | Where it already lives in DPC |
 | --- | --- |
 | Resource listing | The `plugins` table, read through `services/pluginCatalogueService.ts` and rendered as an icon grid on `/` (`components/PluginIconGrid.tsx`, details in a hover/focus panel), with search, sort and filters behind a toggle |
-| Download / version | Latest GitHub release tag on each card (`utils/github.ts`) |
-| Install count | bStats server counts (`utils/bstats.ts`) |
+| Download / version | Latest release on each card, from `dpc-api`'s release mirror (`services/pluginVersionService.ts`); a resource page with nothing mirrored asks GitHub directly (`utils/github.ts`) |
+| Install count | bStats server counts (`utils/bstats.ts`), and active servers as reported to trace (`utils/traceUsage.ts`) |
 | Tested Minecraft versions | SpigotMC's own field, mirrored through Spiget (`utils/spigot.ts`) |
 | Rating | SpigotMC's, bridged through the same Spiget listing and labelled as theirs, until reviews of the site's own exist |
 | Tags, categories | Hand-curated `tags` per plugin in `plugin_tags` (`V20`), edited at `/admin/plugins`; filters on `/`, related plugins on a resource page |
@@ -94,8 +94,8 @@ precise about the gap rather than discovering it mid-implementation:
 
 * The only inbound server data is faction sync, from Medieval Factions. It
   carries a faction name, a free-text `serverId`, a member count, and contact
-  details — no plugin identity at all. Fifteen of the sixteen plugins report
-  nothing.
+  details — no plugin identity at all. Every other plugin in the catalogue
+  reports nothing to `dpc-api`.
 * `ApiKeyAuthFilter` only checks that *some* valid key was presented. It does
   not resolve the key's owner, so even the faction rows that do arrive are not
   attributable to a user.
@@ -195,7 +195,7 @@ discussion cost ongoing attention from the day they ship, so they come after.
 
 ## Risks
 
-**Empty states read as abandonment.** Sixteen plugins showing "0 reviews" looks
+**Empty states read as abandonment.** A whole catalogue showing "0 reviews" looks
 worse than no review tab at all. Rating summaries stay hidden until a plugin has
 at least three reviews, and an empty tab says "No reviews yet" rather than
 rendering a zeroed-out star widget.

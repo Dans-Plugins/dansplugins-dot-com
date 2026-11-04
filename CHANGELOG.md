@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `CHANGELOG.md` gives releases 0.15.3, 0.16.0 and 0.17.0 their own sections, each entry placed by when its pull request merged against the release pull requests (#435, #459, #472); their entries had all been left under `[Unreleased]`.
 - `CONFIG.md`'s Plugin Preview Clips section documents the world renders (`PLUGIN_WORLD_RENDERS`, `public/renders/`, their 16:9 shape and tighter size budget), lists `16:9` among the `aspect` values, and states the caption rule for world clips; it had described only `public/trailers/` clips with a `16:10` or `1:1` shape.
+- Herald, KDR Tracker, MiniFactions and Medieval Cookery link to their new SpigotMC pages (`V28`, additive; a link an admin has already set is left alone).
+- `dpc-api/README.md` documents the dev-portal endpoints (`/api/v1/backlog`, `/api/v1/claims`, `/api/v1/feature-requests`), which it had left out, and the `issue` and `feature_request` like targets; says the catalogue has admin write endpoints, where its introduction still called it read-only; describes the `201` a registration answers when its automatic login fails; says `DPC_CLAIMS_AUTO_RELEASE_DAYS` goes by a claim's age, not its activity; and says Maven comes with `./mvnw`.
+- `RESOURCE_HUB.md` says a card's latest release comes from `dpc-api`'s release mirror (`utils/github.ts` is only a resource page's fallback), names trace beside bStats, and no longer gives a catalogue size of sixteen plugins.
+- `USER_GUIDE.md` describes the home page's three tiers, which arrived in 0.16.0, says a sort orders plugins within a tier, and covers the Dev Portal's **Interested** hearts and claims.
 
 ## [0.17.0] – 2026-10-29
 
