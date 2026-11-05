@@ -15,9 +15,10 @@ export const SITEMAP_ROUTE = '/sitemap.xml';
 // from the contents of pages/ — that directory also holds error pages, API
 // routes, dynamic templates, and the routes listed as off-limits below, none of
 // which belong in a sitemap. Add a new top-level page here when you add one.
-// This is the top navigation (components/TopBar.tsx) minus `/dev`: the Dev
-// Portal is linked for humans but renders nothing until its client-side API
-// calls resolve, so there is nothing there for a crawler to index.
+// This is the top navigation (components/TopBar.tsx) minus `/dev`, plus
+// `/releases` and `/usage`, which are linked from other pages rather than the
+// navigation. The Dev Portal is linked for humans but renders nothing until its
+// client-side API calls resolve, so there is nothing there for a crawler to index.
 export const STATIC_SITEMAP_PATHS: readonly string[] = [
     '/',
     '/about',

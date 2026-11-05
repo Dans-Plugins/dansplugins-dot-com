@@ -19,8 +19,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * A user's "like" of a target — a plugin or a guide, keyed by the plugin id from
- * pages/data/plugins.json. The unique constraint enforces one like per
+ * A user's "like" of a target — a plugin or a guide (keyed by the plugin's
+ * catalogue slug), a backlog issue or PR ('repo#number'), or a feature request
+ * (its id). The unique constraint enforces one like per
  * (user, target_type, target_id), so liking is idempotent.
  */
 // `LIKE` is a JPQL reserved word, so the JPQL entity name is "LikeRecord"
