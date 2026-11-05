@@ -74,8 +74,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/password/reset").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/factions/**").permitAll()
-                        // The plugin catalogue is public and read-only; there is no write path
-                        // to guard until the admin catalogue UI adds one.
+                        // The plugin catalogue is public to read; its write paths are guarded
+                        // further down, under "Catalogue edits".
                         .requestMatchers(HttpMethod.GET, "/api/v1/plugins", "/api/v1/plugins/**").permitAll()
                         // A HEAD at a download link (a link checker, a browser
                         // preflighting) gets the redirect without the count.

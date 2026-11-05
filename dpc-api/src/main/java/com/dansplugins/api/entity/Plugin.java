@@ -27,13 +27,13 @@ import java.util.UUID;
  * off as the resource hub is built out. See {@code RESOURCE_HUB.md}.
  *
  * <p>Seeded by {@code V15__create_plugins_table.sql} from the catalogue file the
- * site currently renders from, and served read-only until the site switches over
- * to this table. The {@code slug} is the id that file already uses, so existing
- * {@code /guides/[id]} URLs and {@code likes.target_id} rows keep resolving.
+ * site once rendered from; that file is gone and this table is now the catalogue.
+ * The {@code slug} is the id that file used, so existing {@code /guides/[id]}
+ * URLs and {@code likes.target_id} rows keep resolving.
  *
  * <p>{@code spigotmcUrl}, {@code bstatsId} and {@code iconPath} are nullable:
  * not every plugin is published on SpigotMC or has a bStats project, and the
- * absence is stored as NULL rather than the empty string the catalogue file uses.
+ * absence is stored as NULL rather than an empty string.
  */
 @Entity
 @Table(name = "plugins")

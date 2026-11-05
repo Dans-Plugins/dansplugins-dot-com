@@ -12,7 +12,8 @@ public record LikeRequest(
 
         @NotBlank(message = "targetId is required")
         @Size(max = 64)
-        @Schema(description = "The plugin id from plugins.json, 'repo#number' for an 'issue' target, "
+        @Schema(description = "The plugin's catalogue slug for a 'plugin' or 'guide' target, "
+                + "'repo#number' for an 'issue' target, "
                 + "or the feature request's id for a 'feature_request' target",
                 example = "medieval-factions")
         String targetId
