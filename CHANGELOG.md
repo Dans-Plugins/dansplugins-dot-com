@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `CHANGELOG.md` gives releases 0.15.3, 0.16.0 and 0.17.0 their own sections, each entry placed by when its pull request merged against the release pull requests (#435, #459, #472); their entries had all been left under `[Unreleased]`.
 - `CONFIG.md`'s Plugin Preview Clips section documents the world renders (`PLUGIN_WORLD_RENDERS`, `public/renders/`, their 16:9 shape and tighter size budget), lists `16:9` among the `aspect` values, and states the caption rule for world clips; it had described only `public/trailers/` clips with a `16:10` or `1:1` shape.
 - Herald, KDR Tracker, MiniFactions and Medieval Cookery link to their new SpigotMC pages (`V28`, additive; a link an admin has already set is left alone).
+- `CHANGELOG.md`'s 0.16.0 section records the home-page tiers (#458) and the Medieval Factions claims render (#451), both of which shipped in that release with no entry of their own.
 - `dpc-api/README.md` documents the dev-portal endpoints (`/api/v1/backlog`, `/api/v1/claims`, `/api/v1/feature-requests`), which it had left out, and the `issue` and `feature_request` like targets; says the catalogue has admin write endpoints, where its introduction still called it read-only; describes the `201` a registration answers when its automatic login fails; says `DPC_CLAIMS_AUTO_RELEASE_DAYS` goes by a claim's age, not its activity; and says Maven comes with `./mvnw`.
 - `RESOURCE_HUB.md` says a card's latest release comes from `dpc-api`'s release mirror (`utils/github.ts` is only a resource page's fallback), names trace beside bStats, and no longer gives a catalogue size of sixteen plugins.
 - `USER_GUIDE.md` describes the home page's three tiers, which arrived in 0.16.0, says a sort orders plugins within a tier, and covers the Dev Portal's **Interested** hearts and claims.
@@ -27,8 +28,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.16.0] – 2026-10-28
 
+### Added
+
+- The Medieval Factions page shows a world render under its preview clip, drawn with [Strata](https://github.com/Preponderous-Software/strata) 0.6.0 rather than recorded from a server: three example factions' claims over a vanilla world, with the sun moving from sunrise to sunset. `PLUGIN_WORLD_RENDERS` in `utils/pluginTrailers.ts` lists it; the files are in `public/renders/` and are made by `scripts/previews/strata/` (see its README).
+
 ### Changed
 
+- The home page lists plugins in three tiers, most established first (`utils/pluginTiers.ts`): Established (a 1.0+ release and a SpigotMC listing), Growing (one of the two) and Early releases (neither). `TIER_OVERRIDES` pins a tier by hand. Search, filter and sort span every tier; a sort orders plugins within a tier.
 - `/usage` and a plugin page's Usage panel lead with servers instead of raw event counts. `/usage` reads trace's distinct-server count from `/api/public/summary` (`installs`, servers seen over about the past year; absent on a trace that does not send it yet, in which case the row falls back to what it showed before) and shows it beside active servers (30 days); plugins are ranked by active servers, then servers in the past year, then recency. Server starts move to small print, the panel's starts-per-day chart moves below the versions, and both views say servers are counted only from newer plugin versions, so the real number can be higher. The summary's raw `count` and `uninstalled` event counts are still dropped and never shown.
 - The social card (`public/social-card.png`) is redrawn as a 3D scene: a blocky landscape divided into invented faction claims, with banners and houses, rendered with [Strata](https://github.com/Preponderous-Software/strata), with the name, tagline and address over it. Its alt text now describes the picture, and `components/Seo.tsx` also emits `og:image:type`. The card is drawn from `og-card/card.json` by community-site-kit's `tools/og-card` and is pre-rendered, so nothing 3D runs on the site.
 
