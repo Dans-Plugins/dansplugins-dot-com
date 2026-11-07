@@ -97,7 +97,7 @@ public class PluginController {
 
     /**
      * Exists so a page showing the whole catalogue at once can label every card
-     * with one request instead of one per plugin — the home page's sixteen.
+     * with one request instead of one per plugin. The home page is the caller.
      *
      * <p>Mapped at {@code /versions/latest} rather than {@code /latest-versions}
      * so that nothing has to be known about how Spring ranks a literal segment

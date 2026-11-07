@@ -122,7 +122,7 @@ export const getCataloguePlugin = async (slug: string): Promise<CataloguePlugin 
 /**
  * The catalogue for a page that renders in the browser (the account and
  * profile pages resolve liked items against it). Uncached: a browser holds
- * one page at a time, and the API answers from a sixteen-row table.
+ * one page at a time, and the API answers from a small table.
  */
 export const fetchCatalogueInBrowser = async (): Promise<CataloguePlugin[]> => {
     try {
