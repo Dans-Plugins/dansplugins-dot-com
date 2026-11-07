@@ -19,13 +19,13 @@ This repository holds both halves of the site:
 | repository root | The Next.js front end (`pages/`, `components/`, `services/`, `utils/`) | Node.js 18.17+ |
 | [`dpc-api/`](dpc-api/README.md) | The Spring Boot back end serving community data (accounts, likes, factions, the plugin catalogue) | Java 17, Maven (via the bundled `./mvnw`) |
 
-Front-end work needs only Node.js. Back-end work also needs Java 17. Running the whole stack locally is easiest with Docker Compose — see [Development](#development).
+Front-end work needs only Node.js, though most pages have little to show until a `dpc-api` answers (see [First Time Installation](#first-time-installation)). Back-end work also needs Java 17. Running the whole stack locally is easiest with Docker Compose — see [Development](#development).
 
 ## Installation
 
 ### First Time Installation
 
-These steps run the front end on its own. Features backed by the API (accounts, likes, the leaderboard) need `dpc-api` running too; see [Development](#development).
+These steps run the front end on its own. The plugin catalogue comes from the API, so without `dpc-api` running the home page and the Guides page say the catalogue could not be loaded, and every `/resources/<plugin>` and `/guides/<plugin>` page is a 404. Accounts, likes and the leaderboard need it too. See [Development](#development) for running both.
 
 1. Ensure [Node.js](https://nodejs.org/en/) (v18.17 or later, the floor Next.js 14 requires) is installed on your machine.
 2. Clone this repository: `git clone https://github.com/Dans-Plugins/dansplugins-dot-com.git`
@@ -143,7 +143,7 @@ CI runs the front-end checks and this one as separate jobs on every pull request
 
     npm run dev
 
-On its own it serves the front end only, against whatever `NEXT_PUBLIC_API_URL` points at.
+On its own it serves the front end only, against whatever `NEXT_PUBLIC_API_URL` points at, so the plugin catalogue is missing unless a `dpc-api` answers there.
 
 ### Full Local Stack (Docker Compose)
 

@@ -57,6 +57,9 @@ there), and `record.js` is that recorder adapted, encoder included.
   an emoji arrived as U+FFFD: Mailboxes' `📎` legend was captured as six
   replacement characters in the first take. `npm test` fails on any capture
   holding U+FFFD.
+- `strata/`: not a clip. The world renders on plugin pages
+  (`public/renders/`), drawn from example data; it has
+  [its own README](strata/README.md).
 
 ## World clips
 

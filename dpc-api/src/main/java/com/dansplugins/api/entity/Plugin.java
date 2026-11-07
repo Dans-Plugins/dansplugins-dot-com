@@ -75,7 +75,7 @@ public class Plugin {
     private Instant firstReleasedAt;
 
     // What the plugin is for, as a set of short lower-case words (V20). Read
-    // eagerly: the catalogue is sixteen rows and every listing wants them.
+    // eagerly: the catalogue is a small table and every listing wants them.
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "plugin_tags", joinColumns = @JoinColumn(name = "plugin_id"))
     @Column(name = "tag", nullable = false, length = 32)

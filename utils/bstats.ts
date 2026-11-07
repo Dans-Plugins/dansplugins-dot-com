@@ -1,7 +1,8 @@
 /**
  * How long one bStats request may take before it is abandoned. bStats sits
  * behind Cloudflare; when its origin is down every request hangs for the
- * full Cloudflare 522 wait (~15 s), and the home page awaits sixteen of them.
+ * full Cloudflare 522 wait (~15 s), and the home page awaits one for every
+ * plugin with a bStats project.
  * Without a bound that made `/` take close to a minute, which failed the
  * container health check and took the whole site offline (2026-09-16).
  */

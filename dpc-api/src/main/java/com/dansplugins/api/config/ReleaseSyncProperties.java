@@ -13,8 +13,8 @@ import jakarta.validation.constraints.Positive;
  * <p>{@code githubToken} is optional and defaults to the backlog sync's token:
  * both only read public data, so either needs an authenticated identity rather
  * than any particular scope. Without one the sync still runs, at the
- * unauthenticated rate limit of 60 requests/hour — which one pass over sixteen
- * plugins fits inside, but not with much room, so a token is worth setting.
+ * unauthenticated rate limit of 60 requests/hour — which leaves little room
+ * for one pass over the catalogue, so a token is worth setting.
  *
  * <p>{@code maxReleasesPerPlugin} caps how far back the mirror reaches. It also
  * decides when the sync is allowed to prune: see

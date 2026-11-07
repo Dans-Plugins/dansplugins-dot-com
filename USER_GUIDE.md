@@ -9,8 +9,9 @@ No special software is required to use the website. Simply visit [https://danspl
 ## First Steps
 
 1. Open your web browser and navigate to [https://dansplugins.com](https://dansplugins.com).
-2. Browse the grid of DPC plugin icons on the home page, each with the plugin's name beneath it. The grid is split into three tiers, most proven first: **Established** (a 1.0 or later release, and listed on SpigotMC), **Growing** (one of the two), and **Early releases** (neither, so try these on a test server first).
-3. On a computer, hover over an icon (or move to it with the keyboard) to open a panel with the plugin's description and buttons: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases. Clicking the icon itself goes straight to the plugin's page. On a phone or tablet, a tap on an icon opens the same details in a sheet at the bottom of the screen.
+2. On your first visit, the home page asks what brings you here. **I run a server** stays on the home page, and so does closing the dialog; **I build plugins** goes to the Dev Portal. Your browser remembers the answer, so the question is not asked again, and the **Dev Portal** link in the top navigation bar is there either way.
+3. Browse the grid of DPC plugin icons on the home page, each with the plugin's name beneath it. The grid is split into three tiers, most proven first: **Established** (a 1.0 or later release, and listed on SpigotMC), **Growing** (one of the two), and **Early releases** (neither, so try these on a test server first).
+4. On a computer, hover over an icon (or move to it with the keyboard) to open a panel with the plugin's description and buttons: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases. Clicking the icon itself goes straight to the plugin's page. On a phone or tablet, a tap on an icon opens the same details in a sheet at the bottom of the screen.
 
 ## Common Scenarios
 
