@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `README.md` says the plugin catalogue comes from `dpc-api`, so the front end run alone says the catalogue could not be loaded on the home and Guides pages and answers 404 for every plugin and guide page; it had named only accounts, likes and the leaderboard. `USER_GUIDE.md`'s First Steps describes the first-visit "What brings you here?" dialog. `scripts/previews/README.md` lists `strata/` among its files. Comments that still gave the catalogue as sixteen plugins no longer put a number on it; it has grown to twenty-four.
 - The OpenAPI description of a like's `targetId` says a `plugin` or `guide` target is the plugin's catalogue slug, where it still named the deleted `plugins.json`. Stale comments are corrected to match: `SecurityConfig` no longer calls the catalogue read-only, `Like` and `Plugin` no longer describe the deleted catalogue file as current, and `utils/sitemap.ts` says `STATIC_SITEMAP_PATHS` also lists `/releases` and `/usage`, which are not in the top navigation. No behaviour changes.
 
+### Tests
+
+- The faction leaderboard, `/leaderboard`, is covered (`__tests__/leaderboard.render.test.tsx`): it asks `dpc-api` for up to 50 factions sorted by member count, lists them in the order returned with a trophy for the top three and a rank number from fourth on, shows each faction's description, sync age ("Updated 3 days ago") and server id, leaves out the server address and Discord link when a faction has not published them, links a published Discord in a new tab, copies a server address from its chip and says so, says when no factions have synced, names the HTTP status of a failed response, gives a plain message rather than the exception when the request fails, and fetches again on **Retry**.
+
 ## [0.17.0] – 2026-10-29
 
 ### Added
