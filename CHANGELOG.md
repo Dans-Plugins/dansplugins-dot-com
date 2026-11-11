@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- A **Flyway version clash** check (`.github/workflows/flyway-version-clash.yml`, `scripts/flyway/`) fails a pull request whose migrations would share a version number with one already on the base branch, naming the version and the next free one (e.g. `FAULT V18 ... Next free version: V19`). It compares against the base branch tip fetched when the job runs, not the stale merge ref, and after each push to `main` or `develop` re-checks every open pull request into that branch. It reads git only. Tests replay the 2026-09-20 break, PR #323's V18 against `main` at `4addea2` (`__tests__/flywayVersionClash.test.ts`). It is the text-only check from RFC 0007, split out ahead of that RFC's rock-layer picture.
+
 ### Changed
 
 - `/usage` and a plugin page's Usage panel show per-day trends over trace's 30-day window (`utils/usageTrends.ts`, `components/TrendSparkline.tsx`, which replaces `StartsSparkline`). Starts per day are drawn from each day's `startupUses` (starts with coalesced repeats counted, from trace-client 0.7.0 on), falling back to `startups` when trace does not send it, and the starts figure in small print uses `startupUses30d` the same way. An active-servers-per-day line is drawn above it, servers first, only for a plugin with an active-server count and only once trace's `days` carry a per-day server count (`installs`), which trace does not serve yet. Each chart says in words whether the later half of the window is up, down or steady on the earlier half, leaving today's partial day out; the panel shows that with first/last/peak labels, and each `/usage` row shows a compact caption such as "Starts/day: up 12%". The headline stays active servers.
