@@ -95,6 +95,20 @@ The Docker Compose file also supports the `API_PORT` variable (default `45345`) 
 
 Schemas are managed by [Flyway](https://flywaydb.org/). Migration scripts live in `src/main/resources/db/migration/` and are applied automatically on startup.
 
+Each migration needs a version number no other migration uses: Flyway refuses to start when two share one ("Found more than one migration with version N"). Two pull requests cut from the same `main` can each pick the next free number and both pass their own CI, as #323 and #324 did with V18 on 2026-09-20. The **Flyway version clash** workflow (`.github/workflows/flyway-version-clash.yml`) checks for that: on a pull request it compares the migrations the branch adds with the base branch tip fetched when the job runs, and after every push to `main` or `develop` it re-checks each open pull request into that branch. A clash fails the check with the version number and the next free one, for example:
+
+```
+FAULT V18: V18__add_six_listed_plugins.sql clashes, 4addea2 already has V18__add_plugin_first_released_at.sql. Next free version: V19.
+```
+
+Run it locally before merging (from the repository root, after `git fetch origin`):
+
+```bash
+node scripts/flyway/check-version-clash.mjs --base origin/main --head HEAD
+```
+
+It reads git only (exit 0 no clash, 1 clash, 2 bad arguments or refs). A pull request's check does not re-run by itself when `main` moves, so re-run it, or run the command above, just before merging a branch that adds a migration.
+
 ## API Endpoints
 
 ### Authentication & Profile

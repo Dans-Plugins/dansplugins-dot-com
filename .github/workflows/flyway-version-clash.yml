@@ -1,0 +1,96 @@
+name: Flyway version clash
+
+# Fails when merging a branch would put two Flyway migrations on one version
+# number (what broke `main` on 2026-09-20: two V18s from #323 and #324).
+# Text check only; reads git, never a database. See
+# scripts/flyway/check-version-clash.mjs.
+#
+# The pull-request job compares the PR head with the base branch tip fetched
+# when the job runs, not with the merge ref GitHub prepared when the run was
+# triggered. Pull-request runs do not re-run when the base moves, so the push
+# job re-checks every open PR into the pushed branch after each merge and
+# names any that the merge has made clash.
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pull-request:
+    name: Flyway version clash (PR head vs current base)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Fetch the base branch tip as it is now
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Check for Flyway version clashes
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          rc=0
+          node scripts/flyway/check-version-clash.mjs --base "origin/${BASE_REF}" --head "${HEAD_SHA}" > report.txt 2>&1 || rc=$?
+          cat report.txt
+          { echo '```'; cat report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+
+  open-pull-requests:
+    name: Flyway version clash (open PRs vs new branch tip)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Re-check every open PR into this branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$BRANCH" --state open --limit 200 --json number --jq '.[].number')
+          failed=()
+          for n in $prs; do
+            git fetch -q --no-tags origin "+refs/pull/${n}/head:refs/remotes/pr/${n}"
+            echo "::group::PR #${n}"
+            rc=0
+            node scripts/flyway/check-version-clash.mjs --base "$GITHUB_SHA" --head "refs/remotes/pr/${n}" || rc=$?
+            echo "::endgroup::"
+            if [ "$rc" -ne 0 ]; then
+              failed+=("#${n}")
+              echo "::error::PR #${n} clashes with ${BRANCH} on a Flyway version (exit ${rc}); see the PR #${n} group in this log."
+            fi
+          done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "Open PRs with a Flyway version clash against ${BRANCH}: ${failed[*]}" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "No open PR into ${BRANCH} clashes on a Flyway version." | tee -a "$GITHUB_STEP_SUMMARY"
