@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Tests
 
+- The Guides page, `/guides`, is covered (`__tests__/guides.getServerSideProps.test.ts`, `__tests__/guidesPage.render.test.tsx`): its server side reduces each catalogue plugin to its slug and title, sorts them by title even when the API does not, and hands the page an empty list when the catalogue cannot be read (a network failure or an error status); the page links each plugin as "<title> Guide" to `/guides/<slug>` in the order given, and says the catalogue could not be loaded, listing no guides, when given none.
 - The faction leaderboard, `/leaderboard`, is covered (`__tests__/leaderboard.render.test.tsx`): it asks `dpc-api` for up to 50 factions sorted by member count, lists them in the order returned with a trophy for the top three and a rank number from fourth on, shows each faction's description, sync age ("Updated 3 days ago") and server id, leaves out the server address and Discord link when a faction has not published them, links a published Discord in a new tab, copies a server address from its chip and says so, says when no factions have synced, names the HTTP status of a failed response, gives a plain message rather than the exception when the request fails, and fetches again on **Retry**.
 
 ## [0.17.0] – 2026-10-29
