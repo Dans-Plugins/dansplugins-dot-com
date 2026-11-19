@@ -41,6 +41,23 @@ describe('disabledReason', () => {
         }
     });
 
+    it('reads any USAGE_REPORTING_ENABLED value but an on-value as off', () => {
+        for (const value of ['disabled', 'nope', 'ture', 'flase', 'none', '2', '-1', 'never', 'FALSE ']) {
+            expect(disabledReason({ USAGE_REPORTING_KEY: KEY, USAGE_REPORTING_ENABLED: value }), value)
+                .toBe('USAGE_REPORTING_ENABLED');
+            expect(createUsageReporting(
+                { USAGE_REPORTING_KEY: KEY, USAGE_REPORTING_ENABLED: value },
+                { fetch: okFetch(), log: () => undefined },
+            ).enabled, value).toBe(false);
+        }
+    });
+
+    it('keeps reporting on for an on-value or an unset/blank USAGE_REPORTING_ENABLED', () => {
+        for (const value of [undefined, '', '  ', 'true', 'TRUE', ' on ', 'yes', '1']) {
+            expect(disabledReason({ USAGE_REPORTING_KEY: KEY, USAGE_REPORTING_ENABLED: value }), String(value)).toBeNull();
+        }
+    });
+
     it('honours the fleet-wide environment opt-outs first', () => {
         for (const value of ['off', 'false', '0', 'no', 'OFF']) {
             expect(disabledReason({ USAGE_REPORTING_KEY: KEY, TRACE_USAGE_REPORTING: value }), value).toBe('environment');
@@ -51,6 +68,13 @@ describe('disabledReason', () => {
         expect(disabledReason({ DO_NOT_TRACK: '1', USAGE_REPORTING_ENABLED: 'false' })).toBe('environment');
         expect(disabledReason({ USAGE_REPORTING_KEY: KEY, DO_NOT_TRACK: '0' })).toBeNull();
         expect(disabledReason({ USAGE_REPORTING_KEY: KEY, TRACE_USAGE_REPORTING: 'on' })).toBeNull();
+    });
+
+    it('reads an unrecognised fleet-wide value as an opt-out (trace-client 0.5.0)', () => {
+        for (const value of ['disabled', 'nope', 'flase']) {
+            expect(disabledReason({ USAGE_REPORTING_KEY: KEY, TRACE_USAGE_REPORTING: value }), value).toBe('environment');
+            expect(disabledReason({ USAGE_REPORTING_KEY: KEY, DO_NOT_TRACK: value }), value).toBe('environment');
+        }
     });
 });
 

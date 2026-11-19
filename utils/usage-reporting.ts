@@ -47,10 +47,16 @@ export interface UsageReportingEnv {
 /** Why nothing is sent; null when reporting is on. First match wins, in this order. */
 export type DisabledReason = 'environment' | 'USAGE_REPORTING_ENABLED' | 'no key';
 
-const ENABLED_OFF = new Set(['false', '0', 'no', 'off']);
-
-function normalised(value: string | undefined): string {
-    return (value ?? '').trim().toLowerCase();
+/**
+ * Whether the site's own USAGE_REPORTING_ENABLED leaves reporting on. Unset or
+ * blank is the default (on, given a key); otherwise only an on-value (`true`,
+ * `on`, `yes`, `1`, any case) keeps it on, read by trace-client.ts's own
+ * `TraceClient.allowsReporting`. Anything else -- `false`, `disabled`, a typo --
+ * is an opt-out, so an operator's attempt to turn reporting off never leaves it on.
+ */
+export function siteSettingAllows(value: string | undefined): boolean {
+    const setting = (value ?? '').trim();
+    return setting === '' || TraceClient.allowsReporting(setting);
 }
 
 /**
@@ -70,7 +76,7 @@ function traceEnvironment(env: UsageReportingEnv): Environment {
  */
 export function disabledReason(env: UsageReportingEnv): DisabledReason | null {
     if (TraceClient.environmentOptsOut(traceEnvironment(env))) return 'environment';
-    if (ENABLED_OFF.has(normalised(env.USAGE_REPORTING_ENABLED))) return 'USAGE_REPORTING_ENABLED';
+    if (!siteSettingAllows(env.USAGE_REPORTING_ENABLED)) return 'USAGE_REPORTING_ENABLED';
     if (!(env.USAGE_REPORTING_KEY ?? '').trim()) return 'no key';
     return null;
 }

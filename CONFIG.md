@@ -81,7 +81,7 @@ JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 
 **Type:** boolean  
 **Default:** `true`  
-**Description:** Set to `false` (also `0`, `no` or `off`; case and surrounding space do not matter) to stop reporting page views even when a key is set. `TRACE_USAGE_REPORTING=off` and `DO_NOT_TRACK=1` do the same, and win over it. Any other value of this variable, including an empty one, leaves the decision to those two and to the key.
+**Description:** Set to `false` to stop reporting page views even when a key is set. Unset or empty leaves the decision to the key and the two variables below; `true`, `on`, `yes` or `1` (case and surrounding space do not matter) does the same; **any other value** (`false`, `0`, `no`, `off`, `disabled`, a typo) turns reporting off, so an attempt to turn it off is never read as on. `TRACE_USAGE_REPORTING` and `DO_NOT_TRACK` win over it: `TRACE_USAGE_REPORTING` set to anything but empty, `true`, `on`, `yes` or `1` turns reporting off, and so does `DO_NOT_TRACK` set to anything but empty, `0`, `false`, `off` or `no`.
 
 ### `USAGE_REPORTING_ENDPOINT`
 
