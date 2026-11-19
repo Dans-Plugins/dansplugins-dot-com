@@ -95,8 +95,8 @@ switch below also stops it: with reporting off no ID is made, read or written.
 
 Reporting is off unless a key is set, and any of these turns it off:
 
-- `USAGE_REPORTING_ENABLED=false` in the server's environment (any value but empty, `true`, `on`,
-  `yes` or `1` turns it off, so `off`, `disabled` or a typo does too)
+- `USAGE_REPORTING_ENABLED=false` in the server's environment (set to any value but `true`, `on`,
+  `yes` or `1` turns it off, so empty, `off`, `disabled` or a typo does too)
 - `TRACE_USAGE_REPORTING=off` in the environment (any value but empty, `true`, `on`, `yes` or `1`;
   shared by every program that reports to trace, and it wins over the setting above)
 - `DO_NOT_TRACK=1` in the environment (any value but empty, `0`, `false`, `off` or `no`; see

@@ -48,15 +48,15 @@ export interface UsageReportingEnv {
 export type DisabledReason = 'environment' | 'USAGE_REPORTING_ENABLED' | 'no key';
 
 /**
- * Whether the site's own USAGE_REPORTING_ENABLED leaves reporting on. Unset or
- * blank is the default (on, given a key); otherwise only an on-value (`true`,
- * `on`, `yes`, `1`, any case) keeps it on, read by trace-client.ts's own
- * `TraceClient.allowsReporting`. Anything else -- `false`, `disabled`, a typo --
- * is an opt-out, so an operator's attempt to turn reporting off never leaves it on.
+ * Whether the site's own USAGE_REPORTING_ENABLED leaves reporting on. Unset is
+ * the default (on, given a key); set, only an on-value (`true`, `on`, `yes`,
+ * `1`, any case) keeps it on, read by trace-client.ts's own
+ * `TraceClient.allowsReporting`. Anything else -- blank, `false`, `disabled`, a
+ * typo -- is an opt-out, so an operator's attempt to turn reporting off never
+ * leaves it on.
  */
 export function siteSettingAllows(value: string | undefined): boolean {
-    const setting = (value ?? '').trim();
-    return setting === '' || TraceClient.allowsReporting(setting);
+    return value === undefined || TraceClient.allowsReporting(value);
 }
 
 /**

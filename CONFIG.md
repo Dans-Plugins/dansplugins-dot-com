@@ -81,7 +81,7 @@ JWT_SECRET="your-secret-key-at-least-32-bytes-long" docker compose up --build
 
 **Type:** boolean  
 **Default:** `true`  
-**Description:** Set to `false` to stop reporting page views even when a key is set. Unset or empty leaves the decision to the key and the two variables below; `true`, `on`, `yes` or `1` (case and surrounding space do not matter) does the same; **any other value** (`false`, `0`, `no`, `off`, `disabled`, a typo) turns reporting off, so an attempt to turn it off is never read as on. `TRACE_USAGE_REPORTING` and `DO_NOT_TRACK` win over it: `TRACE_USAGE_REPORTING` set to anything but empty, `true`, `on`, `yes` or `1` turns reporting off, and so does `DO_NOT_TRACK` set to anything but empty, `0`, `false`, `off` or `no`.
+**Description:** Set to `false` to stop reporting page views even when a key is set. Unset leaves the decision to the key and the two variables below; `true`, `on`, `yes` or `1` (case and surrounding space do not matter) does the same; **any other value**, empty included (`false`, `0`, `no`, `off`, `disabled`, a typo), turns reporting off, so an attempt to turn it off is never read as on. `TRACE_USAGE_REPORTING` and `DO_NOT_TRACK` win over it: `TRACE_USAGE_REPORTING` set to anything but empty, `true`, `on`, `yes` or `1` turns reporting off, and so does `DO_NOT_TRACK` set to anything but empty, `0`, `false`, `off` or `no`.
 
 ### `USAGE_REPORTING_ENDPOINT`
 
@@ -113,7 +113,7 @@ Because the `NEXT_PUBLIC_*` values are inlined when the image is built, rebuild 
 
 `compose.yml` sets `DPC_API_INTERNAL_URL` to `http://dpc-api:8080` by default, which is how the website container reaches the API on the Compose network. Leave it alone unless the API service is renamed or moved; it does not belong in a `.env` written for `npm run dev`, where the server and the browser are the same machine and `NEXT_PUBLIC_API_URL` already answers for both.
 
-Compose hands the website container only the variables its `environment:` block names, so `compose.yml` also passes through the usage-reporting variables — [`USAGE_REPORTING_KEY`](#usage_reporting_key), [`USAGE_REPORTING_ENABLED`](#usage_reporting_enabled), [`USAGE_REPORTING_ENDPOINT`](#usage_reporting_endpoint), `TRACE_USAGE_REPORTING`, `DO_NOT_TRACK` and [`TRACE_INSTALL_ID`](#trace_install_id) — from the shell or `.env`. Each defaults to empty, which leaves reporting off. Like `DPC_API_INTERNAL_URL` they are read at runtime, so setting the key needs a restart rather than a rebuild.
+Compose hands the website container only the variables its `environment:` block names, so `compose.yml` also passes through the usage-reporting variables — [`USAGE_REPORTING_KEY`](#usage_reporting_key), [`USAGE_REPORTING_ENABLED`](#usage_reporting_enabled), [`USAGE_REPORTING_ENDPOINT`](#usage_reporting_endpoint), `TRACE_USAGE_REPORTING`, `DO_NOT_TRACK` and [`TRACE_INSTALL_ID`](#trace_install_id) — from the shell or `.env`. Each defaults to empty except `USAGE_REPORTING_ENABLED`, which is `true` when unset (`${USAGE_REPORTING_ENABLED-true}`; a blank value is passed through blank and turns reporting off); with no key, reporting stays off. Like `DPC_API_INTERNAL_URL` they are read at runtime, so setting the key needs a restart rather than a rebuild.
 
 **Example `.env`:**
 

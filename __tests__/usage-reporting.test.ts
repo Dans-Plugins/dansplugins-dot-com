@@ -42,7 +42,7 @@ describe('disabledReason', () => {
     });
 
     it('reads any USAGE_REPORTING_ENABLED value but an on-value as off', () => {
-        for (const value of ['disabled', 'nope', 'ture', 'flase', 'none', '2', '-1', 'never', 'FALSE ']) {
+        for (const value of ['', '  ', 'disabled', 'nope', 'ture', 'flase', 'none', '2', '-1', 'never', 'FALSE ']) {
             expect(disabledReason({ USAGE_REPORTING_KEY: KEY, USAGE_REPORTING_ENABLED: value }), value)
                 .toBe('USAGE_REPORTING_ENABLED');
             expect(createUsageReporting(
@@ -52,8 +52,8 @@ describe('disabledReason', () => {
         }
     });
 
-    it('keeps reporting on for an on-value or an unset/blank USAGE_REPORTING_ENABLED', () => {
-        for (const value of [undefined, '', '  ', 'true', 'TRUE', ' on ', 'yes', '1']) {
+    it('keeps reporting on for an on-value or an unset USAGE_REPORTING_ENABLED', () => {
+        for (const value of [undefined, 'true', 'TRUE', ' on ', 'yes', '1']) {
             expect(disabledReason({ USAGE_REPORTING_KEY: KEY, USAGE_REPORTING_ENABLED: value }), String(value)).toBeNull();
         }
     });
@@ -180,10 +180,12 @@ describe('createUsageReporting', () => {
         expect(fetch.mock.calls[0][0]).toBe(DEFAULT_ENDPOINT + '/api/metrics');
     });
 
-    // compose.yml passes every variable through as `${VAR:-}`, so an unset one arrives as ''.
+    // compose.yml passes most variables through as `${VAR:-}`, so an unset one arrives as ''.
+    // USAGE_REPORTING_ENABLED is passed as `${VAR-true}`: 'true' when unset, but a blank
+    // value set by the operator stays blank, and blank is an opt-out.
     it('treats the empty values compose.yml passes through as unset', async () => {
         const empty = {
-            USAGE_REPORTING_ENABLED: '',
+            USAGE_REPORTING_ENABLED: 'true',
             USAGE_REPORTING_ENDPOINT: '',
             TRACE_USAGE_REPORTING: '',
             DO_NOT_TRACK: '',
@@ -195,6 +197,13 @@ describe('createUsageReporting', () => {
         expect(client.enabled).toBe(true);
         await client.report('page-view', { tags: pageViewTags('/') });
         expect(fetch.mock.calls[0][0]).toBe(DEFAULT_ENDPOINT + '/api/metrics');
+    });
+
+    it('passes USAGE_REPORTING_ENABLED through compose.yml without turning a blank value into on', () => {
+        const compose = readFileSync(join(__dirname, '..', 'compose.yml'), 'utf8');
+        const line = compose.split('\n').find((l) => /^\s*USAGE_REPORTING_ENABLED:/.test(l));
+        expect(line?.trim()).toBe('USAGE_REPORTING_ENABLED: ${USAGE_REPORTING_ENABLED-true}');
+        expect(compose).not.toMatch(/USAGE_REPORTING_ENABLED:-/);
     });
 });
 
