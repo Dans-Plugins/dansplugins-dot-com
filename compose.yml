@@ -19,10 +19,12 @@ services:
       DPC_API_INTERNAL_URL: ${DPC_API_INTERNAL_URL:-http://dpc-api:8080}
       # Page-view reporting to trace (middleware.ts). Compose passes only the
       # variables listed here into the container, so without these lines a key
-      # set in the shell or .env never reaches the server. All empty by default,
+      # set in the shell or .env never reaches the server. No key by default,
       # which leaves reporting off. Runtime-only, never inlined. See CONFIG.md.
+      # USAGE_REPORTING_ENABLED defaults with `-`, not `:-`, so only an unset
+      # variable becomes true: a blank one (an opt-out) reaches the server blank.
       USAGE_REPORTING_KEY: ${USAGE_REPORTING_KEY:-}
-      USAGE_REPORTING_ENABLED: ${USAGE_REPORTING_ENABLED:-}
+      USAGE_REPORTING_ENABLED: ${USAGE_REPORTING_ENABLED-true}
       USAGE_REPORTING_ENDPOINT: ${USAGE_REPORTING_ENDPOINT:-}
       TRACE_USAGE_REPORTING: ${TRACE_USAGE_REPORTING:-}
       DO_NOT_TRACK: ${DO_NOT_TRACK:-}

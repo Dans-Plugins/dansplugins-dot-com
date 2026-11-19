@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Usage reporting stays off once it is turned off. `USAGE_REPORTING_ENABLED` now keeps page-view reporting on only when unset or an on-value (`true`, `on`, `yes`, `1`); any other value, such as empty, `disabled` or a typo, turns it off, where only `false`, `0`, `no` and `off` did before. `compose.yml` passes it as `${USAGE_REPORTING_ENABLED-true}`, so only an unset variable defaults to on and a blank one reaches the server as an opt-out. The vendored trace client (`utils/trace-client.ts`) moves from 0.4.1 to 0.5.0, which does the same for `TRACE_USAGE_REPORTING` (anything but empty or an on-value is off) and `DO_NOT_TRACK` (anything but empty, `0`, `false`, `off` or `no` is off), and treats an environment it cannot read as an opt-out.
+
 ### Added
 
 - A **Flyway version clash** check (`.github/workflows/flyway-version-clash.yml`, `scripts/flyway/`) fails a pull request whose migrations would share a version number with one already on the base branch, naming the version and the next free one (e.g. `FAULT V18 ... Next free version: V19`). It compares against the base branch tip fetched when the job runs, not the stale merge ref, and after each push to `main` or `develop` re-checks every open pull request into that branch. It reads git only. Tests replay the 2026-09-20 break, PR #323's V18 against `main` at `4addea2` (`__tests__/flywayVersionClash.test.ts`). It is the text-only check from RFC 0007, split out ahead of that RFC's rock-layer picture.
