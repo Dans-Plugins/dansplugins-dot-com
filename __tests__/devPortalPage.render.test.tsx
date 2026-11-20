@@ -113,7 +113,10 @@ const itemRow = (name: string) => screen.getByRole('link', {name}).closest('tr')
 const sortBy = (column: string) =>
     fireEvent.click(within(screen.getByRole('columnheader', {name: column})).getByRole('button'));
 
-const tile = (label: string) => (screen.getByText(label).closest('.MuiCard-root') as HTMLElement).textContent;
+// A stat tile's label is its caption; "Oldest open item" is also a repo-table
+// column header, so match the caption only.
+const tile = (label: string) =>
+    (screen.getByText(label, {selector: '.MuiTypography-caption'}).closest('.MuiCard-root') as HTMLElement).textContent;
 
 const renderLoaded = async () => {
     render(<DevPortalPage/>);
