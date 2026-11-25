@@ -9,7 +9,7 @@ No special software is required to use the website. Simply visit [https://danspl
 ## First Steps
 
 1. Open your web browser and navigate to [https://dansplugins.com](https://dansplugins.com).
-2. On your first visit, the home page asks what brings you here. **I run a server** stays on the home page, and so does closing the dialog; **I build plugins** goes to the Dev Portal. Your browser remembers the answer, so the question is not asked again, and the **Dev Portal** link in the top navigation bar is there either way.
+2. On your first visit, the home page asks what brings you here. **I run a server** stays on the home page, and so does closing the dialog; **I build plugins** goes to the Dev Portal. Your browser remembers the answer, so the question is not asked again, and the **Dev Portal** is in the **Community** menu of the top navigation bar either way.
 3. Browse the grid of DPC plugin icons on the home page, each with the plugin's name beneath it. The grid is split into three tiers, most proven first: **Established** (a 1.0 or later release, and listed on SpigotMC), **Growing** (one of the two), and **Early releases** (neither, so try these on a test server first).
 4. On a computer, hover over an icon (or move to it with the keyboard) to open a panel with the plugin's description and buttons: **Details** opens that plugin's own page on this site, **Guide** opens its user guide, and **GitHub** takes you to its source code and releases. Clicking the icon itself goes straight to the plugin's page. On a phone or tablet, a tap on an icon opens the same details in a sheet at the bottom of the screen.
 
@@ -150,19 +150,25 @@ No special software is required to use the website. Simply visit [https://danspl
 
 ### Viewing the Roadmap
 
-1. Click **Roadmap** in the top navigation bar (or visit `/roadmap`).
+1. Open the **Community** menu in the top navigation bar and choose **Roadmap** (on a phone it is in the menu drawer), or visit `/roadmap`.
 2. Review the planned, in-progress, and completed work.
 3. Follow the linked GitHub issue tracker for day-to-day detail.
 
 <p>
-  <a href="docs/images/roadmap.jpg"><img src="docs/images/roadmap.jpg" alt="The Road Map page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion" width="560"></a>
+  <a href="docs/images/community-menu.jpg"><img src="docs/images/community-menu.jpg" alt="The home page with the Community menu open in the top navigation bar, listing Roadmap, Commissions and Dev Portal, then external community links" width="560"></a>
 </p>
 
-*The road map: planned, in-progress and completed work.*
+*The Community menu in the top bar: Roadmap, Commissions and the Dev Portal, plus the community's Discord, Patreon and other links.*
+
+<p>
+  <a href="docs/images/roadmap.jpg"><img src="docs/images/roadmap.jpg" alt="The Roadmap page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion" width="560"></a>
+</p>
+
+*The Roadmap: planned, in-progress and completed work (in the Community menu).*
 
 ### Following Development in the Dev Portal
 
-1. Click **Dev Portal** in the top navigation bar (or visit `/dev`).
+1. Open the **Community** menu in the top navigation bar and choose **Dev Portal** (on a phone it is in the menu drawer), or visit `/dev`.
 2. Review every open issue and pull request across the Dans-Plugins GitHub organization in one place: totals at the top, a row per repository, and the open items themselves, which can be narrowed by repository and type. The view is a mirror that refreshes on a schedule; GitHub stays the source of truth.
 3. Once signed in, use the heart in an item's **Interested** column to show you want it done, or **I'm working on this** in its **Claimed** column so nobody duplicates your work. Everyone sees who has claimed an item; **Release** gives your claim back, and a claim is released automatically after thirty days.
 4. Under **Feature requests**, submit an idea for a plugin or upvote someone else's. A plugin page's **Suggest a feature** button leads here. An admin can turn a wanted idea into a real GitHub issue, and the idea then links to it.
@@ -171,7 +177,7 @@ No special software is required to use the website. Simply visit [https://danspl
   <a href="docs/images/dev-portal.jpg"><img src="docs/images/dev-portal.jpg" alt="The Developer Portal: totals for open issues, open pull requests, drafts and the oldest open item, then a table of repositories with issue counts and a triage signal" width="560"></a>
 </p>
 
-*The Dev Portal: every open issue and pull request across the organization at a glance.*
+*The Dev Portal: every open issue and pull request across the organization at a glance (in the Community menu).*
 
 ### Checking Plugin Usage
 
@@ -180,10 +186,10 @@ No special software is required to use the website. Simply visit [https://danspl
 3. If trace cannot be reached, the page says the figures are unavailable rather than showing none.
 
 <p>
-  <a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page: cards for Wild Pets, Medieval Roleplay Engine and others, each with active servers in the last 30 days and a small trend chart" width="560"></a>
+  <a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page with a notice that usage figures are not available right now, above plugin rows that each say No usage figures available" width="560"></a>
 </p>
 
-*Plugin usage: active servers per plugin, with a 30-day trend for each.*
+*Plugin usage, shot while trace could not be reached: the page says the figures are unavailable instead of showing zeros. With trace up, each plugin shows its active servers and a 30-day trend.*
 
 ### Learning How Releases Are Checked
 
@@ -198,7 +204,7 @@ No special software is required to use the website. Simply visit [https://danspl
 
 ### Requesting a Commission
 
-1. Click **Commissions** in the top navigation bar (or visit `/commissions`).
+1. Open the **Community** menu in the top navigation bar and choose **Commissions** (on a phone it is in the menu drawer), or visit `/commissions`.
 2. Review the pricing options, what's included, and the current availability status.
 3. Click **Join the Commissions Discord** to discuss your project.
 
@@ -206,7 +212,7 @@ No special software is required to use the website. Simply visit [https://danspl
   <a href="docs/images/commissions.jpg"><img src="docs/images/commissions.jpg" alt="The Commissions page marked Open for commissions: a pricing table for Fork and Repair and Custom Plugin work, a What's included list and a Join the Commissions Discord button" width="560"></a>
 </p>
 
-*Commissions: pricing, what is included and availability.*
+*Commissions: pricing, what is included and availability (in the Community menu).*
 
 ### Managing Your Account
 

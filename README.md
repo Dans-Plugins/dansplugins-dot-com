@@ -60,7 +60,7 @@ Every image below is a real capture of the live site (click one for full size). 
 </tr>
 <tr>
   <td width="33%" valign="top"><a href="docs/images/news.jpg"><img src="docs/images/news.jpg" alt="The News page: two announcement cards, Community Data API and Factions Leaderboard, and New About, Road Map, and Commissions Pages" width="260"></a><br><sub>News, newest first.</sub></td>
-  <td width="33%" valign="top"><a href="docs/images/roadmap.jpg"><img src="docs/images/roadmap.jpg" alt="The Road Map page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion" width="260"></a><br><sub>The road map: planned, in-progress and completed work.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/roadmap.jpg"><img src="docs/images/roadmap.jpg" alt="The Roadmap page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion" width="260"></a><br><sub>The Roadmap: planned, in-progress and completed work (in the Community menu).</sub></td>
   <td width="33%" valign="top"><a href="docs/images/about.jpg"><img src="docs/images/about.jpg" alt="The About Us page introducing Dan's Plugins Community, with GitHub, Discord and Patreon buttons" width="260"></a><br><sub>About the community, with GitHub, Discord and Patreon links.</sub></td>
 </tr>
 </table>
@@ -69,13 +69,14 @@ Every image below is a real capture of the live site (click one for full size). 
 
 <table>
 <tr>
-  <td width="33%" valign="top"><a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page: cards for Wild Pets, Medieval Roleplay Engine and others, each with active servers in the last 30 days and a small trend chart" width="260"></a><br><sub>Plugin usage: active servers per plugin, with a 30-day trend for each.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page with a notice that usage figures are not available right now, above plugin rows that each say No usage figures available" width="260"></a><br><sub>Plugin usage, shot while trace could not be reached: the page says the figures are unavailable instead of showing zeros. With trace up, each plugin shows its active servers and a 30-day trend.</sub></td>
   <td width="33%" valign="top"><a href="docs/images/leaderboard.jpg"><img src="docs/images/leaderboard.jpg" alt="The Faction Leaderboard: a table of factions ranked by member count, each with its server name, a copyable server address and a Discord link" width="260"></a><br><sub>The faction leaderboard, built from data Medieval Factions servers publish.</sub></td>
-  <td width="33%" valign="top"><a href="docs/images/dev-portal.jpg"><img src="docs/images/dev-portal.jpg" alt="The Developer Portal: totals for open issues, open pull requests, drafts and the oldest open item, then a table of repositories with issue counts and a triage signal" width="260"></a><br><sub>The Dev Portal: every open issue and pull request across the organization at a glance.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/dev-portal.jpg"><img src="docs/images/dev-portal.jpg" alt="The Developer Portal: totals for open issues, open pull requests, drafts and the oldest open item, then a table of repositories with issue counts and a triage signal" width="260"></a><br><sub>The Dev Portal: every open issue and pull request across the organization at a glance (in the Community menu).</sub></td>
 </tr>
 <tr>
-  <td width="33%" valign="top"><a href="docs/images/commissions.jpg"><img src="docs/images/commissions.jpg" alt="The Commissions page marked Open for commissions: a pricing table for Fork and Repair and Custom Plugin work, a What's included list and a Join the Commissions Discord button" width="260"></a><br><sub>Commissions: pricing, what is included and availability.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/commissions.jpg"><img src="docs/images/commissions.jpg" alt="The Commissions page marked Open for commissions: a pricing table for Fork and Repair and Custom Plugin work, a What's included list and a Join the Commissions Discord button" width="260"></a><br><sub>Commissions: pricing, what is included and availability (in the Community menu).</sub></td>
   <td width="33%" valign="top"><a href="docs/images/account.jpg"><img src="docs/images/account.jpg" alt="The Account page signed out: Sign in and Create account tabs above a username and password form, with a link for resetting a forgotten password" width="260"></a><br><sub>Sign in or create an account (for likes, API keys and a public profile).</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/community-menu.jpg"><img src="docs/images/community-menu.jpg" alt="The home page with the Community menu open in the top navigation bar, listing Roadmap, Commissions and Dev Portal, then external community links" width="260"></a><br><sub>The Community menu in the top bar: Roadmap, Commissions and the Dev Portal, plus the community's Discord, Patreon and other links.</sub></td>
 </tr>
 </table>
 
@@ -87,7 +88,7 @@ At phone width the hover panel becomes a bottom sheet and the navigation moves i
 <tr>
   <td width="25%" valign="top"><a href="docs/images/home-phone.jpg"><img src="docs/images/home-phone.jpg" alt="The home page on a phone: the plugin icon grid four icons per row under a compact top bar with a menu button" width="180"></a><br><sub>Phone width: four icons a row, navigation behind the menu button.</sub></td>
   <td width="25%" valign="top"><a href="docs/images/phone-sheet.jpg"><img src="docs/images/phone-sheet.jpg" alt="A bottom sheet on a phone showing Wild Pets: its description, tags, chips for servers, latest version, downloads, tested versions and rating, and Details, Download, Guide, GitHub and SpigotMC buttons, over the dimmed icon grid" width="180"></a><br><sub>On a phone, a tap opens the plugin's details in a sheet at the bottom of the screen.</sub></td>
-  <td width="25%" valign="top"><a href="docs/images/phone-menu.jpg"><img src="docs/images/phone-menu.jpg" alt="The navigation drawer open on a phone, listing Home, News, Guides, Leaderboard, About, Road Map, Commissions, Dev Portal and Sign in, then Community links to Discord, Patreon, LinkedIn and RPKit" width="180"></a><br><sub>The phone navigation menu.</sub></td>
+  <td width="25%" valign="top"><a href="docs/images/phone-menu.jpg"><img src="docs/images/phone-menu.jpg" alt="The navigation drawer open on a phone, listing Home, News, Guides, Leaderboard, About, Roadmap, Commissions, Dev Portal and Sign in, then Community links to Discord, Patreon, LinkedIn and RPKit" width="180"></a><br><sub>The phone navigation drawer: every page, including the Community menu's Roadmap, Commissions and Dev Portal.</sub></td>
   <td width="25%" valign="top"><a href="docs/images/phone-plugin-dark.jpg"><img src="docs/images/phone-plugin-dark.jpg" alt="The Medieval Factions page on a phone in dark mode: the plugin icon and title, chips for servers, latest version and downloads, and the Download and User guide buttons" width="180"></a><br><sub>A plugin page on a phone, in dark mode.</sub></td>
 </tr>
 </table>
@@ -246,7 +247,7 @@ Docker Compose brings up the site together with `dpc-api`, its database, and the
 
 ### Regenerating screenshots
 
-The images in this README and in [USER_GUIDE.md](USER_GUIDE.md) live in `docs/images/` and are shot from one committed shot list, [`docs/media.json`](docs/media.json), with [darkroom](https://github.com/Preponderous-Software/darkroom) (headless Chromium through Playwright). Each shot names its page, device (1440×900 desktop, or a 390×844 phone at 3× pixel density), colour mode, any clicks or hovers, and its caption and alt text. darkroom fits every still under 200 KB and the GIF under 3 MB.
+The images in this README and in [USER_GUIDE.md](USER_GUIDE.md) live in `docs/images/` and are shot from one committed shot list, [`docs/media.json`](docs/media.json), with [darkroom](https://github.com/Preponderous-Software/darkroom) (headless Chromium through Playwright). Each shot names its page, device (1280×800 desktop, 1280×900 for the hover shots so the whole panel fits, or a 390×844 phone at 3× pixel density), colour mode, any clicks or hovers, and its caption and alt text. darkroom fits every still under 200 KB and the GIF under 3 MB.
 
 ```bash
 pip install "darkroom @ git+https://github.com/Preponderous-Software/darkroom@v0.7.1"

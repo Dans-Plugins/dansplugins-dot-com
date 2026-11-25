@@ -5,13 +5,13 @@
   },
   "devices": {
     "wide": {
-      "width": 1440,
-      "height": 900,
+      "width": 1280,
+      "height": 800,
       "dpr": 1
     },
     "wide-tall": {
-      "width": 1440,
-      "height": 1100,
+      "width": 1280,
+      "height": 900,
       "dpr": 1
     }
   },
@@ -99,7 +99,8 @@
         }
       ],
       "caption": "Hovering an icon opens its panel: preview, description, figures, and Details / Download / Guide / GitHub buttons.",
-      "alt": "The Medieval Factions hover panel on the home page: a still from its chat preview clip (a faction claim map), its description, tags, chips for servers, latest version, downloads, tested Minecraft version and rating, and Details, Download, Guide, GitHub and SpigotMC buttons"
+      "alt": "The Medieval Factions hover panel on the home page: a still from its chat preview clip (a faction claim map), its description, tags, chips for servers, latest version, downloads, tested Minecraft version and rating, and Details, Download, Guide, GitHub and SpigotMC buttons",
+      "device": "wide-tall"
     },
     {
       "name": "home-filter",
@@ -123,6 +124,23 @@
       ],
       "caption": "Search & filter: search box, sort order, tag chips and a Minecraft version picker (here the factions tag is on).",
       "alt": "The home page with Search and filter unfolded: a search box, By Popularity, Most Liked, Most Downloaded and Alphabetical sort buttons, a row of tag chips with factions selected, and the grid narrowed to faction plugins"
+    },
+    {
+      "name": "community-menu",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        },
+        {
+          "js": "[...document.querySelectorAll('header button, nav button, button')].find(b => b.textContent.trim().startsWith('Community'))?.click()"
+        },
+        {
+          "wait": 1000
+        }
+      ],
+      "caption": "The Community menu in the top bar: Roadmap, Commissions and the Dev Portal, plus the community's Discord, Patreon and other links.",
+      "alt": "The home page with the Community menu open in the top navigation bar, listing Roadmap, Commissions and Dev Portal, then external community links"
     },
     {
       "name": "home-phone",
@@ -166,8 +184,8 @@
           "wait": 1200
         }
       ],
-      "caption": "The phone navigation menu.",
-      "alt": "The navigation drawer open on a phone, listing Home, News, Guides, Leaderboard, About, Road Map, Commissions, Dev Portal and Sign in, then Community links to Discord, Patreon, LinkedIn and RPKit"
+      "caption": "The phone navigation drawer: every page, including the Community menu's Roadmap, Commissions and Dev Portal.",
+      "alt": "The navigation drawer open on a phone, listing Home, News, Guides, Leaderboard, About, Roadmap, Commissions, Dev Portal and Sign in, then Community links to Discord, Patreon, LinkedIn and RPKit"
     },
     {
       "name": "phone-plugin-dark",
@@ -249,25 +267,25 @@
     {
       "name": "usage",
       "url": "{base}/usage",
-      "caption": "Plugin usage: active servers per plugin, with a 30-day trend for each.",
-      "alt": "The Plugin usage page: cards for Wild Pets, Medieval Roleplay Engine and others, each with active servers in the last 30 days and a small trend chart"
+      "caption": "Plugin usage, shot while trace could not be reached: the page says the figures are unavailable instead of showing zeros. With trace up, each plugin shows its active servers and a 30-day trend.",
+      "alt": "The Plugin usage page with a notice that usage figures are not available right now, above plugin rows that each say No usage figures available"
     },
     {
       "name": "roadmap",
       "url": "{base}/roadmap",
-      "caption": "The road map: planned, in-progress and completed work.",
-      "alt": "The Road Map page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion"
+      "caption": "The Roadmap: planned, in-progress and completed work (in the Community menu).",
+      "alt": "The Roadmap page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion"
     },
     {
       "name": "commissions",
       "url": "{base}/commissions",
-      "caption": "Commissions: pricing, what is included and availability.",
+      "caption": "Commissions: pricing, what is included and availability (in the Community menu).",
       "alt": "The Commissions page marked Open for commissions: a pricing table for Fork and Repair and Custom Plugin work, a What's included list and a Join the Commissions Discord button"
     },
     {
       "name": "dev-portal",
       "url": "{base}/dev",
-      "caption": "The Dev Portal: every open issue and pull request across the organization at a glance.",
+      "caption": "The Dev Portal: every open issue and pull request across the organization at a glance (in the Community menu).",
       "alt": "The Developer Portal: totals for open issues, open pull requests, drafts and the oldest open item, then a table of repositories with issue counts and a triage signal"
     },
     {
@@ -411,7 +429,8 @@
         "hold_last_ms": 1200
       },
       "caption": "Browsing the catalogue: hovering icons opens each plugin's panel.",
-      "alt": "Animation: the pointer moves across the home page's icon grid, opening the panels for Medieval Factions, Wild Pets, SimpleSkills, Currencies and Fiefs in turn, each with a still from its preview clip"
+      "alt": "Animation: the pointer moves across the home page's icon grid, opening the panels for Medieval Factions, Wild Pets, SimpleSkills, Currencies and Fiefs in turn, each with a still from its preview clip",
+      "device": "wide-tall"
     }
   ]
 }
