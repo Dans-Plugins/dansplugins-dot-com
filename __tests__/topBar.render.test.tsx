@@ -4,7 +4,7 @@
 // they are on, whether they are signed in (and as whom), where the off-site
 // community links go, and that the mobile drawer and dark-mode switch work.
 //
-// The inline nav is `display: none` below the `md` breakpoint and jsdom applies
+// The inline nav is `display: none` below the `lg` breakpoint and jsdom applies
 // no media queries, so queries against it pass `hidden: true`.
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
@@ -47,11 +47,11 @@ describe('TopBar current-page indication', () => {
         expect(current).toEqual([]);
     });
 
-    it('links each in-site destination in the same tab, in order', () => {
+    it('links each inline in-site destination in the same tab, in order', () => {
         render(<TopBar/>);
 
-        const labels = ['Home', 'News', 'Guides', 'Leaderboard', 'About', 'Road Map', 'Commissions', 'Dev Portal'];
-        const hrefs = ['/', '/news', '/guides', '/leaderboard', '/about', '/roadmap', '/commissions', '/dev'];
+        const labels = ['Home', 'News', 'Guides', 'Leaderboard', 'About'];
+        const hrefs = ['/', '/news', '/guides', '/leaderboard', '/about'];
         labels.forEach((label, i) => {
             const link = navLink(label);
             expect(link.getAttribute('href')).toBe(hrefs[i]);
@@ -115,6 +115,27 @@ describe('TopBar community menu', () => {
             expect(item.getAttribute('target')).toBe('_blank');
             expect(item.getAttribute('rel')).toBe('noopener noreferrer');
         }
+    });
+});
+
+describe('TopBar community menu, in-site pages', () => {
+    it('lists Road Map, Commissions and Dev Portal first, each in the same tab', () => {
+        render(<TopBar/>);
+        fireEvent.click(screen.getByRole('button', {name: 'Community', hidden: true}));
+
+        const items = screen.getAllByRole('menuitem');
+        expect(items.slice(0, 3).map((item) => [item.textContent, item.getAttribute('href'), item.getAttribute('target')]))
+            .toEqual([['Road Map', '/roadmap', null], ['Commissions', '/commissions', null], ['Dev Portal', '/dev', null]]);
+    });
+
+    it('marks the menu item for the current page, and keeps the inline links unmarked', () => {
+        router.pathname = '/roadmap';
+        render(<TopBar/>);
+        fireEvent.click(screen.getByRole('button', {name: 'Community', hidden: true}));
+
+        expect(screen.getByRole('menuitem', {name: 'Road Map'}).getAttribute('aria-current')).toBe('page');
+        expect(screen.getByRole('menuitem', {name: 'Commissions'}).getAttribute('aria-current')).toBeNull();
+        expect(navLink('Home').getAttribute('aria-current')).toBeNull();
     });
 });
 
