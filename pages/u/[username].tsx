@@ -68,8 +68,13 @@ const PublicProfilePage: NextPage = () => {
     return (
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo
-                title={`${heading} — Profile`}
-                description={`The public DPC community profile for ${heading}.`}
+                // The page is prerendered once for every username, so until the
+                // router supplies one the tags stay generic rather than reading
+                // "Profile — Profile".
+                title={username ? `${heading} — Profile` : 'Community profile'}
+                description={username
+                    ? `The public DPC community profile for ${heading}.`
+                    : 'A public DPC community profile: badges and the plugins and guides this member likes.'}
                 // The username comes from the router on the client (already
                 // decoded), so the canonical URL is only emitted once it is known,
                 // and the segment is re-encoded to keep the URL well-formed.

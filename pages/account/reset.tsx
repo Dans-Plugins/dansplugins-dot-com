@@ -60,7 +60,7 @@ const ResetPasswordPage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
-            <Seo title="Reset your password" description="Set a new password with a reset token from an admin."/>
+            <Seo title="Reset your password" description="Set a new password with a reset token from an admin." noindex/>
             <TopBar/>
             <Container component="main" id="main" maxWidth="sm" sx={{py: 4}}>
                 <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

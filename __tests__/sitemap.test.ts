@@ -1,8 +1,9 @@
-import {readdirSync} from 'node:fs';
+import {readdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {
     DISALLOWED_CRAWL_PATHS,
+    NOINDEX_PATHS,
     SITEMAP_ROUTE,
     STATIC_SITEMAP_PATHS,
     guideSitemapPaths,
@@ -59,17 +60,45 @@ describe('STATIC_SITEMAP_PATHS', () => {
         expect(contradictions).toEqual([]);
     });
 
+    it('does not offer a route its own page asks search engines not to index', () => {
+        const contradictions = STATIC_SITEMAP_PATHS.filter((path) =>
+            NOINDEX_PATHS.some((hidden) => path.startsWith(hidden))
+        );
+        expect(contradictions).toEqual([]);
+    });
+
     // Drift guard: adding a page under pages/ without deciding what crawlers
     // should do with it is the failure mode this list has. Every addressable
-    // page must be either offered in the sitemap or explicitly disallowed —
-    // if this fails, add the new route to one of the two lists.
+    // page must be offered in the sitemap, disallowed, or marked noindex —
+    // if this fails, add the new route to one of the three lists.
     it('accounts for every addressable page under pages/', () => {
         const unaccountedFor = crawlableRoutes().filter(
             (route) =>
                 !STATIC_SITEMAP_PATHS.includes(route) &&
-                !DISALLOWED_CRAWL_PATHS.some((disallowed) => route.startsWith(disallowed))
+                !DISALLOWED_CRAWL_PATHS.some((disallowed) => route.startsWith(disallowed)) &&
+                !NOINDEX_PATHS.some((hidden) => route.startsWith(hidden))
         );
         expect(unaccountedFor).toEqual([]);
+    });
+
+    // A NOINDEX_PATHS entry is only a promise; the page has to keep it by
+    // passing `noindex` to <Seo>, which renders the robots meta tag.
+    it('every page under a noindex prefix passes noindex to Seo', () => {
+        const hiddenRoutes = crawlableRoutes().filter((route) =>
+            NOINDEX_PATHS.some((hidden) => route.startsWith(hidden))
+        );
+        expect(hiddenRoutes.length).toBeGreaterThan(0);
+        const missing = hiddenRoutes.filter((route) => {
+            const base = join(process.cwd(), 'pages', route);
+            let source: string;
+            try {
+                source = readFileSync(`${base}.tsx`, 'utf8');
+            } catch {
+                source = readFileSync(join(base, 'index.tsx'), 'utf8');
+            }
+            return !/<Seo\b[^>]*\bnoindex\b/.test(source);
+        });
+        expect(missing).toEqual([]);
     });
 
     it('the drift guard actually finds the site\'s pages', () => {
@@ -161,9 +190,6 @@ describe('robotsTxt', () => {
         expect(robotsTxt(BASE_URL)).toBe(
             'User-agent: *\n' +
             'Allow: /\n' +
-            'Disallow: /account\n' +
-            'Disallow: /admin\n' +
-            'Disallow: /dev\n' +
             'Disallow: /api/\n' +
             '\n' +
             'Sitemap: https://dansplugins.com/sitemap.xml\n'

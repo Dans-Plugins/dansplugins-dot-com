@@ -15,6 +15,8 @@ import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import Seo from '../../components/Seo';
+import {siteBaseUrl} from '../../utils/seo';
+import {breadcrumbJsonLd, pluginJsonLd} from '../../utils/structuredData';
 import BottomBar from '../../components/BottomBar';
 import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import PluginVersionList from '../../components/PluginVersionList';
@@ -258,12 +260,28 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
     // be a lifetime total.
     const githubDownloadCount = totalDownloads(versions);
     const worldRenders = worldRendersFor(slug);
+    // A shared link to the page previews the plugin itself rather than the
+    // site-wide card: its world render if it has one (the 3D scene), else its
+    // clip's poster frame. Plugins with neither keep the site card.
+    const sharePreview = worldRenders[0] ?? trailer;
     return (
         <Box sx={(theme) => pageStyle(theme)}>
             <Seo
                 title={title}
                 description={resourceDescription(title, description)}
                 path={resourcePath(slug)}
+                image={sharePreview?.poster}
+                imageAlt={sharePreview?.alt}
+                jsonLd={[
+                    pluginJsonLd(siteBaseUrl(), {
+                        slug, title, description, githubLink, spigotmcLink, icon, latestVersion,
+                        firstReleasedAt, lastUpdatedAt, tags
+                    }),
+                    breadcrumbJsonLd(siteBaseUrl(), [
+                        {name: 'Plugins', path: '/'},
+                        {name: title, path: resourcePath(slug)}
+                    ])
+                ]}
             />
             <TopBar/>
             <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>

@@ -31,12 +31,21 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
     '/commissions'
 ];
 
-// Routes a crawler is asked to skip: `/account` is signed-in-only, `/dev` is the
-// developer console (see above), and `/api/` serves JSON rather than pages. This
-// is a request, not access control — nothing here is private. Public profiles
-// (`/u/[username]`) stay crawlable — they are public — but are left out of the
-// sitemap, since the set of usernames is not ours to enumerate.
-export const DISALLOWED_CRAWL_PATHS: readonly string[] = ['/account', '/admin', '/dev', '/api/'];
+// Routes a crawler is asked to skip: `/api/` serves JSON rather than pages.
+// This is a request, not access control — nothing here is private. Public
+// profiles (`/u/[username]`) stay crawlable — they are public — but are left out
+// of the sitemap, since the set of usernames is not ours to enumerate.
+export const DISALLOWED_CRAWL_PATHS: readonly string[] = ['/api/'];
+
+// Pages kept out of search results with a `noindex` robots meta tag (the
+// `noindex` prop on components/Seo.tsx) rather than a robots.txt Disallow:
+// `/account` is signed-in-only, `/admin` is the catalogue editor, and `/dev` is
+// the developer console (see above). They are linked from every page, and a
+// disallowed URL can still be listed — URL only — from such links, since the
+// crawler is never allowed to fetch the page and see that it should not be.
+// Every page under these prefixes must pass `noindex`; __tests__/sitemap.test.ts
+// checks that.
+export const NOINDEX_PATHS: readonly string[] = ['/account', '/admin', '/dev'];
 
 // Escape the five characters XML reserves. Today's paths are plain slugs, but a
 // future path carrying a query string or an ampersand would otherwise emit

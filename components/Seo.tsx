@@ -2,6 +2,7 @@ import Head from 'next/head';
 import {useRouter} from 'next/router';
 import React from 'react';
 import {absoluteUrl, canonicalPath, siteBaseUrl, socialImageUrl} from '../utils/seo';
+import {type JsonLd, serializeJsonLd} from '../utils/structuredData';
 
 // Shared per-page document metadata: title, description, canonical URL, and
 // Open Graph / Twitter card tags so browser tabs, search engines, and shared
@@ -50,9 +51,17 @@ interface SeoProps {
     // Alt text for the preview image. Only meaningful alongside a custom
     // `image` — the default card carries its own description.
     imageAlt?: string;
+    // schema.org structured data for this page (builders in
+    // utils/structuredData.ts), embedded as one JSON-LD script.
+    jsonLd?: JsonLd | readonly JsonLd[];
+    // Ask search engines not to index this page. For the signed-in and admin
+    // routes (NOINDEX_PATHS in utils/sitemap.ts): robots.txt leaves them
+    // crawlable precisely so this tag can be seen — a disallowed page can still
+    // be listed, URL only, from links to it.
+    noindex?: boolean;
 }
 
-const Seo: React.FC<SeoProps> = ({title, description, path, image, imageAlt}) => {
+const Seo: React.FC<SeoProps> = ({title, description, path, image, imageAlt, jsonLd, noindex}) => {
     const {asPath} = useRouter();
     const fullTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME;
     const desc = description ?? DEFAULT_DESCRIPTION;
@@ -65,6 +74,7 @@ const Seo: React.FC<SeoProps> = ({title, description, path, image, imageAlt}) =>
         <Head>
             <title>{fullTitle}</title>
             <meta name="description" content={desc}/>
+            {noindex ? <meta name="robots" content="noindex"/> : null}
             {url ? <link rel="canonical" href={url}/> : null}
             <meta property="og:title" content={fullTitle}/>
             <meta property="og:description" content={desc}/>
@@ -83,6 +93,13 @@ const Seo: React.FC<SeoProps> = ({title, description, path, image, imageAlt}) =>
             <meta name="twitter:description" content={desc}/>
             {imageUrl ? <meta name="twitter:image" content={imageUrl}/> : null}
             {imageUrl && alt ? <meta name="twitter:image:alt" content={alt}/> : null}
+            {jsonLd ? (
+                <script
+                    type="application/ld+json"
+                    key="jsonld"
+                    dangerouslySetInnerHTML={{__html: serializeJsonLd(jsonLd)}}
+                />
+            ) : null}
         </Head>
     );
 };
