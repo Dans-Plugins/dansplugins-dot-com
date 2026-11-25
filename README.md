@@ -5,12 +5,17 @@
 Dan's Plugins Community Website is the central hub for the Dan's Plugins Community. It showcases DPC plugins, provides links to documentation and support resources, and acts as the public face of the community at [https://dansplugins.com](https://dansplugins.com).
 
 <p align="center">
-  <img src="docs/images/home-desktop.png" alt="The dansplugins.com home page: an icon grid of the community's plugins (Medieval Factions, Wild Pets, SimpleSkills, Fiefs and more) under the navigation bar" width="640">
-  <img src="docs/images/home-mobile.png" alt="The same plugin grid at phone width, four icons per row with a menu button" width="160">
+  <a href="docs/images/home-desktop.jpg"><img src="docs/images/home-desktop.jpg" alt="The dansplugins.com home page in light mode: a blue navigation bar above a grid of plugin icons headed Established, including Medieval Factions, Wild Pets, SimpleSkills and Currencies" width="620"></a>
+  <a href="docs/images/home-phone.jpg"><img src="docs/images/home-phone.jpg" alt="The home page on a phone: the plugin icon grid four icons per row under a compact top bar with a menu button" width="180"></a>
 </p>
-<p align="center"><em>The live site at <a href="https://dansplugins.com">dansplugins.com</a>, desktop and phone width.</em></p>
+<p align="center"><em>The live site at <a href="https://dansplugins.com">dansplugins.com</a>: every plugin as an icon, sorted into Established, Growing and Early releases, on a computer and a phone.</em></p>
 
-<sub>How these were captured: headless Chromium (Playwright) against the live public site on 2026-10-18 at 1280×800 and 390×844, with the first-visit splash pre-dismissed via its <code>dpc-experience-chosen</code> localStorage key.</sub>
+<p align="center">
+  <img src="docs/images/browse.gif" alt="Animation: the pointer moves across the home page's icon grid, opening the panels for Medieval Factions, Wild Pets, SimpleSkills, Currencies and Fiefs in turn, each with a still from its preview clip" width="720">
+</p>
+<p align="center"><em>Browsing the catalogue: hovering an icon opens the plugin's panel, with its preview, live figures and links.</em></p>
+
+See [A tour of the site](#a-tour-of-the-site) for every page.
 
 This repository holds both halves of the site:
 
@@ -20,6 +25,72 @@ This repository holds both halves of the site:
 | [`dpc-api/`](dpc-api/README.md) | The Spring Boot back end serving community data (accounts, likes, factions, the plugin catalogue) | Java 17, Maven (via the bundled `./mvnw`) |
 
 Front-end work needs only Node.js, though most pages have little to show until a `dpc-api` answers (see [First Time Installation](#first-time-installation)). Back-end work also needs Java 17. Running the whole stack locally is easiest with Docker Compose — see [Development](#development).
+
+## A tour of the site
+
+Every image below is a real capture of the live site (click one for full size). They are regenerated from a committed shot list; see [Regenerating screenshots](#regenerating-screenshots).
+
+### Finding a plugin
+
+<table>
+<tr>
+  <td width="33%" valign="top"><a href="docs/images/home-panel.jpg"><img src="docs/images/home-panel.jpg" alt="The Medieval Factions hover panel on the home page: a still from its chat preview clip (a faction claim map), its description, tags, chips for servers, latest version, downloads, tested Minecraft version and rating, and Details, Download, Guide, GitHub and SpigotMC buttons" width="260"></a><br><sub>Hovering an icon opens its panel: preview, description, figures, and Details / Download / Guide / GitHub buttons.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/home-filter.jpg"><img src="docs/images/home-filter.jpg" alt="The home page with Search and filter unfolded: a search box, By Popularity, Most Liked, Most Downloaded and Alphabetical sort buttons, a row of tag chips with factions selected, and the grid narrowed to faction plugins" width="260"></a><br><sub>Search & filter: search box, sort order, tag chips and a Minecraft version picker (here the factions tag is on).</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/home-dark.jpg"><img src="docs/images/home-dark.jpg" alt="The home page in dark mode: the plugin icon grid on a near-black background" width="260"></a><br><sub>The same page in dark mode (the sun/moon switch in the navigation bar, remembered per browser).</sub></td>
+</tr>
+</table>
+
+### A plugin's page
+
+<table>
+<tr>
+  <td width="33%" valign="top"><a href="docs/images/plugin-page.jpg"><img src="docs/images/plugin-page.jpg" alt="The Medieval Factions page: icon and title with a like button, chips for servers, latest version, GitHub and SpigotMC downloads, tested Minecraft version and SpigotMC rating, a Downloads from this site box, the description, tags and Download, User guide, Source and SpigotMC buttons" width="260"></a><br><sub>A plugin's own page: live figures, download counts, tags and links.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/plugin-preview.jpg"><img src="docs/images/plugin-preview.jpg" alt="The preview section of the Medieval Factions page: a recreated Minecraft chat panel showing the /mf map claim grid, captioned as real server output, above a 3D render of example factions' claims over a Minecraft world" width="260"></a><br><sub>Preview clips and world renders, captioned with how each was made.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/plugin-versions.jpg"><img src="docs/images/plugin-versions.jpg" alt="The Versions section of the Medieval Factions page: a Development build card marked Pre-release with a warning and the /dpm command to install it, then collapsed release rows (11.2.0 marked Latest, 11.1.1, 11.1.0 and older) with dates and download counts" width="260"></a><br><sub>Versions: a clearly marked development build, then every release with its date and download count; each row expands to its notes and files.</sub></td>
+</tr>
+</table>
+
+### Guides, releases and news
+
+<table>
+<tr>
+  <td width="33%" valign="top"><a href="docs/images/guides.jpg"><img src="docs/images/guides.jpg" alt="The Guides page: an alphabetical list of plugin guides, from Activity Tracker Guide to Fiefs Guide" width="260"></a><br><sub>Guides: every plugin's user guide, read on-site.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/guide-page.jpg"><img src="docs/images/guide-page.jpg" alt="The Medieval Factions Guide rendered on the site: All guides and plugin page links, a like button, and the guide's table of contents" width="260"></a><br><sub>A plugin guide, rendered on-site from its repository.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/releases.jpg"><img src="docs/images/releases.jpg" alt="The How releases work page: an introduction, the Stable and Dev channels, and cards for the API-compatibility check and Boot gate" width="260"></a><br><sub>How releases work: the two channels and the gates a stable release must pass.</sub></td>
+</tr>
+<tr>
+  <td width="33%" valign="top"><a href="docs/images/news.jpg"><img src="docs/images/news.jpg" alt="The News page: two announcement cards, Community Data API and Factions Leaderboard, and New About, Road Map, and Commissions Pages" width="260"></a><br><sub>News, newest first.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/roadmap.jpg"><img src="docs/images/roadmap.jpg" alt="The Road Map page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion" width="260"></a><br><sub>The road map: planned, in-progress and completed work.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/about.jpg"><img src="docs/images/about.jpg" alt="The About Us page introducing Dan's Plugins Community, with GitHub, Discord and Patreon buttons" width="260"></a><br><sub>About the community, with GitHub, Discord and Patreon links.</sub></td>
+</tr>
+</table>
+
+### Community data
+
+<table>
+<tr>
+  <td width="33%" valign="top"><a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page: cards for Wild Pets, Medieval Roleplay Engine and others, each with active servers in the last 30 days and a small trend chart" width="260"></a><br><sub>Plugin usage: active servers per plugin, with a 30-day trend for each.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/leaderboard.jpg"><img src="docs/images/leaderboard.jpg" alt="The Faction Leaderboard: a table of factions ranked by member count, each with its server name, a copyable server address and a Discord link" width="260"></a><br><sub>The faction leaderboard, built from data Medieval Factions servers publish.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/dev-portal.jpg"><img src="docs/images/dev-portal.jpg" alt="The Developer Portal: totals for open issues, open pull requests, drafts and the oldest open item, then a table of repositories with issue counts and a triage signal" width="260"></a><br><sub>The Dev Portal: every open issue and pull request across the organization at a glance.</sub></td>
+</tr>
+<tr>
+  <td width="33%" valign="top"><a href="docs/images/commissions.jpg"><img src="docs/images/commissions.jpg" alt="The Commissions page marked Open for commissions: a pricing table for Fork and Repair and Custom Plugin work, a What's included list and a Join the Commissions Discord button" width="260"></a><br><sub>Commissions: pricing, what is included and availability.</sub></td>
+  <td width="33%" valign="top"><a href="docs/images/account.jpg"><img src="docs/images/account.jpg" alt="The Account page signed out: Sign in and Create account tabs above a username and password form, with a link for resetting a forgotten password" width="260"></a><br><sub>Sign in or create an account (for likes, API keys and a public profile).</sub></td>
+</tr>
+</table>
+
+### On a phone
+
+At phone width the hover panel becomes a bottom sheet and the navigation moves into a drawer.
+
+<table>
+<tr>
+  <td width="25%" valign="top"><a href="docs/images/home-phone.jpg"><img src="docs/images/home-phone.jpg" alt="The home page on a phone: the plugin icon grid four icons per row under a compact top bar with a menu button" width="180"></a><br><sub>Phone width: four icons a row, navigation behind the menu button.</sub></td>
+  <td width="25%" valign="top"><a href="docs/images/phone-sheet.jpg"><img src="docs/images/phone-sheet.jpg" alt="A bottom sheet on a phone showing Wild Pets: its description, tags, chips for servers, latest version, downloads, tested versions and rating, and Details, Download, Guide, GitHub and SpigotMC buttons, over the dimmed icon grid" width="180"></a><br><sub>On a phone, a tap opens the plugin's details in a sheet at the bottom of the screen.</sub></td>
+  <td width="25%" valign="top"><a href="docs/images/phone-menu.jpg"><img src="docs/images/phone-menu.jpg" alt="The navigation drawer open on a phone, listing Home, News, Guides, Leaderboard, About, Road Map, Commissions, Dev Portal and Sign in, then Community links to Discord, Patreon, LinkedIn and RPKit" width="180"></a><br><sub>The phone navigation menu.</sub></td>
+  <td width="25%" valign="top"><a href="docs/images/phone-plugin-dark.jpg"><img src="docs/images/phone-plugin-dark.jpg" alt="The Medieval Factions page on a phone in dark mode: the plugin icon and title, chips for servers, latest version and downloads, and the Download and User guide buttons" width="180"></a><br><sub>A plugin page on a phone, in dark mode.</sub></td>
+</tr>
+</table>
 
 ## Installation
 
@@ -172,6 +243,22 @@ Docker Compose brings up the site together with `dpc-api`, its database, and the
 #### Stopping the Server
 
     ./down.sh
+
+### Regenerating screenshots
+
+The images in this README and in [USER_GUIDE.md](USER_GUIDE.md) live in `docs/images/` and are shot from one committed shot list, [`docs/media.json`](docs/media.json), with [darkroom](https://github.com/Preponderous-Software/darkroom) (headless Chromium through Playwright). Each shot names its page, device (1440×900 desktop, or a 390×844 phone at 3× pixel density), colour mode, any clicks or hovers, and its caption and alt text. darkroom fits every still under 200 KB and the GIF under 3 MB.
+
+```bash
+pip install "darkroom @ git+https://github.com/Preponderous-Software/darkroom@v0.7.1"
+npm i --no-save playwright && npx playwright install chromium   # once, for darkroom's web backend
+
+darkroom check docs/media.json                        # validate the shot list
+darkroom shoot docs/media.json --force                # reshoot everything from https://dansplugins.com
+darkroom shoot docs/media.json --only plugin-page --force   # reshoot one image
+darkroom shoot docs/media.json --out /tmp/review      # shoot into a scratch folder to look first
+```
+
+By default the shots are taken from the live site, since a front end without a `dpc-api` behind it shows empty states. To shoot a local build instead (an unreleased change, say), start it and pass its address: `darkroom shoot docs/media.json --force --var base=http://127.0.0.1:3000`. darkroom adds `darkroom-monitor` to the browser's user agent, so the site's usage reporting does not count the captures as visits. The shot list never signs in and never opens admin pages. Look at every image before committing it. darkroom keeps its take cache in `docs/.darkroom/`, which is git-ignored.
 
 ## Authors
 
