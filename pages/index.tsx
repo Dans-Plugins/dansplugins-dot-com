@@ -1,7 +1,7 @@
 import {Box, Button, Container, Typography} from '@mui/material'
 import {CatalogueFilterBar} from '@kingdom-community/community-site-kit'
 import {filterCatalogue, sortCatalogue, type CatalogueQuery} from '@kingdom-community/community-site-kit/catalogue'
-import type {NextPage} from 'next'
+import type {GetServerSidePropsContext, NextPage} from 'next'
 import {useRouter} from 'next/router'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
@@ -10,7 +10,8 @@ import PluginIconGrid from '../components/PluginIconGrid'
 import ExperienceSplash from '../components/ExperienceSplash'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
-import { getVisits, incrementVisits } from '../services/visitService';
+import { recordVisit } from '../utils/visitCounter';
+import { clientAddress } from '../utils/clientAddress';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
 import { getSpigotListingsWithRateLimit, shownRating, spigotResourceId } from '../utils/spigot';
 import { getLatestVersionsBySlug } from '../services/pluginVersionService';
@@ -129,15 +130,17 @@ interface HomeProps {
     pluginsWithCounts: PluginWithServerCount[];
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({req}: Pick<GetServerSidePropsContext, 'req'>) => {
     // The visit counter is a non-essential cosmetic feature, so a failure of
-    // the visits API must never take down the entire home page. Fall back to
-    // nulls (hidden by BottomBar) if incrementing or reading visits fails.
+    // the visit store must never take down the entire home page. Fall back to
+    // nulls (hidden by BottomBar) if counting or reading visits fails. The
+    // visit is counted in-process rather than through POST /api/visits, which
+    // refuses requests that do not come from a browser on the site; an address
+    // counts once per visit window (utils/visitCounter.ts).
     let visits: number | null = null;
     let startDate: string | null = null;
     try {
-        await incrementVisits();
-        const data = await getVisits();
+        const data = recordVisit(clientAddress(req));
         visits = data.visits;
         startDate = data.startDate;
     } catch (error) {
