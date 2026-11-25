@@ -1,0 +1,436 @@
+{
+  "out": "images",
+  "vars": {
+    "base": "https://dansplugins.com"
+  },
+  "devices": {
+    "wide": {
+      "width": 1280,
+      "height": 800,
+      "dpr": 1
+    },
+    "wide-tall": {
+      "width": 1280,
+      "height": 900,
+      "dpr": 1
+    }
+  },
+  "gallery": {
+    "widths": {
+      "phone": 200
+    }
+  },
+  "budgets": {
+    "still_kb": 200,
+    "gif_mb": 3
+  },
+  "defaults": {
+    "device": "wide",
+    "waitUntil": "load",
+    "ready": "document.querySelector('main, h1') !== null",
+    "context": {
+      "colorScheme": "light",
+      "reducedMotion": "reduce",
+      "locale": "en-US",
+      "timezoneId": "America/Denver"
+    },
+    "initScript": "try { localStorage.setItem('dpc-experience-chosen', 'true'); localStorage.setItem('dpc-color-mode', '{mode}'); } catch (e) {}",
+    "vars": {
+      "mode": "light"
+    },
+    "setup": [
+      {
+        "waitFor": "document.fonts ? document.fonts.status === 'loaded' : true",
+        "timeout": 30000
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "quality": 84,
+    "retries": 1
+  },
+  "shots": [
+    {
+      "name": "home-desktop",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        }
+      ],
+      "caption": "The home page: every plugin as an icon, sorted into Established, Growing and Early releases.",
+      "alt": "The dansplugins.com home page in light mode: a blue navigation bar above a grid of plugin icons headed Established, including Medieval Factions, Wild Pets, SimpleSkills and Currencies"
+    },
+    {
+      "name": "home-dark",
+      "url": "{base}/",
+      "vars": {
+        "mode": "dark"
+      },
+      "context": {
+        "colorScheme": "dark"
+      },
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        }
+      ],
+      "caption": "The same page in dark mode (the sun/moon switch in the navigation bar, remembered per browser).",
+      "alt": "The home page in dark mode: the plugin icon grid on a near-black background"
+    },
+    {
+      "name": "home-panel",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        },
+        {
+          "mouse": "move",
+          "at": "[data-testid=catalogue-tile][href='/resources/medieval-factions']"
+        },
+        {
+          "waitFor": "(() => { const i = document.querySelector(\"[id$='-panel-medieval-factions'] [data-testid=plugin-trailer-poster]\"); return !!i && i.complete && i.naturalWidth > 0 && !!i.offsetParent; })()",
+          "timeout": 20000
+        },
+        {
+          "wait": 800
+        }
+      ],
+      "caption": "Hovering an icon opens its panel: preview, description, figures, and Details / Download / Guide / GitHub buttons.",
+      "alt": "The Medieval Factions hover panel on the home page: a still from its chat preview clip (a faction claim map), its description, tags, chips for servers, latest version, downloads, tested Minecraft version and rating, and Details, Download, Guide, GitHub and SpigotMC buttons",
+      "device": "wide-tall"
+    },
+    {
+      "name": "home-filter",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        },
+        {
+          "js": "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Search & filter')?.click()"
+        },
+        {
+          "wait": 800
+        },
+        {
+          "js": "[...document.querySelectorAll('[role=button], button')].find(b => b.textContent.trim() === 'factions')?.click()"
+        },
+        {
+          "wait": 1000
+        }
+      ],
+      "caption": "Search & filter: search box, sort order, tag chips and a Minecraft version picker (here the factions tag is on).",
+      "alt": "The home page with Search and filter unfolded: a search box, By Popularity, Most Liked, Most Downloaded and Alphabetical sort buttons, a row of tag chips with factions selected, and the grid narrowed to faction plugins"
+    },
+    {
+      "name": "community-menu",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        },
+        {
+          "js": "[...document.querySelectorAll('header button, nav button, button')].find(b => b.textContent.trim().startsWith('Community'))?.click()"
+        },
+        {
+          "wait": 1000
+        }
+      ],
+      "caption": "The Community menu in the top bar: Roadmap, Commissions and the Dev Portal, plus the community's Discord, Patreon and other links.",
+      "alt": "The home page with the Community menu open in the top navigation bar, listing Roadmap, Commissions and Dev Portal, then external community links"
+    },
+    {
+      "name": "home-phone",
+      "device": "phone",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        }
+      ],
+      "caption": "Phone width: four icons a row, navigation behind the menu button.",
+      "alt": "The home page on a phone: the plugin icon grid four icons per row under a compact top bar with a menu button"
+    },
+    {
+      "name": "phone-sheet",
+      "device": "phone",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        },
+        {
+          "tap": "[data-testid=catalogue-tile][href='/resources/wild-pets']"
+        },
+        {
+          "wait": 1500
+        }
+      ],
+      "caption": "On a phone, a tap opens the plugin's details in a sheet at the bottom of the screen.",
+      "alt": "A bottom sheet on a phone showing Wild Pets: its description, tags, chips for servers, latest version, downloads, tested versions and rating, and Details, Download, Guide, GitHub and SpigotMC buttons, over the dimmed icon grid"
+    },
+    {
+      "name": "phone-menu",
+      "device": "phone",
+      "url": "{base}/",
+      "steps": [
+        {
+          "tap": "button[aria-label='Open navigation menu']"
+        },
+        {
+          "wait": 1200
+        }
+      ],
+      "caption": "The phone navigation drawer: every page, including the Community menu's Roadmap, Commissions and Dev Portal.",
+      "alt": "The navigation drawer open on a phone, listing Home, News, Guides, Leaderboard, About, Roadmap, Commissions, Dev Portal and Sign in, then Community links to Discord, Patreon, LinkedIn and RPKit"
+    },
+    {
+      "name": "phone-plugin-dark",
+      "device": "phone",
+      "url": "{base}/resources/medieval-factions",
+      "vars": {
+        "mode": "dark"
+      },
+      "context": {
+        "colorScheme": "dark"
+      },
+      "caption": "A plugin page on a phone, in dark mode.",
+      "alt": "The Medieval Factions page on a phone in dark mode: the plugin icon and title, chips for servers, latest version and downloads, and the Download and User guide buttons"
+    },
+    {
+      "name": "plugin-page",
+      "url": "{base}/resources/medieval-factions",
+      "caption": "A plugin's own page: live figures, download counts, tags and links.",
+      "alt": "The Medieval Factions page: icon and title with a like button, chips for servers, latest version, GitHub and SpigotMC downloads, tested Minecraft version and SpigotMC rating, a Downloads from this site box, the description, tags and Download, User guide, Source and SpigotMC buttons"
+    },
+    {
+      "name": "plugin-preview",
+      "url": "{base}/resources/medieval-factions",
+      "steps": [
+        {
+          "js": "document.querySelector('[data-testid=plugin-trailer]')?.scrollIntoView({block: 'start'}); window.scrollBy(0, -120)"
+        },
+        {
+          "wait": 1500
+        }
+      ],
+      "caption": "Preview clips and world renders, captioned with how each was made.",
+      "alt": "The preview section of the Medieval Factions page: a recreated Minecraft chat panel showing the /mf map claim grid, captioned as real server output, above a 3D render of example factions' claims over a Minecraft world"
+    },
+    {
+      "name": "plugin-versions",
+      "url": "{base}/resources/medieval-factions",
+      "steps": [
+        {
+          "js": "[...document.querySelectorAll('h2')].find(h => h.textContent.trim() === 'Versions')?.scrollIntoView({block: 'start'}); window.scrollBy(0, -100)"
+        },
+        {
+          "wait": 1000
+        }
+      ],
+      "caption": "Versions: a clearly marked development build, then every release with its date and download count; each row expands to its notes and files.",
+      "alt": "The Versions section of the Medieval Factions page: a Development build card marked Pre-release with a warning and the /dpm command to install it, then collapsed release rows (11.2.0 marked Latest, 11.1.1, 11.1.0 and older) with dates and download counts"
+    },
+    {
+      "name": "guides",
+      "url": "{base}/guides",
+      "caption": "Guides: every plugin's user guide, read on-site.",
+      "alt": "The Guides page: an alphabetical list of plugin guides, from Activity Tracker Guide to Fiefs Guide"
+    },
+    {
+      "name": "guide-page",
+      "url": "{base}/guides/medieval-factions",
+      "caption": "A plugin guide, rendered on-site from its repository.",
+      "alt": "The Medieval Factions Guide rendered on the site: All guides and plugin page links, a like button, and the guide's table of contents"
+    },
+    {
+      "name": "releases",
+      "url": "{base}/releases",
+      "caption": "How releases work: the two channels and the gates a stable release must pass.",
+      "alt": "The How releases work page: an introduction, the Stable and Dev channels, and cards for the API-compatibility check and Boot gate"
+    },
+    {
+      "name": "news",
+      "url": "{base}/news",
+      "caption": "News, newest first.",
+      "alt": "The News page: two announcement cards, Community Data API and Factions Leaderboard, and New About, Road Map, and Commissions Pages"
+    },
+    {
+      "name": "leaderboard",
+      "url": "{base}/leaderboard",
+      "caption": "The faction leaderboard, built from data Medieval Factions servers publish.",
+      "alt": "The Faction Leaderboard: a table of factions ranked by member count, each with its server name, a copyable server address and a Discord link"
+    },
+    {
+      "name": "usage",
+      "url": "{base}/usage",
+      "caption": "Plugin usage, shot while trace could not be reached: the page says the figures are unavailable instead of showing zeros. With trace up, each plugin shows its active servers and a 30-day trend.",
+      "alt": "The Plugin usage page with a notice that usage figures are not available right now, above plugin rows that each say No usage figures available"
+    },
+    {
+      "name": "roadmap",
+      "url": "{base}/roadmap",
+      "caption": "The Roadmap: planned, in-progress and completed work (in the Community menu).",
+      "alt": "The Roadmap page: an In Progress section with Badges and Roles on Profiles, then Planned items such as Plugin Reviews, Verified Reviews and Plugin Discussion"
+    },
+    {
+      "name": "commissions",
+      "url": "{base}/commissions",
+      "caption": "Commissions: pricing, what is included and availability (in the Community menu).",
+      "alt": "The Commissions page marked Open for commissions: a pricing table for Fork and Repair and Custom Plugin work, a What's included list and a Join the Commissions Discord button"
+    },
+    {
+      "name": "dev-portal",
+      "url": "{base}/dev",
+      "caption": "The Dev Portal: every open issue and pull request across the organization at a glance (in the Community menu).",
+      "alt": "The Developer Portal: totals for open issues, open pull requests, drafts and the oldest open item, then a table of repositories with issue counts and a triage signal"
+    },
+    {
+      "name": "account",
+      "url": "{base}/account",
+      "caption": "Sign in or create an account (for likes, API keys and a public profile).",
+      "alt": "The Account page signed out: Sign in and Create account tabs above a username and password form, with a link for resetting a forgotten password"
+    },
+    {
+      "name": "about",
+      "url": "{base}/about",
+      "caption": "About the community, with GitHub, Discord and Patreon links.",
+      "alt": "The About Us page introducing Dan's Plugins Community, with GitHub, Discord and Patreon buttons"
+    },
+    {
+      "name": "browse",
+      "kind": "clip",
+      "url": "{base}/",
+      "steps": [
+        {
+          "waitFor": "document.querySelectorAll('[data-testid=catalogue-tile]').length > 10"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "mouse": "move",
+          "at": "[data-testid=catalogue-tile][href='/resources/medieval-factions']",
+          "steps": 8
+        },
+        {
+          "waitFor": "(() => { const i = document.querySelector(\"[id$='-panel-medieval-factions'] [data-testid=plugin-trailer-poster]\"); return !!i && i.complete && i.naturalWidth > 0 && !!i.offsetParent; })()",
+          "timeout": 20000
+        },
+        {
+          "wait": 800
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "mouse": "move",
+          "at": "[data-testid=catalogue-tile][href='/resources/wild-pets']",
+          "steps": 8
+        },
+        {
+          "waitFor": "(() => { const i = document.querySelector(\"[id$='-panel-wild-pets'] [data-testid=plugin-trailer-poster]\"); return !!i && i.complete && i.naturalWidth > 0 && !!i.offsetParent; })()",
+          "timeout": 20000
+        },
+        {
+          "wait": 800
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "mouse": "move",
+          "at": "[data-testid=catalogue-tile][href='/resources/simple-skills']",
+          "steps": 8
+        },
+        {
+          "waitFor": "(() => { const i = document.querySelector(\"[id$='-panel-simple-skills'] [data-testid=plugin-trailer-poster]\"); return !!i && i.complete && i.naturalWidth > 0 && !!i.offsetParent; })()",
+          "timeout": 20000
+        },
+        {
+          "wait": 800
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "mouse": "move",
+          "at": "[data-testid=catalogue-tile][href='/resources/currencies']",
+          "steps": 8
+        },
+        {
+          "waitFor": "(() => { const i = document.querySelector(\"[id$='-panel-currencies'] [data-testid=plugin-trailer-poster]\"); return !!i && i.complete && i.naturalWidth > 0 && !!i.offsetParent; })()",
+          "timeout": 20000
+        },
+        {
+          "wait": 800
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "mouse": "move",
+          "at": "[data-testid=catalogue-tile][href='/resources/fiefs']",
+          "steps": 8
+        },
+        {
+          "waitFor": "(() => { const i = document.querySelector(\"[id$='-panel-fiefs'] [data-testid=plugin-trailer-poster]\"); return !!i && i.complete && i.naturalWidth > 0 && !!i.offsetParent; })()",
+          "timeout": 20000
+        },
+        {
+          "wait": 800
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        },
+        {
+          "capture": true
+        }
+      ],
+      "fps": 2,
+      "gif": {
+        "width": 960,
+        "hold_last_ms": 1200
+      },
+      "caption": "Browsing the catalogue: hovering icons opens each plugin's panel.",
+      "alt": "Animation: the pointer moves across the home page's icon grid, opening the panels for Medieval Factions, Wild Pets, SimpleSkills, Currencies and Fiefs in turn, each with a still from its preview clip",
+      "device": "wide-tall"
+    }
+  ]
+}

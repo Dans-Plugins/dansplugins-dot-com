@@ -54,6 +54,8 @@ Issues are grouped into [milestones](https://github.com/Dans-Plugins/dansplugins
 8. Open a pull request against `main`, link the related issue with `#<number>`.
 9. Address review feedback.
 
+If a change alters how a page looks, reshoot the screenshots that show it, so the README and the User Guide keep matching the site: `darkroom shoot docs/media.json --only <shot> --force` (see [Regenerating screenshots](README.md#regenerating-screenshots)), and look at each image before committing it.
+
 ## Testing
 
 CI runs these checks on every pull request, so run them locally before pushing.

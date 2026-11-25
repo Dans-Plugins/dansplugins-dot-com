@@ -48,6 +48,13 @@ as resource pages.
 The polymorphic like table matters most: the "community content is keyed by a
 plugin id" decision is already made, and reviews and comments key the same way.
 
+<p>
+  <a href="docs/images/plugin-page.jpg"><img src="docs/images/plugin-page.jpg" alt="The Medieval Factions resource page: icon and title with a like button, chips for servers, latest version, GitHub and SpigotMC downloads, tested Minecraft version and SpigotMC rating, a Downloads from this site box, the description, tags and Download, User guide, Source and SpigotMC buttons" width="420"></a>
+  <a href="docs/images/plugin-versions.jpg"><img src="docs/images/plugin-versions.jpg" alt="The Versions section of the same page: a Development build card marked Pre-release, then collapsed release rows with dates and download counts" width="420"></a>
+</p>
+
+*A resource page as it stands (live site): the figures from the table above, and the mirrored Versions list.*
+
 ## Decisions
 
 ### Mirror GitHub releases; never host files

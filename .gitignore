@@ -48,3 +48,6 @@ yarn-error.log*
 
 # Java / Maven
 dpc-api/target/
+
+# darkroom take/state cache (docs/media.json)
+/docs/.darkroom/
