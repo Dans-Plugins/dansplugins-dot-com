@@ -1,16 +1,21 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-// The home page calls the visits API in getServerSideProps; mock it so the
-// test exercises only the plugin/server-count serialization path.
-vi.mock('../services/visitService', () => ({
-    incrementVisits: vi.fn().mockResolvedValue(undefined),
-    getVisits: vi.fn().mockResolvedValue({visits: 0, startDate: '2020-01-01T00:00:00.000Z'})
+// The home page counts a visit in getServerSideProps; mock the counter so the
+// test exercises only the plugin/server-count serialization path and writes no
+// data/visits.json.
+vi.mock('../utils/visitCounter', () => ({
+    recordVisit: vi.fn().mockReturnValue({visits: 0, startDate: '2020-01-01T00:00:00.000Z'})
 }));
 
 import {getServerSideProps} from '../pages/index';
 import {clearSpigotListingCache} from '../utils/spigot';
 import {clearCatalogueCache} from '../services/pluginCatalogueService';
 import {API_CATALOGUE, catalogueResponse} from './fixtures/catalogue';
+import {recordVisit} from '../utils/visitCounter';
+import type {GetServerSidePropsContext} from 'next';
+
+// A home-page request from one visitor, as the gateway's Traefik forwards it.
+const ctx = {req: {headers: {'x-forwarded-for': '203.0.113.7'}}} as unknown as Pick<GetServerSidePropsContext, 'req'>;
 
 interface HomePropsShape {
     props: {
@@ -52,7 +57,7 @@ const catalogueOnly = (others?: (url: string) => Promise<Response>) =>
 
 describe('home getServerSideProps catalogue', () => {
     it('renders the plugins the API serves, title-sorted as the API orders them', async () => {
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         expect(result.props.pluginsWithCounts.map((p) => p.id)).toEqual(API_CATALOGUE.map((p) => p.slug));
         const cookery = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-cookery');
         // The API's nulls come through as nulls, never undefined.
@@ -61,27 +66,27 @@ describe('home getServerSideProps catalogue', () => {
 
     it('serves an empty catalogue, which the page shows as unavailable, when the API has never answered', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('api unreachable')));
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         expect(result.props.pluginsWithCounts).toEqual([]);
     });
 
     it('keeps serving the last good catalogue through an outage', async () => {
-        await getServerSideProps();
+        await getServerSideProps(ctx);
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('api unreachable')));
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         expect(result.props.pluginsWithCounts.map((p) => p.id)).toEqual(API_CATALOGUE.map((p) => p.slug));
     });
 });
 
 describe('home getServerSideProps serialization', () => {
     it('never returns an undefined serverCount (Next.js cannot serialize undefined)', async () => {
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         const undefinedCounts = result.props.pluginsWithCounts.filter((p) => p.serverCount === undefined);
         expect(undefinedCounts).toEqual([]);
     });
 
     it('never returns an undefined testedVersions, and null for a plugin with no SpigotMC page', async () => {
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         expect(result.props.pluginsWithCounts.filter((p) => p.testedVersions === undefined)).toEqual([]);
         const cookery = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-cookery');
         expect(cookery?.testedVersions).toBeNull();
@@ -95,7 +100,7 @@ describe('home getServerSideProps serialization', () => {
             return Promise.reject(new Error('upstream unreachable'));
         }));
 
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
 
         const mf = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-factions');
         expect(mf?.testedVersions).toEqual(['1.21']);
@@ -106,20 +111,20 @@ describe('home getServerSideProps serialization', () => {
     });
 
     it('uses null for a plugin that has no bStatsId', async () => {
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         const cookery = result.props.pluginsWithCounts.find((p) => p.id === 'medieval-cookery');
         expect(cookery).toBeDefined();
         expect(cookery?.serverCount).toBeNull();
     });
 
     it('uses null for a plugin the release mirror named no tag for', async () => {
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         const undefinedVersions = result.props.pluginsWithCounts.filter((p) => p.latestVersion === undefined);
         expect(undefinedVersions).toEqual([]);
     });
 
     it('uses null for a plugin the release mirror offered no jar for', async () => {
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
         const undefinedUrls = result.props.pluginsWithCounts.filter((p) => p.latestDownloadUrl === undefined);
         expect(undefinedUrls).toEqual([]);
     });
@@ -140,7 +145,7 @@ describe('home getServerSideProps release tags', () => {
             return Promise.reject(new Error('bstats unreachable'));
         }));
 
-        const result = await getServerSideProps() as HomePropsShape;
+        const result = await getServerSideProps(ctx) as HomePropsShape;
 
         const fiefs = result.props.pluginsWithCounts.find((p) => p.id === 'fiefs');
         expect(fiefs?.latestVersion).toBe('v1.2.0');
@@ -156,8 +161,27 @@ describe('home getServerSideProps release tags', () => {
         const fetchMock = catalogueOnly(() => Promise.resolve({ok: true, json: async () => []} as Response));
         vi.stubGlobal('fetch', fetchMock);
 
-        await getServerSideProps();
+        await getServerSideProps(ctx);
 
         expect(fetchMock.mock.calls.some(([url]) => (url as string).includes('api.github.com'))).toBe(false);
+    });
+});
+
+describe('home getServerSideProps visit counter', () => {
+    it('counts the visit in-process, keyed on the forwarded client address', async () => {
+        vi.mocked(recordVisit).mockClear();
+        const result = await getServerSideProps(ctx) as HomePropsShape;
+        expect(recordVisit).toHaveBeenCalledWith('203.0.113.7');
+        expect(result.props.visits).toBe(0);
+        expect(result.props.startDate).toBe('2020-01-01T00:00:00.000Z');
+    });
+
+    it('hides the counter rather than failing the page when the visit store throws', async () => {
+        vi.mocked(recordVisit).mockImplementationOnce(() => {
+            throw new Error('disk full');
+        });
+        const result = await getServerSideProps(ctx) as HomePropsShape;
+        expect(result.props.visits).toBeNull();
+        expect(result.props.startDate).toBeNull();
     });
 });

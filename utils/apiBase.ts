@@ -4,7 +4,7 @@ export const DEFAULT_API_BASE_URL = 'http://localhost:45345';
 
 // Resolve the dpc-api base URL. A function rather than a module-scope
 // constant so tests can stub NEXT_PUBLIC_API_URL per test — the same reason
-// services/visitService.ts's getBaseUrl() is a getter.
+// utils/seo.ts's siteBaseUrl() is a getter.
 //
 // The browser and the Next.js server do not always reach dpc-api at the same
 // address. Under the shipped Compose stack a visitor's browser reaches it on

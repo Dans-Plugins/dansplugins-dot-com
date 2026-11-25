@@ -4,7 +4,7 @@ import { DATA_DIR, writeJsonAtomic } from './atomicJson';
 
 const VISITS_FILE = path.join(DATA_DIR, 'visits.json');
 
-interface VisitData {
+export interface VisitData {
     visits: number;
     startDate: string;
 }
