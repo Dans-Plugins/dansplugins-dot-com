@@ -32,13 +32,15 @@ const renderPage = (markdown: string | null) => {
 
 describe('/guides/[id] page', () => {
     it('has exactly one <h1>, naming the guide, inside the main landmark', () => {
-        // A guide body with no `# ` heading of its own: GuideMarkdown renders a
-        // markdown `#` as a second <h1>, which this test does not pin.
-        renderPage('## Usage\n\nRun /mf help.');
+        // A guide that opens with its own `# ` title, as most USER_GUIDE.md
+        // files do: GuideMarkdown demotes it to an <h2>, so the page keeps one <h1>.
+        renderPage('# Medieval Factions User Guide\n\n## Usage\n\nRun /mf help.');
 
         const headings = screen.getAllByRole('heading', {level: 1});
         expect(headings.map((h) => h.textContent)).toEqual(['Medieval Factions Guide']);
         expect(within(screen.getByRole('main')).getByRole('heading', {level: 1})).toBe(headings[0]);
+        expect(screen.getByRole('heading', {level: 2, name: 'Medieval Factions User Guide'})).toBeTruthy();
+        expect(screen.getByRole('heading', {level: 3, name: 'Usage'})).toBeTruthy();
     });
 
     it('links back to /guides and on to the plugin page within the site, in the same tab', () => {

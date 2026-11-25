@@ -177,7 +177,9 @@ interface SortableHeaderProps<C extends string> {
 
 function SortableHeader<C extends string>({label, column, align, sort, onSort}: SortableHeaderProps<C>) {
     return (
-        <TableCell align={align}>
+        // sortDirection sets aria-sort, so a screen reader hears which column
+        // the table is ordered by.
+        <TableCell align={align} sortDirection={sort.column === column ? sort.direction : false}>
             <TableSortLabel
                 active={sort.column === column}
                 direction={sort.column === column ? sort.direction : 'asc'}
@@ -404,7 +406,7 @@ const DevPortalPage: NextPage = () => {
                 <Card sx={{mb: 4}}>
                     <CardContent sx={{p: 0, '&:last-child': {pb: 0}}}>
                         <TableContainer>
-                            <Table size="small">
+                            <Table size="small" aria-busy={loading}>
                                 <TableHead>
                                     <TableRow
                                         sx={{
@@ -465,7 +467,22 @@ const DevPortalPage: NextPage = () => {
                                                     sx={{cursor: 'pointer'}}
                                                 >
                                                     <TableCell>
-                                                        <Typography fontWeight={600}>{row.repo} →</Typography>
+                                                        {/* The row is clickable for the mouse; this button
+                                                            is the same action for the keyboard, which
+                                                            cannot reach a click handler on a <tr>. */}
+                                                        <MuiLink
+                                                            component="button"
+                                                            color="inherit"
+                                                            underline="hover"
+                                                            fontWeight={600}
+                                                            aria-label={`Show open items in ${row.repo}`}
+                                                            onClick={(e: React.MouseEvent) => {
+                                                                e.stopPropagation()
+                                                                jumpToRepo(row.repo)
+                                                            }}
+                                                        >
+                                                            {row.repo} →
+                                                        </MuiLink>
                                                     </TableCell>
                                                     <TableCell align="right">{row.openIssueCount}</TableCell>
                                                     <TableCell align="right">
@@ -490,6 +507,7 @@ const DevPortalPage: NextPage = () => {
                                                         {ideaCounts[row.repo] ? (
                                                             <Chip
                                                                 label={ideaCounts[row.repo]}
+                                                                aria-label={`${ideaCounts[row.repo]} feature requests for ${row.repo}`}
                                                                 size="small"
                                                                 variant="outlined"
                                                                 onClick={(e) => {
@@ -561,7 +579,7 @@ const DevPortalPage: NextPage = () => {
                 <Card sx={{mb: 4}}>
                     <CardContent sx={{p: 0, '&:last-child': {pb: 0}}}>
                         <TableContainer>
-                            <Table size="small">
+                            <Table size="small" aria-busy={loading}>
                                 <TableHead>
                                     <TableRow
                                         sx={{
@@ -644,6 +662,7 @@ const DevPortalPage: NextPage = () => {
                                                         count={interestCounts[item.targetId] || 0}
                                                         liked={interestedSet.has(item.targetId)}
                                                         token={token}
+                                                        label={`${item.repo} #${item.number}`}
                                                     />
                                                 </TableCell>
                                                 <TableCell>

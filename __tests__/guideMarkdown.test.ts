@@ -47,7 +47,17 @@ describe('GuideMarkdown', () => {
 
     it('still renders ordinary markdown', () => {
         const html = render('# Heading\n\nA paragraph.');
-        expect(html).toContain('<h1');
+        expect(html).toContain('<h2');
         expect(html).toContain('A paragraph.');
+    });
+
+    it('renders each heading one level down, under the page title', () => {
+        // The guide page supplies the only <h1>; a guide's own `# Title`
+        // must not add a second one, and its sections keep their order.
+        const html = render('# Title\n\n## Section\n\n### Sub');
+        expect(html).not.toContain('<h1');
+        expect(html).toMatch(/<h2[^>]*>Title<\/h2>/);
+        expect(html).toMatch(/<h3[^>]*>Section<\/h3>/);
+        expect(html).toMatch(/<h4[^>]*>Sub<\/h4>/);
     });
 });

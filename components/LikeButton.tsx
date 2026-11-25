@@ -11,9 +11,13 @@ interface LikeButtonProps {
     liked: boolean;
     // The signed-in user's token, or null when logged out (then the button links to /account).
     token: string | null;
+    // What is being liked, for the button's accessible name ("Like Fiefs").
+    // A list of plugins or requests otherwise reads as a row of identical
+    // "Like" buttons to a screen reader.
+    label?: string;
 }
 
-const LikeButton: React.FC<LikeButtonProps> = ({targetType, targetId, count, liked, token}) => {
+const LikeButton: React.FC<LikeButtonProps> = ({targetType, targetId, count, liked, token, label}) => {
     const [currentCount, setCurrentCount] = useState(count);
     const [isLiked, setIsLiked] = useState(liked);
     const [busy, setBusy] = useState(false);
@@ -72,14 +76,16 @@ const LikeButton: React.FC<LikeButtonProps> = ({targetType, targetId, count, lik
                             onClick={handleClick}
                             disabled={busy}
                             color={isLiked ? 'error' : 'default'}
-                            aria-label={isLiked ? 'Unlike' : 'Like'}
+                            aria-label={`${isLiked ? 'Unlike' : 'Like'}${label ? ` ${label}` : ''}`}
                             aria-pressed={isLiked}
                         >
                             {isLiked ? <FavoriteIcon fontSize="small"/> : <FavoriteBorderIcon fontSize="small"/>}
                         </IconButton>
                     </span>
                 </Tooltip>
-                <Typography variant="body2" color="text.secondary" sx={{minWidth: 16}}>
+                {/* Polite live region: the count the server returns after a
+                    click is announced, not just repainted. */}
+                <Typography variant="body2" color="text.secondary" sx={{minWidth: 16}} aria-live="polite">
                     {currentCount}
                 </Typography>
             </Box>
@@ -90,7 +96,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({targetType, targetId, count, lik
                 message={notice?.message}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
                 action={notice?.signIn
-                    ? <Button color="secondary" size="small" onClick={goSignIn}>Sign in</Button>
+                    ? <Button color="inherit" size="small" onClick={goSignIn} sx={{fontWeight: 700, textDecoration: 'underline'}}>Sign in</Button>
                     : undefined}
             />
         </>

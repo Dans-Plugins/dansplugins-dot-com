@@ -38,7 +38,9 @@ describe('/commissions page', () => {
         expect(rows).toHaveLength(commissionsData.tiers.length);
         rows.forEach((row, i) => {
             const tier = commissionsData.tiers[i];
-            const cells = within(row).getAllByRole('cell').map((cell) => cell.textContent);
+            // The tier name heads its row (<th scope="row">), so the prices are
+            // announced with the service they belong to.
+            const cells = [within(row).getByRole('rowheader'), ...within(row).getAllByRole('cell')].map((cell) => cell.textContent);
             expect(cells).toEqual([`${tier.name}${tier.description}`, tier.oneTime, tier.retainer, tier.adHoc]);
         });
     });

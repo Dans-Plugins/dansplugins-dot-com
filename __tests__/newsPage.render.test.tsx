@@ -33,14 +33,14 @@ const post = (overrides: Partial<NewsPost> & Pick<NewsPost, 'id'>): NewsPost => 
 
 // A post's card is the MUI Paper holding its title heading.
 const card = (title: string) =>
-    screen.getByRole('heading', {level: 6, name: title}).closest('.MuiPaper-root') as HTMLElement;
+    screen.getByRole('heading', {level: 2, name: title}).closest('.MuiPaper-root') as HTMLElement;
 
 describe('/news page', () => {
     it('renders the posts in the order given, each with its title and body', () => {
         const posts = [post({id: 'b'}), post({id: 'a'}), post({id: 'c'})];
         render(<News posts={posts}/>);
 
-        const titles = screen.getAllByRole('heading', {level: 6}).map((h) => h.textContent);
+        const titles = screen.getAllByRole('heading', {level: 2}).map((h) => h.textContent);
         expect(titles).toEqual(['Post b', 'Post a', 'Post c']);
         for (const p of posts) {
             expect(within(card(p.title)).getByText(p.body)).toBeTruthy();
@@ -94,6 +94,6 @@ describe('/news page', () => {
 
         expect(screen.getByRole('heading', {level: 1, name: 'News'})).toBeTruthy();
         expect(screen.getByText('No news yet. Check back soon!')).toBeTruthy();
-        expect(screen.queryAllByRole('heading', {level: 6})).toHaveLength(0);
+        expect(screen.queryAllByRole('heading', {level: 2})).toHaveLength(0);
     });
 });

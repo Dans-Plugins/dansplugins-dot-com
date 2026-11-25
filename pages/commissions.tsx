@@ -97,8 +97,8 @@ const Commissions: NextPage = () => {
                         <TableBody>
                             {commissionsData.tiers.map((tier) => (
                                 <TableRow key={tier.name} sx={{'&:hover': {bgcolor: 'action.hover'}}}>
-                                    <TableCell>
-                                        <Typography variant="subtitle1" fontWeight={600}>{tier.name}</Typography>
+                                    <TableCell component="th" scope="row">
+                                        <Typography variant="subtitle1" component="div" fontWeight={600}>{tier.name}</Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             {tier.description}
                                         </Typography>
@@ -112,7 +112,7 @@ const Commissions: NextPage = () => {
                     </Table>
                 </TableContainer>
 
-                <Typography variant="h5" gutterBottom>What&apos;s included</Typography>
+                <Typography variant="h5" component="h2" gutterBottom>What&apos;s included</Typography>
                 <List>
                     {commissionsData.included.map((item) => (
                         <ListItem key={item} disableGutters sx={{py: 0.25}}>

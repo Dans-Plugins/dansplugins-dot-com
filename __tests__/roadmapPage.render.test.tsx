@@ -32,7 +32,7 @@ describe('/roadmap page', () => {
         render(<Roadmap/>);
 
         const expected = ORDER.filter((status) => itemsWithStatus(status).length > 0);
-        const headings = screen.getAllByRole('heading', {level: 5});
+        const headings = screen.getAllByRole('heading', {level: 2});
         expect(headings.map((h) => h.textContent)).toEqual(expected);
 
         for (const heading of headings) {
@@ -45,11 +45,11 @@ describe('/roadmap page', () => {
     it('renders every item exactly once, with its description and status chip', () => {
         render(<Roadmap/>);
 
-        const titles = screen.getAllByRole('heading', {level: 6});
+        const titles = screen.getAllByRole('heading', {level: 3});
         expect(titles).toHaveLength(roadmapData.items.length);
 
         for (const item of roadmapData.items) {
-            const title = screen.getByRole('heading', {level: 6, name: item.title});
+            const title = screen.getByRole('heading', {level: 3, name: item.title});
             const card = title.closest('.MuiPaper-root') as HTMLElement;
             expect(within(card).getByText(item.description)).toBeTruthy();
             expect(within(card).getByText(item.status, {selector: '.MuiChip-label'})).toBeTruthy();
@@ -59,10 +59,10 @@ describe('/roadmap page', () => {
     it('places each item under its own status section', () => {
         render(<Roadmap/>);
 
-        const headings = screen.getAllByRole('heading', {level: 5});
+        const headings = screen.getAllByRole('heading', {level: 2});
         for (const heading of headings) {
             const section = heading.parentElement!.parentElement as HTMLElement;
-            const titles = within(section).getAllByRole('heading', {level: 6}).map((h) => h.textContent);
+            const titles = within(section).getAllByRole('heading', {level: 3}).map((h) => h.textContent);
             expect(titles).toEqual(itemsWithStatus(heading.textContent!).map((item) => item.title));
         }
     });

@@ -108,7 +108,7 @@ describe('FeatureRequestSection', () => {
         expect(link.getAttribute('rel')).toBe('noopener noreferrer');
 
         // One heart per request; a request missing from the counts shows zero.
-        const counts = screen.getAllByRole('button', {name: 'Like'}).map((b) => b.closest('div')!.textContent);
+        const counts = screen.getAllByRole('button', {name: /^Like /}).map((b) => b.closest('div')!.textContent);
         expect(counts).toEqual(['5', '0']);
     });
 
@@ -124,8 +124,8 @@ describe('FeatureRequestSection', () => {
         ]);
         render(<FeatureRequestSection repos={repos} repoFilter="" token="jwt"/>);
 
-        await waitFor(() => expect(screen.getAllByRole('button', {name: 'Unlike'})).toHaveLength(1));
-        expect(screen.getAllByRole('button', {name: 'Like'})).toHaveLength(1);
+        await waitFor(() => expect(screen.getAllByRole('button', {name: /^Unlike /})).toHaveLength(1));
+        expect(screen.getAllByRole('button', {name: /^Like /})).toHaveLength(1);
         expect(getMyLikes).toHaveBeenCalledWith('jwt');
     });
 

@@ -21,10 +21,13 @@ const ErrorPage: React.FC<{code: string; title: string; message: string}> = ({co
         <Seo title={`${code} — ${title}`} description={message} path={null}/>
         <TopBar/>
         <Container component="main" id="main" maxWidth="sm" sx={{py: 8, textAlign: 'center'}}>
-            <Typography variant="h1" color="primary" sx={{fontWeight: 700}}>
+            {/* The big status code is decoration; the page's one h1 is the
+                title under it, so the outline reads "Page not found" rather
+                than "404" followed by a skipped-level h4. */}
+            <Typography variant="h1" component="p" color="primary" sx={{fontWeight: 700}} aria-hidden="true">
                 {code}
             </Typography>
-            <Typography variant="h4" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
+            <Typography variant="h4" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
                 {title}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>

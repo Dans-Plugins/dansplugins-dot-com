@@ -45,7 +45,7 @@ const NewsCard: React.FC<{ post: NewsPost }> = ({post}) => {
             }}
         >
             <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
-                <Typography variant="h6">{post.title}</Typography>
+                <Typography variant="h6" component="h2">{post.title}</Typography>
                 <Chip label={badge.label} color={badge.color} size="small"/>
             </Box>
             <Typography variant="body2" color="text.secondary" gutterBottom>

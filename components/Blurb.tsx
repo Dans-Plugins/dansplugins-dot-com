@@ -49,7 +49,7 @@ const InfoCard: React.FC<{
             <Box sx={(theme) => infoCardIconStyle(theme)}>
                 {icon}
             </Box>
-            <Typography variant="h6" gutterBottom sx={(theme) => infoCardTitleStyle()}>
+            <Typography variant="h6" component="h3" gutterBottom sx={(theme) => infoCardTitleStyle()}>
                 {title}
             </Typography>
             <Typography variant="body1" color="text.secondary">{content}</Typography>
@@ -70,6 +70,7 @@ const Blurb: React.FC = () => (
             </Typography>
             <Typography
                 variant="h6"
+                component="p"
                 color="text.secondary"
                 sx={{maxWidth: 640, mx: 'auto', fontWeight: 400}}
             >

@@ -43,7 +43,7 @@ const RoadmapCard: React.FC<{ item: RoadmapItem; color: 'success' | 'warning' | 
         })}
     >
         <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
-            <Typography variant="h6">{item.title}</Typography>
+            <Typography variant="h6" component="h3">{item.title}</Typography>
             <Chip label={item.status} color={color} size="small"/>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{mt: 1}}>{item.description}</Typography>
@@ -73,7 +73,7 @@ const Roadmap: NextPage = () => (
                 return (
                     <Box key={status} sx={{mt: 4}}>
                         <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5}}>
-                            <Typography variant="h5">{status}</Typography>
+                            <Typography variant="h5" component="h2">{status}</Typography>
                             <Chip label={items.length} color={color} size="small" variant="outlined"/>
                         </Box>
                         {items.map((item) => (
