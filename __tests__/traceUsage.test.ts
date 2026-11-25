@@ -1,6 +1,9 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
     TRACE_CACHE_TTL_MS,
+    TRACE_REFRESH_TIMEOUT_MS,
+    TRACE_RETRY_MS,
+    TRACE_TIMEOUT_MS,
     clearTraceUsageCache,
     getProgramUsage,
     getUsageSummary,
@@ -174,6 +177,118 @@ describe('getUsageSummary', () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('down')));
         expect(await getUsageSummary()).toBeUndefined();
         expect(await getUsageSummary()).toBeUndefined();
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('a slow trace (stale-while-revalidate)', () => {
+    // A fetch that answers only when the test says so, like a summary taking 17 s.
+    const deferredFetch = () => {
+        const pending: Array<(response: Response) => void> = [];
+        vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => pending.push(resolve))));
+        return pending;
+    };
+
+    it('does not hold a render past the budget, and a later render gets the answer', async () => {
+        vi.useFakeTimers();
+        const pending = deferredFetch();
+
+        const first = getUsageSummary();
+        await vi.advanceTimersByTimeAsync(TRACE_TIMEOUT_MS);
+        expect(await first).toBeUndefined();
+
+        // trace answers 17 s in; the request was never abandoned.
+        await vi.advanceTimersByTimeAsync(14_000);
+        pending[0](ok(summaryWithInstalls()));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect((await getUsageSummary())?.map((r) => r.application)).toEqual(['MedievalFactions', 'Fiefs', 'Currencies']);
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives the background request the long timeout, not the render budget', async () => {
+        vi.useFakeTimers();
+        const timeout = vi.spyOn(AbortSignal, 'timeout');
+        deferredFetch();
+        void getUsageSummary();
+        expect(timeout).toHaveBeenCalledWith(TRACE_REFRESH_TIMEOUT_MS);
+        await vi.advanceTimersByTimeAsync(TRACE_TIMEOUT_MS);
+    });
+
+    it('uses an answer that arrives within the budget in the same render', async () => {
+        vi.useFakeTimers();
+        const pending = deferredFetch();
+        const render = getProgramUsage('MedievalFactions');
+        await vi.advanceTimersByTimeAsync(1_000);
+        pending[0](ok(usageWithInstalls()));
+        expect((await render)?.activeInstalls30d).toBe(57);
+    });
+
+    it('keeps one request in flight per endpoint, however many renders wait on it', async () => {
+        vi.useFakeTimers();
+        const pending = deferredFetch();
+        const renders = [getUsageSummary(), getUsageSummary(), getProgramUsage('A'), getProgramUsage('A')];
+        await vi.advanceTimersByTimeAsync(TRACE_TIMEOUT_MS);
+        expect(await Promise.all(renders)).toEqual([undefined, undefined, undefined, undefined]);
+        // Renders after the budget join the same request rather than starting another.
+        void getUsageSummary();
+        await vi.advanceTimersByTimeAsync(TRACE_TIMEOUT_MS);
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(pending).toHaveLength(2);
+    });
+
+    it('serves the stale answer while a slow refresh runs, then the fresh one', async () => {
+        vi.useFakeTimers();
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok(usageWithInstalls())));
+        expect((await getProgramUsage('MedievalFactions'))?.activeInstalls30d).toBe(57);
+
+        vi.advanceTimersByTime(TRACE_CACHE_TTL_MS + 1);
+        const pending = deferredFetch();
+        const render = getProgramUsage('MedievalFactions');
+        await vi.advanceTimersByTimeAsync(TRACE_TIMEOUT_MS);
+        expect((await render)?.activeInstalls30d).toBe(57);
+
+        pending[0](ok({...usageWithInstalls(), activeInstalls30d: 60}));
+        await vi.advanceTimersByTimeAsync(0);
+        expect((await getProgramUsage('MedievalFactions'))?.activeInstalls30d).toBe(60);
+    });
+
+    it('keeps the last good answer when the background refresh fails', async () => {
+        vi.useFakeTimers();
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok(usageWithInstalls())));
+        await getProgramUsage('MedievalFactions');
+
+        vi.advanceTimersByTime(TRACE_CACHE_TTL_MS + 1);
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError')));
+        expect((await getProgramUsage('MedievalFactions'))?.activeInstalls30d).toBe(57);
+        expect((await getProgramUsage('MedievalFactions'))?.activeInstalls30d).toBe(57);
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries a failure after a minute rather than ten, but an answered 404 only after the TTL', async () => {
+        vi.useFakeTimers();
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('down')));
+        expect(await getUsageSummary()).toBeUndefined();
+        vi.advanceTimersByTime(TRACE_RETRY_MS - 1);
+        await getUsageSummary();
+        expect(fetch).toHaveBeenCalledTimes(1);
+        vi.advanceTimersByTime(2);
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok(summaryWithInstalls())));
+        expect(await getUsageSummary()).toHaveLength(3);
+
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(status(404, 'Not Found')));
+        expect(await getProgramUsage('NeverReported')).toBeUndefined();
+        vi.advanceTimersByTime(TRACE_RETRY_MS + 1);
+        await getProgramUsage('NeverReported');
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('shares one cache across copies of the module, as separately bundled pages get', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok(usageWithInstalls())));
+        await getProgramUsage('MedievalFactions');
+        vi.resetModules();
+        const copy = await import('../utils/traceUsage');
+        expect((await copy.getProgramUsage('MedievalFactions'))?.activeInstalls30d).toBe(57);
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 });
