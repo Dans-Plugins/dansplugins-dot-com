@@ -1,4 +1,4 @@
-import {Theme} from '@mui/material/styles';
+import {alpha, Theme} from '@mui/material/styles';
 
 /**
  * Standard animation transition for interactive elements
@@ -322,3 +322,15 @@ export const pluginDetailsActionsStyle = {
     alignItems: 'center',
     mt: 2,
 } as const;
+/**
+ * Links inside server-rendered markdown (utils/markdownHtml.ts). Those are
+ * plain <a> elements rather than MUI Links, so this draws what MUI's Link draws
+ * for its defaults (colour primary, underline always): the primary colour, an
+ * underline at 40% of it, and the full colour under the pointer.
+ */
+export const markdownLinkStyle = (theme: Theme) => ({
+    color: theme.palette.primary.main,
+    textDecoration: 'underline',
+    textDecorationColor: alpha(theme.palette.primary.main, 0.4),
+    '&:hover': {textDecorationColor: 'inherit'},
+});

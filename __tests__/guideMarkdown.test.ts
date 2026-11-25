@@ -2,18 +2,20 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {describe, expect, it} from 'vitest';
 import GuideMarkdown from '../components/GuideMarkdown';
+import {renderGuideMarkdown} from '../utils/markdownHtml';
 
 // The resolver in utils/guides.ts is unit-tested next door; what is checked here
 // is that the guide renderer actually applies it, which is the half that broke.
-// The component is rendered the way Next.js renders it — to static markup on the
-// server — rather than mounted in a DOM, so no browser environment is needed.
+// The markdown is rendered the way the page renders it — to HTML on the server
+// by renderGuideMarkdown, then injected by GuideMarkdown — rather than mounted
+// in a DOM, so no browser environment is needed.
 // JSX is avoided so the file stays a .ts and is picked up by the existing
 // `__tests__/**/*.test.ts` include in vitest.config.ts.
 
 const FIEFS = 'https://github.com/Dans-Plugins/Fiefs';
 
 const render = (markdown: string, githubLink = FIEFS): string =>
-    renderToStaticMarkup(createElement(GuideMarkdown, {markdown, githubLink}));
+    renderToStaticMarkup(createElement(GuideMarkdown, {html: renderGuideMarkdown(markdown, githubLink)}));
 
 describe('GuideMarkdown', () => {
     it('rewrites a repository-relative link so it does not 404 on the site', () => {

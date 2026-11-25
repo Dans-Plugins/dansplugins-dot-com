@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 //
-// The link renderer behind guide and release-note markdown, mounted on its own.
-// guideMarkdown.test.ts covers it through GuideMarkdown with a repository
+// The link renderer behind guide and release-note markdown (RepoAnchor in
+// utils/markdownHtml.ts), mounted on its own. guideMarkdown.test.ts covers it
+// through renderRepoMarkdown and GuideMarkdown with a repository
 // supplied; what is pinned here is what happens when the caller could not say
 // which repository the markdown came from, or the author wrote no target.
 import {afterEach, describe, expect, it} from 'vitest';
 import {cleanup, render} from '@testing-library/react';
 
-import RepoLink from '../components/RepoLink';
+import {RepoAnchor as RepoLink} from '../utils/markdownHtml';
 
 afterEach(cleanup);
 
