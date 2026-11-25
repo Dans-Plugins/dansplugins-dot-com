@@ -61,7 +61,7 @@ const INLINE_LINKS: NavLink[] = [
 // top of the Community menu, so the bar fits one row at 1200–1440px; with all
 // eight inline it wrapped to three rows at 1280px.
 const MENU_LINKS: NavLink[] = [
-    {href: '/roadmap', label: 'Road Map'},
+    {href: '/roadmap', label: 'Roadmap'},
     {href: '/commissions', label: 'Commissions'},
     {href: '/dev', label: 'Dev Portal'},
 ];

@@ -26,7 +26,7 @@ describe('getPublicProfile', () => {
             badges: ['SERVER_OWNER'],
             likes: [],
         };
-        stubFetch({ok: true, json: async () => profile});
+        stubFetch({ok: true, status: 200, json: async () => profile});
         expect(await getPublicProfile('alice')).toEqual(profile);
     });
 
@@ -35,13 +35,18 @@ describe('getPublicProfile', () => {
         expect(await getPublicProfile('nobody')).toBeNull();
     });
 
-    it('returns null when fetch rejects', async () => {
+    it('rejects when fetch rejects, so an outage is not shown as "no such user"', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')));
-        expect(await getPublicProfile('alice')).toBeNull();
+        await expect(getPublicProfile('alice')).rejects.toThrow('network');
+    });
+
+    it('rejects on a server error rather than reporting the user missing', async () => {
+        stubFetch({ok: false, status: 503});
+        await expect(getPublicProfile('alice')).rejects.toThrow('HTTP 503');
     });
 
     it('URL-encodes the username in the request path', async () => {
-        const fetchMock = vi.fn().mockResolvedValue({ok: true, json: async () => ({})} as Response);
+        const fetchMock = vi.fn().mockResolvedValue({ok: true, status: 200, json: async () => ({})} as Response);
         vi.stubGlobal('fetch', fetchMock);
         await getPublicProfile('a b/c');
         expect(fetchMock).toHaveBeenCalledTimes(1);

@@ -69,11 +69,11 @@ describe('claimItem / releaseItem', () => {
 
     it('resolves ok:false with a generic message when the error body is not JSON', async () => {
         stubFetch({ok: false, status: 500, json: async () => { throw new Error('not json'); }});
-        expect(await claimItem('token', 'Fiefs', 136)).toEqual({ok: false, message: 'Request failed (HTTP 500)'});
+        expect(await claimItem('token', 'Fiefs', 136)).toEqual({ok: false, message: 'The server had a problem, so claiming this item didn’t work. Please try again in a moment. (HTTP 500)'});
     });
 
     it('resolves ok:false when fetch rejects', async () => {
         rejectFetch();
-        expect(await claimItem('token', 'Fiefs', 136)).toEqual({ok: false, message: 'Network error — please try again.'});
+        expect(await claimItem('token', 'Fiefs', 136)).toEqual({ok: false, message: 'We couldn’t reach the server. Please check your connection and try again.'});
     });
 });

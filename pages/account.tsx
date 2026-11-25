@@ -7,6 +7,11 @@ import {
     Chip,
     CircularProgress,
     Container,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     IconButton,
     List,
     ListItem,
@@ -35,6 +40,7 @@ import {clearSession, getSessionToken, saveSession} from '../utils/session'
 import {badgeLabel} from '../utils/badges'
 import {getApiBaseUrl} from '../utils/apiBase'
 import {absoluteDateFrom} from '../utils/relativeTime'
+import {friendlyHttpError, NETWORK_ERROR_MESSAGE} from '../utils/friendlyError'
 
 const version = require('../package.json').version
 
@@ -69,6 +75,9 @@ const AccountPage: NextPage = () => {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [newApiKey, setNewApiKey] = useState<string | null>(null)
+    // The key awaiting a yes/no before deletion: deleting cuts off every server
+    // using it and cannot be undone, so one stray click must not do it.
+    const [keyToDelete, setKeyToDelete] = useState<{id: string; serverName: string} | null>(null)
     // Disables submit buttons and shows a spinner while a request is in flight,
     // so a slow action gives feedback instead of looking like "nothing happened"
     // and can't be double-submitted.
@@ -142,13 +151,13 @@ const AccountPage: NextPage = () => {
             } else if (res.status === 401) {
                 setToken(null)
                 clearSession()
-                setError('Session expired. Please log in again.')
+                setError('Your session has expired. Please sign in again.')
             } else {
                 setProfile(null)
-                setError(`Failed to load profile (HTTP ${res.status}).`)
+                setError(friendlyHttpError(res.status, 'Loading your profile'))
             }
         } catch {
-            setError('Failed to fetch profile.')
+            setError(NETWORK_ERROR_MESSAGE)
         }
     }, [])
 
@@ -221,7 +230,7 @@ const AccountPage: NextPage = () => {
             const result = await login(username, password)
             if (result.status === 'authenticated') {
                 startSession(result.token, result.refreshToken)
-                setSuccess('Logged in!')
+                setSuccess('Signed in.')
                 setUsername('')
                 setPassword('')
                 returnAfterAuth()
@@ -243,7 +252,7 @@ const AccountPage: NextPage = () => {
         setProfile(null)
         setLikes([])
         clearSession()
-        setSuccess('Logged out.')
+        setSuccess('Signed out.')
     }
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -251,7 +260,7 @@ const AccountPage: NextPage = () => {
         setError(null)
         setSuccess(null)
         if (!token) {
-            setError('Not authenticated. Please log in.')
+            setError('Please sign in first.')
             return
         }
         setSubmitting(true)
@@ -269,10 +278,10 @@ const AccountPage: NextPage = () => {
                 setProfile(await res.json())
                 setSuccess('Profile saved.')
             } else {
-                setError('Failed to save profile.')
+                setError(friendlyHttpError(res.status, 'Saving your profile'))
             }
         } catch {
-            setError('Connection error.')
+            setError(NETWORK_ERROR_MESSAGE)
         } finally {
             setSubmitting(false)
         }
@@ -283,7 +292,7 @@ const AccountPage: NextPage = () => {
         setError(null)
         setNewApiKey(null)
         if (!token) {
-            setError('Not authenticated. Please log in.')
+            setError('Please sign in first.')
             return
         }
         setSubmitting(true)
@@ -302,10 +311,10 @@ const AccountPage: NextPage = () => {
                 setServerName('')
                 if (token) fetchProfile(token)
             } else {
-                setError('Failed to create API key.')
+                setError(friendlyHttpError(res.status, 'Creating the API key'))
             }
         } catch {
-            setError('Connection error.')
+            setError(NETWORK_ERROR_MESSAGE)
         } finally {
             setSubmitting(false)
         }
@@ -314,7 +323,7 @@ const AccountPage: NextPage = () => {
     const handleDeleteApiKey = async (keyId: string) => {
         setError(null)
         if (!token) {
-            setError('Not authenticated. Please log in.')
+            setError('Please sign in first.')
             return
         }
         try {
@@ -323,12 +332,13 @@ const AccountPage: NextPage = () => {
                 headers: {'Authorization': `Bearer ${token}`},
             })
             if (res.ok) {
+                setSuccess('API key deleted. Servers using it can no longer post data.')
                 if (token) fetchProfile(token)
             } else {
-                setError('Failed to delete API key.')
+                setError(friendlyHttpError(res.status, 'Deleting the API key'))
             }
         } catch {
-            setError('Connection error.')
+            setError(NETWORK_ERROR_MESSAGE)
         }
     }
 
@@ -446,7 +456,7 @@ const AccountPage: NextPage = () => {
                                         <Typography variant="h6" component="h2">
                                             Welcome, {profile.username}
                                         </Typography>
-                                        <Button variant="outlined" onClick={handleLogout}>Logout</Button>
+                                        <Button variant="outlined" onClick={handleLogout}>Sign out</Button>
                                     </Box>
                                     <Typography variant="body2" color="text.secondary" gutterBottom>
                                         Member since {absoluteDateFrom(profile.createdAt)}
@@ -581,7 +591,7 @@ const AccountPage: NextPage = () => {
                                             <ListItem
                                                 key={key.id}
                                                 secondaryAction={
-                                                    <IconButton edge="end" onClick={() => handleDeleteApiKey(key.id)} aria-label={`Delete API key for ${key.serverName}`}>
+                                                    <IconButton edge="end" onClick={() => setKeyToDelete({id: key.id, serverName: key.serverName})} aria-label={`Delete API key for ${key.serverName}`}>
                                                         <DeleteIcon/>
                                                     </IconButton>
                                                 }
@@ -657,6 +667,27 @@ X-API-Key: <api_key>
                     </>
                 )}
             </Container>
+            <Dialog open={keyToDelete !== null} onClose={() => setKeyToDelete(null)} aria-labelledby="delete-key-title">
+                <DialogTitle id="delete-key-title">Delete this API key?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        {keyToDelete?.serverName} will stop sending data to the site until it is given a new key.
+                        This can&apos;t be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setKeyToDelete(null)}>Cancel</Button>
+                    <Button
+                        color="error"
+                        onClick={() => {
+                            if (keyToDelete) handleDeleteApiKey(keyToDelete.id)
+                            setKeyToDelete(null)
+                        }}
+                    >
+                        Delete key
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <BottomBar version={version}/>
         </Box>
     )

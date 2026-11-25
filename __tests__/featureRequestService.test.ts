@@ -61,7 +61,7 @@ describe('createFeatureRequest', () => {
     it('resolves ok:false when fetch rejects', async () => {
         rejectFetch();
         expect(await createFeatureRequest('token', 'Fiefs', 'Add X', 'Because Y'))
-            .toEqual({ok: false, message: 'Network error — please try again.'});
+            .toEqual({ok: false, message: 'We couldn’t reach the server. Please check your connection and try again.'});
     });
 });
 
@@ -75,6 +75,6 @@ describe('convertFeatureRequest', () => {
 
     it('resolves ok:false with a generic message when the error body is not JSON', async () => {
         stubFetch({ok: false, status: 403, json: async () => { throw new Error('not json'); }});
-        expect(await convertFeatureRequest('token', '1')).toEqual({ok: false, message: 'Request failed (HTTP 403)'});
+        expect(await convertFeatureRequest('token', '1')).toEqual({ok: false, message: 'Your account isn’t allowed to do that. (HTTP 403)'});
     });
 });

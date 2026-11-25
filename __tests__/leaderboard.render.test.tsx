@@ -153,7 +153,7 @@ describe('faction leaderboard page', () => {
     it('names the HTTP status when dpc-api answers with an error', async () => {
         fetchMock.mockResolvedValue(failed(503));
         render(<LeaderboardPage/>);
-        expect((await screen.findByRole('alert')).textContent).toContain('Failed to load factions (HTTP 503).');
+        expect((await screen.findByRole('alert')).textContent).toContain('The server had a problem, so loading the leaderboard didn’t work. Please try again in a moment. (HTTP 503)');
     });
 
     it('gives a plain message, not the exception, when the request itself fails', async () => {

@@ -6,6 +6,7 @@ import Seo from '../components/Seo';
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import {NextLinkComposed} from '../components/NextLinkComposed';
+import CatalogueUnavailable from '../components/CatalogueUnavailable';
 import {getCatalogue} from '../services/pluginCatalogueService';
 
 // Import styles
@@ -42,11 +43,7 @@ const Guides: NextPage<GuidesProps> = ({guides}) => (
                 Each plugin&apos;s guide (its <code>USER_GUIDE.md</code>) lives in the plugin&apos;s
                 repository. Select a plugin below to read its guide.
             </Typography>
-            {guides.length === 0 ? (
-                <Typography color="text.secondary">
-                    The plugin catalogue could not be loaded right now. Please try again shortly.
-                </Typography>
-            ) : null}
+            {guides.length === 0 ? <CatalogueUnavailable align="left"/> : null}
             <Paper elevation={0} sx={{maxWidth: 600, overflow: 'hidden'}}>
                 <List disablePadding>
                     {guides.map((plugin, index) => (

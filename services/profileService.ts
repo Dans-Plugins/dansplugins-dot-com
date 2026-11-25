@@ -17,15 +17,19 @@ export interface PublicProfile {
 }
 
 /**
- * Fetch a user's public profile by username. Resolves to `null` when the user
- * does not exist (404) or the request fails, so callers can render a
- * not-found state without throwing.
+ * Fetch a user's public profile by username. Resolves to `null` only when
+ * dpc-api says the user does not exist (404), and rejects when the API could
+ * not answer (network failure or any other error status), so the page can
+ * tell "no such user" apart from "try again later" instead of claiming a real
+ * user does not exist during an outage.
  */
 export const getPublicProfile = async (username: string): Promise<PublicProfile | null> => {
-    try {
-        const res = await fetch(`${API_BASE}/api/v1/profile/${encodeURIComponent(username)}`)
-        return res.ok ? await res.json() : null
-    } catch {
+    const res = await fetch(`${API_BASE}/api/v1/profile/${encodeURIComponent(username)}`)
+    if (res.status === 404) {
         return null
     }
+    if (!res.ok) {
+        throw new Error(`Profile request failed: HTTP ${res.status}`)
+    }
+    return await res.json()
 }

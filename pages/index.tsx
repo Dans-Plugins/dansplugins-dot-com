@@ -9,6 +9,7 @@ import {siteBaseUrl} from '../utils/seo'
 import {websiteJsonLd} from '../utils/structuredData'
 import Blurb from '../components/Blurb'
 import PluginIconGrid from '../components/PluginIconGrid'
+import CatalogueUnavailable from '../components/CatalogueUnavailable'
 import ExperienceSplash from '../components/ExperienceSplash'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
@@ -83,9 +84,7 @@ export const PluginsSection: React.FC<PluginsSectionProps> = ({ initialPlugins }
                 <Typography id="plugins-heading" variant="h3" component="h2" sx={visuallyHiddenStyle}>
                     Plugins
                 </Typography>
-                <Typography color="text.secondary" align="center" sx={{ py: 4 }} data-testid="catalogue-unavailable">
-                    The plugin catalogue could not be loaded right now. Please try again shortly.
-                </Typography>
+                <CatalogueUnavailable/>
             </Box>
         );
     }

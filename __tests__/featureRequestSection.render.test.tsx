@@ -180,6 +180,7 @@ describe('FeatureRequestSection', () => {
         expect(fields()[0].value).toBe('');
         expect(fields()[1].value).toBe('');
         expect((submitButton() as HTMLButtonElement).disabled).toBe(false);
+        expect(await screen.findByText('Thanks! Your idea has been posted.')).toBeTruthy();
     });
 
     it('defaults the plugin to the first repo when there is no filter', async () => {
@@ -227,6 +228,7 @@ describe('FeatureRequestSection', () => {
 
         await waitFor(() => expect(getFeatureRequests).toHaveBeenCalledTimes(2));
         expect(convertFeatureRequest).toHaveBeenCalledWith('jwt', 'fr-1');
+        expect(await screen.findByText('Turned into a GitHub issue.')).toBeTruthy();
     });
 
     it('shows the server\'s message when converting fails', async () => {

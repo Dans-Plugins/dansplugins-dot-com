@@ -1,6 +1,7 @@
 // Client-side calls to the dpc-api claim endpoints — "I'm working on this" on a
 // backlog issue/PR. A claim is a dpc-api record, not a GitHub assignee.
 import {getApiBaseUrl} from '../utils/apiBase';
+import {friendlyHttpError, NETWORK_ERROR_MESSAGE} from '../utils/friendlyError';
 
 const API_BASE = getApiBaseUrl();
 
@@ -47,7 +48,7 @@ const mutate = async (
             body: JSON.stringify({repo, number}),
         });
         if (!res.ok) {
-            let message = `Request failed (HTTP ${res.status})`;
+            let message = friendlyHttpError(res.status, method === 'POST' ? 'Claiming this item' : 'Releasing this claim');
             try {
                 const body = await res.json();
                 if (typeof body.detail === 'string') {
@@ -63,7 +64,7 @@ const mutate = async (
         }
         return {ok: true, claim: await res.json()};
     } catch {
-        return {ok: false, message: 'Network error — please try again.'};
+        return {ok: false, message: NETWORK_ERROR_MESSAGE};
     }
 };
 

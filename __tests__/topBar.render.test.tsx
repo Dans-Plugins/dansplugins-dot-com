@@ -119,13 +119,13 @@ describe('TopBar community menu', () => {
 });
 
 describe('TopBar community menu, in-site pages', () => {
-    it('lists Road Map, Commissions and Dev Portal first, each in the same tab', () => {
+    it('lists Roadmap, Commissions and Dev Portal first, each in the same tab', () => {
         render(<TopBar/>);
         fireEvent.click(screen.getByRole('button', {name: 'Community', hidden: true}));
 
         const items = screen.getAllByRole('menuitem');
         expect(items.slice(0, 3).map((item) => [item.textContent, item.getAttribute('href'), item.getAttribute('target')]))
-            .toEqual([['Road Map', '/roadmap', null], ['Commissions', '/commissions', null], ['Dev Portal', '/dev', null]]);
+            .toEqual([['Roadmap', '/roadmap', null], ['Commissions', '/commissions', null], ['Dev Portal', '/dev', null]]);
     });
 
     it('marks the menu item for the current page, and keeps the inline links unmarked', () => {
@@ -133,7 +133,7 @@ describe('TopBar community menu, in-site pages', () => {
         render(<TopBar/>);
         fireEvent.click(screen.getByRole('button', {name: 'Community', hidden: true}));
 
-        expect(screen.getByRole('menuitem', {name: 'Road Map'}).getAttribute('aria-current')).toBe('page');
+        expect(screen.getByRole('menuitem', {name: 'Roadmap'}).getAttribute('aria-current')).toBe('page');
         expect(screen.getByRole('menuitem', {name: 'Commissions'}).getAttribute('aria-current')).toBeNull();
         expect(navLink('Home').getAttribute('aria-current')).toBeNull();
     });
@@ -152,7 +152,7 @@ describe('TopBar mobile drawer', () => {
         expect(drawer).not.toBeNull();
         const links = within(drawer).getAllByRole('link', {hidden: true});
         expect(links.map((a) => a.textContent)).toEqual([
-            'Home', 'News', 'Guides', 'Leaderboard', 'About', 'Road Map', 'Commissions', 'Dev Portal', 'alice',
+            'Home', 'News', 'Guides', 'Leaderboard', 'About', 'Roadmap', 'Commissions', 'Dev Portal', 'alice',
             'Discord', 'Patreon', 'LinkedIn', 'RPKit',
         ]);
         const selected = links.filter((a) => a.classList.contains('Mui-selected')).map((a) => a.textContent);

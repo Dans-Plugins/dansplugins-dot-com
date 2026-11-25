@@ -325,6 +325,32 @@ describe('/dev page', () => {
 
         expect(await screen.findByText('We couldn’t load the backlog right now. Please try again later.')).toBeTruthy();
         expect(consoleError).toHaveBeenCalledWith('Failed to load backlog data:', expect.any(Error));
+        // The empty tables say why they are empty, not "no match".
+        expect(screen.getAllByText('The backlog couldn’t be loaded.')).toHaveLength(2);
+        expect(screen.queryByText('No repos match this filter.')).toBeNull();
+    });
+
+    it('offers a retry after a failed load, and recovers when the API answers', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        vi.mocked(getBacklogSummary).mockRejectedValueOnce(new Error('down'));
+        render(<DevPortalPage/>);
+
+        fireEvent.click(await screen.findByRole('button', {name: 'Try again'}));
+
+        await waitFor(() => expect(screen.queryByText('We couldn’t load the backlog right now. Please try again later.')).toBeNull());
+        expect(getBacklogSummary).toHaveBeenCalledTimes(2);
+        await waitFor(() => expect(screen.queryAllByText('The backlog couldn’t be loaded.')).toHaveLength(0));
+        expect(screen.getAllByText(/Fiefs/).length).toBeGreaterThan(0);
+    });
+
+    it('does not offer a retry when the backlog is merely empty', async () => {
+        vi.mocked(getBacklogSummary).mockResolvedValue([]);
+        vi.mocked(getBacklogItems).mockResolvedValue([]);
+        render(<DevPortalPage/>);
+
+        await screen.findByText('No repos have been synced yet.');
+        expect(screen.getByText('No open issues or PRs yet.')).toBeTruthy();
+        expect(screen.queryByRole('button', {name: 'Try again'})).toBeNull();
     });
 });
 

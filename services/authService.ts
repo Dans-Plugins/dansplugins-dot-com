@@ -47,9 +47,9 @@ export type AuthResult =
 
 export const REGISTER_REFUSED_MESSAGE =
     'Registration failed. Make sure your username is available and your password meets the requirements (8–128 characters).';
-export const LOGIN_REFUSED_MESSAGE = 'Invalid credentials.';
+export const LOGIN_REFUSED_MESSAGE = 'That username and password don’t match. Check them and try again.';
 export const REGISTERED_LOGIN_NEEDED_MESSAGE =
-    'Account created, but automatic login failed. Please log in.';
+    'Your account was created, but you weren’t signed in automatically. Please sign in.';
 export const SERVICE_UNAVAILABLE_MESSAGE =
     'Sign-in is temporarily unavailable. Please try again in a few minutes.';
 export const TIMEOUT_MESSAGE =
@@ -57,7 +57,7 @@ export const TIMEOUT_MESSAGE =
 // A registration that timed out may still have gone through server-side, so
 // the next step is a login, not another registration.
 export const REGISTER_TIMEOUT_MESSAGE =
-    'The server took too long to respond. Your account may still have been created — try logging in before registering again.';
+    'The server took too long to respond. Your account may still have been created — try signing in before registering again.';
 export const UNREACHABLE_MESSAGE =
     'We couldn’t reach the server. Please check your connection and try again.';
 
