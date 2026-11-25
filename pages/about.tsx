@@ -39,7 +39,7 @@ const About: NextPage = () => (
                 Want to get involved? Join the conversation on Discord, support development on Patreon,
                 or browse the source on GitHub.
             </Typography>
-            <Stack direction="row" spacing={2} sx={{mt: 3, flexWrap: 'wrap', rowGap: 1}}>
+            <Stack direction="row" sx={{mt: 3, flexWrap: 'wrap', columnGap: 2, rowGap: 1}}>
                 <Button
                     variant="contained"
                     color="primary"

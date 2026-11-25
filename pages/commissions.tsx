@@ -71,7 +71,29 @@ const Commissions: NextPage = () => {
                     retainers, and ad-hoc hourly work.
                 </Typography>
 
-                <TableContainer component={Paper} sx={{mt: 3, mb: 4}}>
+                {/* Phones: one card per service with its three prices listed, since a
+                    four-column price table at 360px pushes "Ad hoc" off-screen. The
+                    table and the cards are switched by CSS so the page stays static. */}
+                <Box sx={{display: {xs: 'flex', sm: 'none'}, flexDirection: 'column', gap: 2, mt: 3, mb: 4}}>
+                    {commissionsData.tiers.map((tier) => (
+                        <Paper key={tier.name} component="section" aria-label={`${tier.name} pricing`} sx={{p: 2}}>
+                            <Typography variant="subtitle1" component="p" fontWeight={600}>{tier.name}</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{mb: 1.5}}>
+                                {tier.description}
+                            </Typography>
+                            <Box component="dl" sx={{display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 2, rowGap: 0.75, m: 0}}>
+                                {[['One-time', tier.oneTime], ['Monthly retainer', tier.retainer], ['Ad hoc', tier.adHoc]].map(([label, price]) => (
+                                    <React.Fragment key={label}>
+                                        <Typography component="dt" variant="body2" color="text.secondary">{label}</Typography>
+                                        <Typography component="dd" variant="body2" fontWeight={600} sx={{m: 0, textAlign: 'right'}}>{price}</Typography>
+                                    </React.Fragment>
+                                ))}
+                            </Box>
+                        </Paper>
+                    ))}
+                </Box>
+
+                <TableContainer component={Paper} sx={{mt: 3, mb: 4, display: {xs: 'none', sm: 'block'}}}>
                     <Table aria-label="commission pricing">
                         <TableHead>
                             <TableRow

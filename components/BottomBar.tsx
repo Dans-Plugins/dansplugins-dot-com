@@ -56,7 +56,7 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
         <AppBar component="footer" position="static" sx={(theme) => bottomAppBarStyle(theme)}>
             <Toolbar sx={(theme) => toolbarStyle(theme)}>
                 <Box sx={(theme) => flexContainerStyle(theme)}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5 }}>
                         <VersionNumber version={version}/>
                         {visits != null && formattedDate && (
                             <>

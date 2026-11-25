@@ -327,3 +327,53 @@ describe('/dev page', () => {
         expect(consoleError).toHaveBeenCalledWith('Failed to load backlog data:', expect.any(Error));
     });
 });
+
+// A phone-width viewport: every media query matches, so MUI's
+// `breakpoints.down('sm')` does too. jsdom has no matchMedia of its own.
+const atPhoneWidth = () => vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: true,
+    media: query,
+    onchange: null,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+}));
+
+describe('/dev page at phone width', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('stacks each repo into one cell that keeps its counts, signal and sort controls', async () => {
+        atPhoneWidth();
+        await renderLoaded();
+
+        const cells = within(repoRow('Fiefs')).getAllByRole('cell');
+        expect(cells).toHaveLength(1);
+        expect(cells[0].textContent).toContain('1 issues');
+        expect(cells[0].textContent).toContain('1 PRs');
+        expect(within(cells[0]).getByText('Active')).toBeTruthy();
+        const sortRow = screen.getAllByText('Sort:')[0].parentElement as HTMLElement;
+        expect(within(sortRow).getAllByRole('button').map((b) => b.textContent))
+            .toEqual(['Repo', 'Issues', 'PRs', 'Oldest', 'Signal']);
+    });
+
+    it('keeps an item\'s type, interest and claim controls in view under its title', async () => {
+        atPhoneWidth();
+        await renderLoaded();
+
+        const row = itemRow('Fiefs #1 — Fief taxes broken');
+        expect(within(row).getAllByRole('cell')).toHaveLength(1);
+        expect(within(row).getByText('Issue')).toBeTruthy();
+        expect(within(row).getByRole('button', {name: 'Like Fiefs #1'})).toBeTruthy();
+        expect(within(row).getByRole('button', {name: /working on this/})).toBeTruthy();
+    });
+
+    it('spells out what the chosen signal means, which a touch screen cannot hover for', async () => {
+        atPhoneWidth();
+        await renderLoaded();
+
+        pickSignal('Needs triage');
+        expect(screen.getByText('Needs triage: Issues piling up with no PR started yet.')).toBeTruthy();
+    });
+});

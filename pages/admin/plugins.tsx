@@ -225,7 +225,7 @@ const AdminPluginsPage: NextPage = () => {
                                 helperText={fieldErrors.tags ?? 'Comma-separated, lower-case: medieval, factions, admin, survival …'}
                             />
                             {parseTags(form.tagsText).length > 0 && (
-                                <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5}} aria-label="Tag preview">
+                                <Stack direction="row" sx={{flexWrap: 'wrap', gap: 0.5}} aria-label="Tag preview">
                                     {parseTags(form.tagsText).map((tag) => <Chip key={tag} label={tag} size="small" variant="outlined"/>)}
                                 </Stack>
                             )}
@@ -240,7 +240,7 @@ const AdminPluginsPage: NextPage = () => {
                                 helperText={fieldErrors.requires ?? 'Slugs of plugins this one cannot run without, comma-separated, e.g. medieval-factions. It is then listed under that plugin\'s Expansions.'}
                             />
                             {parseTags(form.requiresText).length > 0 && (
-                                <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5}} aria-label="Preview of required plugins">
+                                <Stack direction="row" sx={{flexWrap: 'wrap', gap: 0.5}} aria-label="Preview of required plugins">
                                     {parseTags(form.requiresText).map((required) => {
                                         const known = catalogue.find((plugin) => plugin.id === required)
                                         return (

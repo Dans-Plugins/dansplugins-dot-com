@@ -34,6 +34,10 @@ interface PluginVersionListProps {
 // beginning "# 1.4.0" must not outrank the page's own headings.
 const changelogStyle = {
     fontSize: '0.9rem',
+    // A commit SHA or a `/dpm get` command has nowhere to wrap and would widen
+    // the page past a phone's screen; see GuideMarkdown for the same rule.
+    overflowWrap: 'anywhere',
+    '& table': {display: 'block', maxWidth: '100%', overflowX: 'auto'},
     '& h1, & h2, & h3, & h4': {
         fontFamily: '"Space Grotesk", sans-serif',
         fontSize: '1rem',
@@ -90,7 +94,7 @@ const Changelog: React.FC<{markdown: string; htmlUrl: string}> = ({markdown, htm
 // download from here shows up in the figures the page presents; nofollow keeps
 // a crawler's visit from being one of them.
 const AssetButtons: React.FC<{version: PluginVersion}> = ({version}) => (
-    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mt: 2}}>
+    <Stack direction="row" sx={{flexWrap: 'wrap', gap: 1, mt: 2}}>
         {version.assets.map((asset) => (
             <Button
                 key={asset.downloadUrl}
@@ -109,7 +113,7 @@ const AssetButtons: React.FC<{version: PluginVersion}> = ({version}) => (
 );
 
 const VersionHeading: React.FC<{version: PluginVersion; isLatest?: boolean}> = ({version, isLatest}) => (
-    <Stack direction="row" spacing={1} alignItems="center" sx={{flexWrap: 'wrap', rowGap: 1}}>
+    <Stack direction="row" alignItems="center" sx={{flexWrap: 'wrap', gap: 1}}>
         {isLatest ? <Chip size="small" color="primary" label="Latest" data-testid="latest-version-chip"/> : null}
         <Typography component="span" sx={{fontWeight: 600}}>
             {version.name || version.tag}
@@ -157,10 +161,9 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
         <Box component="section" sx={{mb: 4}}>
             <Stack
                 direction="row"
-                spacing={2}
                 alignItems="baseline"
                 justifyContent="space-between"
-                sx={{flexWrap: 'wrap', rowGap: 1, mb: 2}}
+                sx={{flexWrap: 'wrap', columnGap: 2, rowGap: 1, mb: 2}}
             >
                 <Typography variant="h5" component="h2" sx={{fontWeight: 700}}>
                     Versions
@@ -180,7 +183,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
             </Stack>
 
             <Paper variant="outlined" sx={{p: 2.5, mb: older.length > 0 ? 2 : 0}}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{flexWrap: 'wrap', rowGap: 1, mb: 1}}>
+                <Stack direction="row" alignItems="center" sx={{flexWrap: 'wrap', gap: 1, mb: 1}}>
                     <VersionHeading version={latest} isLatest={latest.tag === latestTag}/>
                 </Stack>
                 {latest.changelog ? <Changelog markdown={latest.changelog} htmlUrl={latest.htmlUrl}/> : (
