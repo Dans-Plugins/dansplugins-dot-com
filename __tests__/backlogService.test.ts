@@ -32,14 +32,14 @@ describe('getBacklogItems', () => {
         expect(fetchMock.mock.calls[0][0]).toContain('repo=Medieval-Factions');
     });
 
-    it('returns an empty array on a non-ok response', async () => {
+    it('rejects on a non-ok response, so an outage is not read as an empty backlog', async () => {
         stubFetch({ok: false, status: 500});
-        expect(await getBacklogItems()).toEqual([]);
+        await expect(getBacklogItems()).rejects.toThrow('HTTP 500');
     });
 
-    it('returns an empty array when fetch rejects', async () => {
+    it('rejects when fetch rejects', async () => {
         rejectFetch();
-        expect(await getBacklogItems()).toEqual([]);
+        await expect(getBacklogItems()).rejects.toThrow();
     });
 });
 
@@ -50,13 +50,13 @@ describe('getBacklogSummary', () => {
         expect(await getBacklogSummary()).toEqual(summary);
     });
 
-    it('returns an empty array on a non-ok response', async () => {
+    it('rejects on a non-ok response, so an outage is not read as an empty backlog', async () => {
         stubFetch({ok: false, status: 500});
-        expect(await getBacklogSummary()).toEqual([]);
+        await expect(getBacklogSummary()).rejects.toThrow('HTTP 500');
     });
 
-    it('returns an empty array when fetch rejects', async () => {
+    it('rejects when fetch rejects', async () => {
         rejectFetch();
-        expect(await getBacklogSummary()).toEqual([]);
+        await expect(getBacklogSummary()).rejects.toThrow();
     });
 });

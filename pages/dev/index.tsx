@@ -1,6 +1,7 @@
 import {
     Alert,
     Box,
+    Button,
     Card,
     CardContent,
     Chip,
@@ -229,6 +230,9 @@ const DevPortalPage: NextPage = () => {
     const [itemSort, setItemSort] = useState<SortState<ItemSortColumn>>({column: null, direction: 'asc'})
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    // The API could not answer (as opposed to answering with an empty backlog):
+    // the notice then offers a retry, and the empty tables say why they are empty.
+    const [loadFailed, setLoadFailed] = useState(false)
     const [interestCounts, setInterestCounts] = useState<Record<string, number>>({})
     const [interestedSet, setInterestedSet] = useState<Set<string>>(new Set())
     const [claimants, setClaimants] = useState<Record<string, string>>({})
@@ -249,6 +253,7 @@ const DevPortalPage: NextPage = () => {
     const load = useCallback(async () => {
         setLoading(true)
         setError(null)
+        setLoadFailed(false)
         try {
             const [summaryData, itemData, featureRequests] = await Promise.all([
                 getBacklogSummary(),
@@ -268,6 +273,7 @@ const DevPortalPage: NextPage = () => {
         } catch (e) {
             console.error('Failed to load backlog data:', e)
             setError('We couldn’t load the backlog right now. Please try again later.')
+            setLoadFailed(true)
         } finally {
             setLoading(false)
         }
@@ -394,7 +400,13 @@ const DevPortalPage: NextPage = () => {
                 </Stack>
 
                 {error && (
-                    <Alert severity="info" sx={{mb: 2}}>
+                    <Alert
+                        severity={loadFailed ? 'warning' : 'info'}
+                        sx={{mb: 2}}
+                        action={loadFailed ? (
+                            <Button color="inherit" size="small" onClick={load}>Try again</Button>
+                        ) : undefined}
+                    >
                         {error}
                     </Alert>
                 )}
@@ -514,7 +526,9 @@ const DevPortalPage: NextPage = () => {
                                         <TableRow>
                                             <TableCell colSpan={6} align="center" sx={{py: 4}}>
                                                 <Typography color="text.secondary">
-                                                    No repos match this filter.
+                                                    {summary.length === 0
+                                                        ? (loadFailed ? 'The backlog couldn’t be loaded.' : 'No repos have been synced yet.')
+                                                        : 'No repos match this filter.'}
                                                 </Typography>
                                             </TableCell>
                                         </TableRow>
@@ -748,7 +762,9 @@ const DevPortalPage: NextPage = () => {
                                         <TableRow>
                                             <TableCell colSpan={5} align="center" sx={{py: 4}}>
                                                 <Typography color="text.secondary">
-                                                    Nothing matches these filters.
+                                                    {items.length === 0
+                                                        ? (loadFailed ? 'The backlog couldn’t be loaded.' : 'No open issues or PRs yet.')
+                                                        : 'Nothing matches these filters.'}
                                                 </Typography>
                                             </TableCell>
                                         </TableRow>

@@ -52,11 +52,11 @@ const RoadmapCard: React.FC<{ item: RoadmapItem; color: 'success' | 'warning' | 
 
 const Roadmap: NextPage = () => (
     <Box sx={(theme) => pageStyle(theme)}>
-        <Seo title="Road Map" description="What's planned, in progress, and completed across Dan's Plugins Community."/>
+        <Seo title="Roadmap" description="What's planned, in progress, and completed across Dan's Plugins Community."/>
         <TopBar/>
         <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
             <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>
-                Road Map
+                Roadmap
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{mb: 3}}>
                 This page tracks where Dan&apos;s Plugins Community is headed. For the day-to-day detail,

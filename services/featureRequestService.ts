@@ -2,6 +2,7 @@
 // plugin ideas, upvoted via the existing like mechanism and (admin-only)
 // convertible into a real GitHub issue.
 import {getApiBaseUrl} from '../utils/apiBase';
+import {friendlyHttpError, NETWORK_ERROR_MESSAGE} from '../utils/friendlyError';
 
 const API_BASE = getApiBaseUrl();
 
@@ -54,11 +55,11 @@ export const createFeatureRequest = async (
             body: JSON.stringify({repo, title, description}),
         });
         if (!res.ok) {
-            return {ok: false, message: await parseErrorMessage(res, `Request failed (HTTP ${res.status})`)};
+            return {ok: false, message: await parseErrorMessage(res, friendlyHttpError(res.status, 'Sending your idea'))};
         }
         return {ok: true, value: await res.json()};
     } catch {
-        return {ok: false, message: 'Network error — please try again.'};
+        return {ok: false, message: NETWORK_ERROR_MESSAGE};
     }
 };
 
@@ -70,10 +71,10 @@ export const convertFeatureRequest = async (token: string, id: string): Promise<
             headers: {Authorization: `Bearer ${token}`},
         });
         if (!res.ok) {
-            return {ok: false, message: await parseErrorMessage(res, `Request failed (HTTP ${res.status})`)};
+            return {ok: false, message: await parseErrorMessage(res, friendlyHttpError(res.status, 'Turning this idea into an issue'))};
         }
         return {ok: true, value: await res.json()};
     } catch {
-        return {ok: false, message: 'Network error — please try again.'};
+        return {ok: false, message: NETWORK_ERROR_MESSAGE};
     }
 };

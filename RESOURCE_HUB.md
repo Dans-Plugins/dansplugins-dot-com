@@ -5,7 +5,7 @@ SpigotMC-style resource hub for Dan's Plugins, without rebuilding the parts of
 SpigotMC that are a liability rather than a feature.
 
 This is a design document, not a status report. The
-[Road Map](pages/data/roadmap.json) tracks which phases are done; the
+[Roadmap](pages/data/roadmap.json) tracks which phases are done; the
 [issue tracker](https://github.com/Dans-Plugins/dansplugins-dot-com/issues)
 tracks the day-to-day work.
 

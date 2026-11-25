@@ -2,6 +2,7 @@ import {
     Alert,
     Avatar,
     Box,
+    Button,
     Card,
     CardContent,
     Chip,
@@ -34,6 +35,10 @@ const PublicProfilePage: NextPage = () => {
     const username = typeof router.query.username === 'string' ? router.query.username : null
     const [profile, setProfile] = useState<PublicProfile | null>(null)
     const [loading, setLoading] = useState(true)
+    // True when dpc-api could not answer: shown as "try again", never as
+    // "no such user", since the user may well exist.
+    const [unavailable, setUnavailable] = useState(false)
+    const [attempt, setAttempt] = useState(0)
     // The catalogue names the liked items; see pages/account.tsx.
     const [catalogue, setCatalogue] = useState<CataloguePlugin[]>([])
 
@@ -51,16 +56,23 @@ const PublicProfilePage: NextPage = () => {
         if (!username) return
         let active = true
         setLoading(true)
+        setUnavailable(false)
         getPublicProfile(username).then((data) => {
             if (active) {
                 setProfile(data)
+                setLoading(false)
+            }
+        }, () => {
+            if (active) {
+                setProfile(null)
+                setUnavailable(true)
                 setLoading(false)
             }
         })
         return () => {
             active = false
         }
-    }, [username])
+    }, [username, attempt])
 
     const likedItems = profile ? resolveLikedItems(profile.likes, catalogue) : []
     const heading = profile?.displayName || profile?.username || username || 'Profile'
@@ -86,9 +98,30 @@ const PublicProfilePage: NextPage = () => {
                     <Box role="status" sx={{display: 'flex', justifyContent: 'center', py: 6}}>
                         <CircularProgress aria-label="Loading profile"/>
                     </Box>
+                ) : unavailable ? (
+                    <Alert
+                        severity="warning"
+                        data-testid="profile-unavailable"
+                        action={
+                            <Button color="inherit" size="small" onClick={() => setAttempt((n) => n + 1)}>
+                                Try again
+                            </Button>
+                        }
+                    >
+                        This profile couldn&apos;t be loaded right now. The site may be having trouble
+                        reaching its server; please try again in a moment.
+                    </Alert>
                 ) : !profile ? (
-                    <Alert severity="info">
-                        No profile found for <strong>{username}</strong>.
+                    <Alert
+                        severity="info"
+                        action={
+                            <Button color="inherit" size="small" component={NextLinkComposed} to="/leaderboard">
+                                Leaderboard
+                            </Button>
+                        }
+                    >
+                        No profile found for <strong>{username}</strong>. Check the spelling of the
+                        username, or find players on the faction leaderboard.
                     </Alert>
                 ) : (
                     <>

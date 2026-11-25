@@ -80,9 +80,9 @@ No special software is required to use the website. Simply visit [https://danspl
 2. Read the overview of Dan's Plugins Community.
 3. Use the GitHub, Discord, or Patreon links to get involved.
 
-### Viewing the Road Map
+### Viewing the Roadmap
 
-1. Click **Road Map** in the top navigation bar (or visit `/roadmap`).
+1. Click **Roadmap** in the top navigation bar (or visit `/roadmap`).
 2. Review the planned, in-progress, and completed work.
 3. Follow the linked GitHub issue tracker for day-to-day detail.
 

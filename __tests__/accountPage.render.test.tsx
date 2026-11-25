@@ -112,7 +112,7 @@ describe('account page, signed out', () => {
         fill(/^Username/, 'dan');
         fill(/^Password/, 'hunter22!');
         submit('Sign in');
-        await screen.findByText('Logged in!');
+        await screen.findByText('Signed in.');
         expect(login).toHaveBeenCalledWith('dan', 'hunter22!');
         expect(saveSession).toHaveBeenCalledWith({token: 'jwt', refreshToken: 'rt'});
         expect(router.push).toHaveBeenCalledWith('/resources/fiefs');
@@ -129,18 +129,18 @@ describe('account page, signed out', () => {
             fill(/^Username/, 'dan');
             fill(/^Password/, 'hunter22!');
             submit('Sign in');
-            await screen.findByText('Logged in!');
+            await screen.findByText('Signed in.');
             expect(router.push).not.toHaveBeenCalled();
         },
     );
 
     it('shows a refused sign-in and keeps the visitor signed out', async () => {
-        vi.mocked(login).mockResolvedValue({status: 'refused', message: 'Invalid credentials.'});
+        vi.mocked(login).mockResolvedValue({status: 'refused', message: 'That username and password don’t match. Check them and try again.'});
         render(<AccountPage/>);
         fill(/^Username/, 'dan');
         fill(/^Password/, 'wrong');
         submit('Sign in');
-        await screen.findByText('Invalid credentials.');
+        await screen.findByText('That username and password don’t match. Check them and try again.');
         expect(saveSession).not.toHaveBeenCalled();
         expect(router.push).not.toHaveBeenCalled();
         expect(screen.getByRole('tab', {name: 'Sign in'})).toBeTruthy();
@@ -191,7 +191,7 @@ describe('account page, signed in', () => {
     it('ends an expired session and asks the visitor to sign in again', async () => {
         stubApi(status(401));
         render(<AccountPage/>);
-        await screen.findByText('Session expired. Please log in again.');
+        await screen.findByText('Your session has expired. Please sign in again.');
         expect(clearSession).toHaveBeenCalled();
         expect(screen.getByRole('tab', {name: 'Sign in'})).toBeTruthy();
     });
@@ -199,7 +199,7 @@ describe('account page, signed in', () => {
     it('names the HTTP status when the profile fails to load for another reason', async () => {
         stubApi(status(503));
         render(<AccountPage/>);
-        await screen.findByText('Failed to load profile (HTTP 503).');
+        await screen.findByText(/The server had a problem, so loading your profile didn’t work.*\(HTTP 503\)/);
         expect(clearSession).not.toHaveBeenCalled();
     });
 
@@ -207,10 +207,10 @@ describe('account page, signed in', () => {
         stubApi(ok(profileBody()));
         render(<AccountPage/>);
         await screen.findByText('Welcome, dan');
-        fireEvent.click(screen.getByRole('button', {name: 'Logout'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Sign out'}));
         expect(logout).toHaveBeenCalledWith('jwt');
         expect(clearSession).toHaveBeenCalled();
-        expect(screen.getByText('Logged out.')).toBeTruthy();
+        expect(screen.getByText('Signed out.')).toBeTruthy();
         expect(screen.getByRole('tab', {name: 'Sign in'})).toBeTruthy();
     });
 
@@ -279,6 +279,23 @@ describe('account page, signed in', () => {
         // An empty key prefix shows just the server name, with no "(…)" suffix.
         await screen.findByText('Creative');
         fireEvent.click(screen.getByRole('button', {name: 'Delete API key for Creative'}));
-        await screen.findByText('Failed to delete API key.');
+        fireEvent.click(await screen.findByRole('button', {name: 'Delete key'}));
+        await screen.findByText(/The server had a problem, so deleting the API key didn’t work/);
+    });
+
+    it('asks before deleting an API key, and deletes nothing on Cancel', async () => {
+        const fetchMock = stubApi(
+            ok(profileBody({apiKeys: [{id: 'k1', keyPrefix: '', serverName: 'Creative', createdAt: '2025-03-05T12:00:00Z'}]})),
+            (url, init) => {
+                throw new Error(`unexpected fetch ${init?.method} ${url}`);
+            },
+        );
+        render(<AccountPage/>);
+        await screen.findByText('Creative');
+        fireEvent.click(screen.getByRole('button', {name: 'Delete API key for Creative'}));
+        expect(await screen.findByText('Delete this API key?')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        await waitFor(() => expect(screen.queryByText('Delete this API key?')).toBeNull());
+        expect(fetchMock.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === 'DELETE')).toBe(false);
     });
 });

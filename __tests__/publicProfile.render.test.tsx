@@ -6,7 +6,7 @@
 // liked item from the catalogue (falling back to the raw id for a stale like).
 import React from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {cleanup, render, screen, waitFor, within} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 
 let query: Record<string, string> = {};
 vi.mock('next/router', () => ({useRouter: () => ({pathname: '/u/[username]', asPath: '/u/dan', query, push: vi.fn()})}));
@@ -115,8 +115,22 @@ describe('public profile page', () => {
         query = {username: 'ghost'};
         vi.mocked(getPublicProfile).mockResolvedValue(null);
         render(<PublicProfilePage/>);
-        await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('No profile found for ghost.'));
+        await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('No profile found for ghost.'));
         expect(screen.queryByRole('heading', {level: 1})).toBeNull();
+        // A next step, not a dead end.
+        expect(within(screen.getByRole('alert')).getByRole('link', {name: 'Leaderboard'}).getAttribute('href')).toBe('/leaderboard');
+    });
+
+    it('says the profile could not be loaded, not that it is missing, when the API is down', async () => {
+        query = {username: 'alice'};
+        vi.mocked(getPublicProfile).mockRejectedValueOnce(new Error('network')).mockResolvedValueOnce(profile());
+        render(<PublicProfilePage/>);
+        const alert = await screen.findByTestId('profile-unavailable');
+        expect(alert.textContent).toContain("couldn't be loaded right now");
+        expect(alert.textContent).not.toContain('No profile found');
+        fireEvent.click(screen.getByRole('button', {name: 'Try again'}));
+        await waitFor(() => expect(getPublicProfile).toHaveBeenCalledTimes(2));
+        await waitFor(() => expect(screen.queryByTestId('profile-unavailable')).toBeNull());
     });
 
     it('keeps the spinner, and asks for nothing, until the router supplies a username', async () => {

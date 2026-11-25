@@ -36,5 +36,9 @@ describe('/guides page', () => {
 
         expect(screen.getByText(UNAVAILABLE)).toBeTruthy();
         expect(screen.queryAllByRole('link', {name: / Guide$/})).toEqual([]);
+        // Not a dead end: a retry, and a route to the plugins that does not need the API.
+        expect(screen.getByRole('button', {name: 'Try again'})).toBeTruthy();
+        expect(screen.getByRole('link', {name: 'Browse the plugins on GitHub'}).getAttribute('href'))
+            .toBe('https://github.com/Dans-Plugins');
     });
 });

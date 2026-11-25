@@ -75,6 +75,8 @@ const FeatureRequestSection: React.FC<FeatureRequestSectionProps> = ({repos, rep
         if (result.ok) {
             setTitle('');
             setDescription('');
+            // Say it worked: a form that silently empties reads as lost input.
+            setNotice('Thanks! Your idea has been posted.');
             load();
         } else {
             setNotice(result.message);
@@ -88,6 +90,7 @@ const FeatureRequestSection: React.FC<FeatureRequestSectionProps> = ({repos, rep
         }
         const result = await convertFeatureRequest(token, id);
         if (result.ok) {
+            setNotice('Turned into a GitHub issue.');
             load();
         } else {
             setNotice(result.message);

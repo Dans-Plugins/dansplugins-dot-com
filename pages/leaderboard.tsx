@@ -27,6 +27,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
 import type {NextPage} from 'next'
 import React, {useCallback, useEffect, useState} from 'react'
 import TopBar from '../components/TopBar'
+import {friendlyHttpError} from '../utils/friendlyError'
 import Seo from '../components/Seo'
 import BottomBar from '../components/BottomBar'
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../styles/styles'
@@ -95,7 +96,7 @@ const LeaderboardPage: NextPage = () => {
                 const data: PagedResponse = await res.json()
                 setFactions(data.content)
             } else {
-                setError(`Failed to load factions (HTTP ${res.status}).`)
+                setError(friendlyHttpError(res.status, 'Loading the leaderboard'))
             }
         } catch (e) {
             console.error('Failed to fetch factions:', e)

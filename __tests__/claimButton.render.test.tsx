@@ -123,13 +123,13 @@ describe('ClaimButton', () => {
     });
 
     it('shows the server\'s message when a release fails', async () => {
-        vi.mocked(releaseItem).mockResolvedValue({ok: false, message: 'Network error — please try again.'});
+        vi.mocked(releaseItem).mockResolvedValue({ok: false, message: 'We couldn’t reach the server. Please check your connection and try again.'});
         const onChange = vi.fn();
         render(<ClaimButton repo="Fiefs" number={12} claimantUsername="bob"
                             token={tokenFor('bob')} onChange={onChange}/>);
 
         fireEvent.click(release());
-        expect(await screen.findByText('Network error — please try again.')).toBeTruthy();
+        expect(await screen.findByText('We couldn’t reach the server. Please check your connection and try again.')).toBeTruthy();
         expect(onChange).not.toHaveBeenCalled();
     });
 });
