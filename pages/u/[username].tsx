@@ -78,8 +78,8 @@ const PublicProfilePage: NextPage = () => {
             <TopBar/>
             <Container component="main" id="main" maxWidth="md" sx={{py: 4}}>
                 {loading ? (
-                    <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}>
-                        <CircularProgress/>
+                    <Box role="status" sx={{display: 'flex', justifyContent: 'center', py: 6}}>
+                        <CircularProgress aria-label="Loading profile"/>
                     </Box>
                 ) : !profile ? (
                     <Alert severity="info">
@@ -129,7 +129,7 @@ const PublicProfilePage: NextPage = () => {
 
                         <Card>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>Likes</Typography>
+                                <Typography variant="h6" component="h2" gutterBottom>Likes</Typography>
                                 {likedItems.length > 0 ? (
                                     <List disablePadding>
                                         {likedItems.map((item) => (

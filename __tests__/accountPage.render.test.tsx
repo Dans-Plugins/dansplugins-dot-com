@@ -278,7 +278,7 @@ describe('account page, signed in', () => {
         render(<AccountPage/>);
         // An empty key prefix shows just the server name, with no "(…)" suffix.
         await screen.findByText('Creative');
-        fireEvent.click(screen.getByRole('button', {name: 'Delete API key'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Delete API key for Creative'}));
         await screen.findByText('Failed to delete API key.');
     });
 });

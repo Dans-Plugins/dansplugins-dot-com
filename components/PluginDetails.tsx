@@ -176,7 +176,7 @@ const PluginDetails: React.FC<PluginDetailsProps> = ({
             ) : null}
 
             <Box sx={pluginDetailsActionsStyle}>
-                <LikeButton targetType="plugin" targetId={id} count={likeCount} liked={liked} token={token}/>
+                <LikeButton targetType="plugin" targetId={id} count={likeCount} liked={liked} token={token} label={title}/>
                 <Box sx={{flexGrow: 1}}/>
                 <Button
                     variant="contained"

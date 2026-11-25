@@ -85,8 +85,10 @@ const ClaimButton: React.FC<ClaimButtonProps> = ({repo, number, claimantUsername
                 onClose={() => setNotice(null)}
                 message={notice?.message}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+                // The action inherits the snackbar's own text colour: the gold
+                // accent fell to 1.8:1 on the light dark-mode snackbar.
                 action={notice?.signIn
-                    ? <Button color="secondary" size="small" onClick={goSignIn}>Sign in</Button>
+                    ? <Button color="inherit" size="small" onClick={goSignIn} sx={{fontWeight: 700, textDecoration: 'underline'}}>Sign in</Button>
                     : undefined}
             />
         </>

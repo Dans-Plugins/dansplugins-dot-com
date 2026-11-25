@@ -51,7 +51,9 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
     const formattedDate = absoluteDateFrom(startDate ?? '');
 
     return (
-        <AppBar position="static" sx={(theme) => bottomAppBarStyle(theme)}>
+        // A footer, not a second <header>: AppBar renders <header> by default,
+        // which gave every page two banner landmarks and no contentinfo.
+        <AppBar component="footer" position="static" sx={(theme) => bottomAppBarStyle(theme)}>
             <Toolbar sx={(theme) => toolbarStyle(theme)}>
                 <Box sx={(theme) => flexContainerStyle(theme)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -104,7 +106,9 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                     />
                 </Box>
             </Toolbar>
-            <Typography variant="caption" component="p" color="inherit" sx={{textAlign: 'center', opacity: 0.8, pb: 1, px: 2, m: 0}}>
+            {/* Full opacity in light mode: white at 0.8 on the blue bar is 3.6:1,
+                under AA for caption-size text. */}
+            <Typography variant="caption" component="p" color="inherit" sx={(t) => ({textAlign: 'center', opacity: t.palette.mode === 'dark' ? 0.8 : 1, pb: 1, px: 2, m: 0})}>
                 More by Daniel Stephenson →{' '}
                 <Link href="https://danielstephenson.dev" color="inherit" underline="hover">
                     danielstephenson.dev

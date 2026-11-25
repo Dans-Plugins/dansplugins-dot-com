@@ -95,6 +95,9 @@ describe('faction leaderboard page', () => {
         for (const row of rows.slice(0, 3)) {
             expect(within(row).queryByTestId('EmojiEventsIcon')).not.toBeNull();
         }
+        // The trophy is the rank for the top three, so it carries one for
+        // assistive technology instead of being silent decoration.
+        expect(rows.slice(0, 3).map((row) => within(row).getByRole('img').textContent)).toEqual(['Rank 1', 'Rank 2', 'Rank 3']);
         expect(within(rows[3]).queryByTestId('EmojiEventsIcon')).toBeNull();
         expect(within(rows[3]).getAllByRole('cell')[0].textContent).toBe('4');
         expect(rows.map((row) => within(row).getAllByRole('cell')[3].textContent)).toEqual(['40', '30', '20', '10']);

@@ -158,7 +158,7 @@ const FeatureRequestSection: React.FC<FeatureRequestSectionProps> = ({repos, rep
                             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
                                 <Box sx={{flex: 1}}>
                                     <Stack direction="row" alignItems="center" spacing={1} sx={{mb: 0.5}}>
-                                        <Typography variant="subtitle1" fontWeight={600}>{request.title}</Typography>
+                                        <Typography variant="subtitle1" component="h3" fontWeight={600}>{request.title}</Typography>
                                         <Chip size="small" label={request.repo} variant="outlined"/>
                                         {request.status === 'CONVERTED' && (
                                             <Chip size="small" color="success" label="Converted to issue"/>
@@ -186,6 +186,7 @@ const FeatureRequestSection: React.FC<FeatureRequestSectionProps> = ({repos, rep
                                         count={upvoteCounts[request.id] || 0}
                                         liked={upvotedSet.has(request.id)}
                                         token={token}
+                                        label={request.title}
                                     />
                                     {request.status === 'OPEN' && token && (
                                         <Button size="small" onClick={() => handleConvert(request.id)}>

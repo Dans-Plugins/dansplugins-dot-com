@@ -122,13 +122,23 @@ const CommunityMenu: React.FC = () => {
         <>
             <Button
                 color="inherit"
+                id="community-menu-button"
+                aria-haspopup="true"
+                aria-controls={anchorEl ? 'community-menu' : undefined}
+                aria-expanded={anchorEl ? 'true' : undefined}
                 endIcon={<ExpandMoreIcon fontSize="small"/>}
                 onClick={(event) => setAnchorEl(event.currentTarget)}
                 sx={(theme) => navButtonStyle(theme)}
             >
                 Community
             </Button>
-            <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
+            <Menu
+                id="community-menu"
+                anchorEl={anchorEl}
+                open={!!anchorEl}
+                onClose={() => setAnchorEl(null)}
+                MenuListProps={{'aria-labelledby': 'community-menu-button'}}
+            >
                 {COMMUNITY_LINKS.map((link) => (
                     <MenuItem
                         key={link.href}
@@ -156,7 +166,7 @@ const NavDrawer: React.FC<{
     accountLabel: string;
 }> = ({open, onClose, pathname, accountLabel}) => (
     <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{sx: (theme) => navDrawerPaperStyle(theme)}}>
-        <List sx={{width: 260}} onClick={onClose}>
+        <List component="nav" aria-label="Site" sx={{width: 260}} onClick={onClose}>
             {PRIMARY_LINKS.map((link) => (
                 <ListItemButton
                     key={link.href}
@@ -214,7 +224,7 @@ const TopBar: React.FC = () => {
                     <BrandName/>
 
                     {/* Desktop / tablet: inline nav, hidden below the `md` breakpoint. */}
-                    <Box sx={(theme) => ({...flexContainerStyle(theme, {gap: 1}), display: {xs: 'none', md: 'flex'}})}>
+                    <Box component="nav" aria-label="Site" sx={(theme) => ({...flexContainerStyle(theme, {gap: 1}), display: {xs: 'none', md: 'flex'}})}>
                         {PRIMARY_LINKS.map((link) => (
                             <NavButton key={link.href} href={link.href} active={isActiveNavLink(pathname, link.href)}>
                                 {link.label}
@@ -238,6 +248,8 @@ const TopBar: React.FC = () => {
                     <IconButton
                         color="inherit"
                         aria-label="Open navigation menu"
+                        aria-haspopup="true"
+                        aria-expanded={drawerOpen ? 'true' : 'false'}
                         onClick={() => setDrawerOpen(true)}
                         sx={{display: {xs: 'inline-flex', md: 'none'}}}
                     >

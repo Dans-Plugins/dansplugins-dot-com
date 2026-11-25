@@ -132,7 +132,7 @@ const LeaderboardPage: NextPage = () => {
                 <Card>
                     <CardContent sx={{p: 0, '&:last-child': {pb: 0}}}>
                         <TableContainer>
-                            <Table>
+                            <Table aria-label="Faction leaderboard" aria-busy={loading}>
                                 <TableHead>
                                     <TableRow
                                         sx={{
@@ -193,7 +193,10 @@ const LeaderboardPage: NextPage = () => {
                                             >
                                                 <TableCell align="center">
                                                     {index < 3 ? (
+                                                        // The trophy replaced the number for the top
+                                                        // three, leaving their rank unannounced.
                                                         <EmojiEventsIcon
+                                                            titleAccess={`Rank ${index + 1}`}
                                                             sx={{color: MEDAL_COLORS[index], fontSize: 28}}
                                                         />
                                                     ) : (

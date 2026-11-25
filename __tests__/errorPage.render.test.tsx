@@ -26,8 +26,10 @@ describe('404 page', () => {
     it('shows the status code, a heading and an explanation', () => {
         render(<NotFoundPage/>);
 
-        expect(screen.getByRole('heading', {level: 1, name: '404'})).toBeTruthy();
-        expect(screen.getByRole('heading', {level: 4, name: 'Page not found'})).toBeTruthy();
+        // The status code is shown but is not a heading; the title is the
+        // page's only <h1>.
+        expect(screen.getByText('404')).toBeTruthy();
+        expect(screen.getAllByRole('heading', {level: 1}).map((h) => h.textContent)).toEqual(['Page not found']);
         expect(screen.getByText("The page you're looking for doesn't exist or may have moved.")).toBeTruthy();
     });
 
@@ -65,8 +67,10 @@ describe('500 page', () => {
     it('shows its own status code, heading and explanation through the same layout', () => {
         const {container} = render(<ServerErrorPage/>);
 
-        expect(screen.getByRole('heading', {level: 1, name: '500'})).toBeTruthy();
-        expect(screen.getByRole('heading', {level: 4, name: 'Something went wrong'})).toBeTruthy();
+        // The status code is shown but is not a heading; the title is the
+        // page's only <h1>.
+        expect(screen.getByText('500')).toBeTruthy();
+        expect(screen.getAllByRole('heading', {level: 1}).map((h) => h.textContent)).toEqual(['Something went wrong']);
         expect(screen.getByText('An unexpected error occurred on our end. Please try again in a moment.')).toBeTruthy();
         expect(screen.getByRole('link', {name: 'Back to home'}).getAttribute('href')).toBe('/');
         expect(container.querySelector('title')?.textContent).toBe("500 — Something went wrong — Dan's Plugins Community");

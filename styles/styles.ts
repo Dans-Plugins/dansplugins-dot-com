@@ -241,7 +241,9 @@ export const infoCardIconSizeStyle = {
 export const navDrawerPaperStyle = (theme: Theme) => ({
     width: 260,
     backgroundColor: theme.palette.mode === 'dark' ? '#161b22' : theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
+    // White on both surfaces; primary.contrastText is dark in dark mode (the
+    // blue there needs dark text) and would vanish on #161b22.
+    color: '#fff',
 });
 
 /**
@@ -250,7 +252,9 @@ export const navDrawerPaperStyle = (theme: Theme) => ({
 export const navDrawerSectionLabelStyle = (theme: Theme) => ({
     paddingX: theme.spacing(2),
     paddingTop: theme.spacing(2),
-    opacity: 0.7,
+    // Dimmed only in dark mode: on the light-mode blue any opacity under 1
+    // drops this 12px label below AA (0.7 was 3:1).
+    opacity: theme.palette.mode === 'dark' ? 0.7 : 1,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     fontSize: '0.75rem',

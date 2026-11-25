@@ -1,6 +1,6 @@
 import type {AppProps} from 'next/app'
 import React, {useEffect, useMemo, useState} from 'react';
-import {Box, createTheme, CssBaseline, ThemeProvider} from '@mui/material';
+import {Box, createTheme, CssBaseline, GlobalStyles, ThemeProvider} from '@mui/material';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {COLOR_MODE_STORAGE_KEY, ColorMode, resolveInitialColorMode} from '../utils/colorMode';
 
@@ -40,10 +40,18 @@ function MyApp({Component, pageProps}: AppProps) {
             return createTheme({
                 palette: {
                     mode,
+                    // Pick button/chip text colour against WCAG AA (4.5:1) rather
+                    // than MUI's default 3:1. With 3:1, white sat on the dark-mode
+                    // blue (3.7:1) and on the gold accent (2.1:1).
+                    contrastThreshold: 4.5,
                     primary: {main: isDark ? '#5c7cfa' : '#4263eb'},
                     // Gold accent — used sparingly for emphasis (a nod to the
                     // Minecraft/medieval audience without leaning faux-medieval).
                     secondary: {main: '#f59f00'},
+                    // MUI's light-mode warning/info (#ed6c02, #0288d1) read at
+                    // 3.1:1 and 3.9:1 as text on white (outlined chips, the
+                    // road map's status counts); these keep the hue at AA.
+                    ...(isDark ? {} : {warning: {main: '#b45309'}, info: {main: '#0277bd'}}),
                     background: isDark
                         ? {default: '#0e1117', paper: '#161b22'}
                         : {default: '#f6f8fa', paper: '#ffffff'},
@@ -95,6 +103,31 @@ function MyApp({Component, pageProps}: AppProps) {
             <ColorModeContext.Provider value={colorMode}>
                 <ThemeProvider theme={theme}>
                     <CssBaseline/>
+                    <GlobalStyles styles={(t) => ({
+                        // A visible keyboard focus ring everywhere. MUI buttons
+                        // only pulse a ripple on focus, and with elevation
+                        // disabled a focused contained button was hard to spot.
+                        // currentColor keeps the ring visible on the blue app
+                        // bar as well as on the page.
+                        '.Mui-focusVisible, a:focus-visible, [tabindex]:focus-visible, button:focus-visible': {
+                            outline: '2px solid currentColor',
+                            outlineOffset: 2,
+                        },
+                        '.MuiButton-contained.Mui-focusVisible': {
+                            outlineColor: t.palette.primary.main,
+                        },
+                        // Honour the OS "reduce motion" setting for every hover
+                        // lift, transition and animation on the site (WCAG 2.3.3).
+                        '@media (prefers-reduced-motion: reduce)': {
+                            '*, *::before, *::after': {
+                                animationDuration: '0.01ms !important',
+                                animationIterationCount: '1 !important',
+                                transitionDuration: '0.01ms !important',
+                                // csstype has no room for !important on this one.
+                                scrollBehavior: 'auto !important' as 'auto',
+                            },
+                        },
+                    })}/>
                     {/* Skip link: the first focusable element, hidden until focused, lets
                         keyboard/screen-reader users jump past the nav to the page's
                         <main id="main"> content (WCAG 2.4.1). */}

@@ -362,15 +362,15 @@ const AccountPage: NextPage = () => {
 
                 {!token ? (
                     <Box sx={{maxWidth: 460, mx: 'auto', mt: 2}}>
-                        <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{mb: 2}}>
-                            <Tab label="Sign in"/>
-                            <Tab label="Create account"/>
+                        <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{mb: 2}} aria-label="Sign in or create an account">
+                            <Tab label="Sign in" id="account-tab-0" aria-controls="account-tabpanel-0"/>
+                            <Tab label="Create account" id="account-tab-1" aria-controls="account-tabpanel-1"/>
                         </Tabs>
 
                         {tab === 0 && (
-                            <Card>
+                            <Card role="tabpanel" id="account-tabpanel-0" aria-labelledby="account-tab-0">
                                 <CardContent>
-                                    <Typography variant="h6" gutterBottom>Sign in</Typography>
+                                    <Typography variant="h6" component="h2" gutterBottom>Sign in</Typography>
                                     <Box component="form" onSubmit={handleLogin} sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
                                         <TextField
                                             label="Username"
@@ -403,9 +403,9 @@ const AccountPage: NextPage = () => {
                         )}
 
                         {tab === 1 && (
-                            <Card>
+                            <Card role="tabpanel" id="account-tabpanel-1" aria-labelledby="account-tab-1">
                                 <CardContent>
-                                    <Typography variant="h6" gutterBottom>Create account</Typography>
+                                    <Typography variant="h6" component="h2" gutterBottom>Create account</Typography>
                                     <Typography variant="body2" sx={{mb: 2}} color="text.secondary">
                                         Create an account to manage API keys for your Minecraft servers.
                                         You can also register from a Minecraft plugin using the command line.
@@ -443,7 +443,7 @@ const AccountPage: NextPage = () => {
                             <Card sx={{mb: 3}}>
                                 <CardContent>
                                     <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
-                                        <Typography variant="h6">
+                                        <Typography variant="h6" component="h2">
                                             Welcome, {profile.username}
                                         </Typography>
                                         <Button variant="outlined" onClick={handleLogout}>Logout</Button>
@@ -472,7 +472,7 @@ const AccountPage: NextPage = () => {
                                     )}
                                     <Box component="form" onSubmit={handleUpdateProfile}
                                          sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 2}}>
-                                        <Typography variant="subtitle2" color="text.secondary">Profile</Typography>
+                                        <Typography variant="subtitle2" component="h3" color="text.secondary">Profile</Typography>
                                         <TextField
                                             label="Display name"
                                             value={displayName}
@@ -509,7 +509,7 @@ const AccountPage: NextPage = () => {
 
                         <Card sx={{mb: 3}}>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>My likes</Typography>
+                                <Typography variant="h6" component="h2" gutterBottom>My likes</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
                                     The plugins and guides you&apos;ve liked — your personal toolbox.
                                 </Typography>
@@ -543,7 +543,7 @@ const AccountPage: NextPage = () => {
 
                         <Card sx={{mb: 3}}>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>API Keys</Typography>
+                                <Typography variant="h6" component="h2" gutterBottom>API Keys</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
                                     API keys allow Minecraft servers to sync data with the DPC API.
                                     Use the X-API-Key header with write endpoints.
@@ -581,7 +581,7 @@ const AccountPage: NextPage = () => {
                                             <ListItem
                                                 key={key.id}
                                                 secondaryAction={
-                                                    <IconButton edge="end" onClick={() => handleDeleteApiKey(key.id)} aria-label="Delete API key">
+                                                    <IconButton edge="end" onClick={() => handleDeleteApiKey(key.id)} aria-label={`Delete API key for ${key.serverName}`}>
                                                         <DeleteIcon/>
                                                     </IconButton>
                                                 }
@@ -618,11 +618,12 @@ const AccountPage: NextPage = () => {
 
                         <Card>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>Minecraft Plugin Integration</Typography>
+                                <Typography variant="h6" component="h2" gutterBottom>Minecraft Plugin Integration</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{mb: 1}}>
                                     Use these commands in your Minecraft server plugin to manage your account:
                                 </Typography>
-                                <Box component="pre" sx={{
+                                {/* Focusable so a keyboard user can scroll the block sideways. */}
+                                <Box component="pre" tabIndex={0} aria-label="API commands" sx={{
                                     bgcolor: '#0d1117',
                                     color: '#c9d1d9',
                                     border: '1px solid',

@@ -45,12 +45,19 @@ interface ExperienceSplashProps {
  * as "I run a server" — the common case — rather than trapping the visitor.
  */
 const ExperienceSplash: React.FC<ExperienceSplashProps> = ({open, onChoosePlayer, onChooseDeveloper}) => (
-    <Dialog open={open} onClose={onChoosePlayer} maxWidth="sm" fullWidth>
+    <Dialog
+        open={open}
+        onClose={onChoosePlayer}
+        maxWidth="sm"
+        fullWidth
+        aria-labelledby="experience-splash-title"
+        aria-describedby="experience-splash-description"
+    >
         <DialogContent sx={{p: 4}}>
-            <Typography variant="h5" component="h2" gutterBottom textAlign="center" sx={{mb: 1}}>
+            <Typography id="experience-splash-title" variant="h5" component="h2" gutterBottom textAlign="center" sx={{mb: 1}}>
                 Welcome to Dan&apos;s Plugins Community
             </Typography>
-            <Typography variant="body2" color="text.secondary" textAlign="center" sx={{mb: 3}}>
+            <Typography id="experience-splash-description" variant="body2" color="text.secondary" textAlign="center" sx={{mb: 3}}>
                 What brings you here?
             </Typography>
             <Stack direction={{xs: 'column', sm: 'row'}} spacing={2}>
