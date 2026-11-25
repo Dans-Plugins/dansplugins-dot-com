@@ -151,7 +151,7 @@ describe('TopBar dark-mode switch', () => {
             </ColorModeContext.Provider>,
         );
 
-        const toggle = screen.getByRole('checkbox', {name: 'Toggle dark mode', hidden: true});
+        const toggle = screen.getByRole('switch', {name: 'Toggle dark mode', hidden: true});
         expect((toggle as HTMLInputElement).checked).toBe(false);
         fireEvent.click(toggle);
         expect(toggleColorMode).toHaveBeenCalledTimes(1);

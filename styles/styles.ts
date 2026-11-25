@@ -244,6 +244,9 @@ export const navDrawerPaperStyle = (theme: Theme) => ({
     // White on both surfaces; primary.contrastText is dark in dark mode (the
     // blue there needs dark text) and would vanish on #161b22.
     color: '#fff',
+    // The drawer is portalled outside the app bar, so it repeats the bar's
+    // rule: a primary focus ring would vanish on the light-mode blue panel.
+    '& .MuiButtonBase-root.Mui-focusVisible': {outlineColor: 'currentColor'},
 });
 
 /**

@@ -4,7 +4,8 @@
 // one invisible to a mouse user and easy to undo without noticing: the page's
 // landmarks (one banner, a named site nav, a footer), the Community menu
 // telling assistive technology whether it is open, every Like button naming
-// what it likes, the first-visit dialog having a name, and a single <h1> per
+// what it likes, the phone drawer being a named dialog, the colour-mode
+// toggle being a switch, the first-visit dialog having a name, and a single <h1> per
 // page with no skipped heading levels on the pages whose cards used to jump
 // straight from <h1> to <h5>/<h6>.
 import React from 'react';
@@ -76,6 +77,37 @@ describe('TopBar Community menu', () => {
         expect(button.getAttribute('aria-expanded')).toBe('false');
         fireEvent.click(button);
         expect(button.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('announces the menu button as opening, and while open controlling, a named dialog', () => {
+        render(<TopBar/>);
+
+        const button = screen.getByRole('button', {name: 'Open navigation menu'});
+        expect(button.getAttribute('aria-haspopup')).toBe('dialog');
+        // The drawer is not mounted while closed, so nothing to point at yet.
+        expect(button.getAttribute('aria-controls')).toBeNull();
+
+        fireEvent.click(button);
+
+        const dialog = screen.getByRole('dialog', {name: 'Navigation menu'});
+        expect(dialog.id).toBe('nav-drawer');
+        expect(button.getAttribute('aria-controls')).toBe(dialog.id);
+    });
+});
+
+describe('colour-mode toggle', () => {
+    it('is announced as a switch, not a checkbox, in the top bar', () => {
+        render(<TopBar/>);
+
+        expect(screen.getByRole('switch', {name: 'Toggle dark mode', hidden: true})).toBeTruthy();
+        expect(screen.queryByRole('checkbox', {name: 'Toggle dark mode', hidden: true})).toBeNull();
+    });
+
+    it('is announced as a switch, not a checkbox, in the footer', () => {
+        render(<BottomBar version="1.0.0"/>);
+
+        expect(screen.getByRole('switch', {name: 'Toggle dark mode'})).toBeTruthy();
+        expect(screen.queryByRole('checkbox', {name: 'Toggle dark mode'})).toBeNull();
     });
 });
 

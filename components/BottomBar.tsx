@@ -113,7 +113,8 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
                     <ColorModeToggleSwitch
                         checked={theme.palette.mode === 'dark'}
                         onChange={colorMode.toggleColorMode}
-                        inputProps={{'aria-label': 'Toggle dark mode'}}
+                        // role="switch": announced as an on/off control, not a checkbox.
+                        inputProps={{'aria-label': 'Toggle dark mode', role: 'switch'}}
                     />
                 </Box>
             </Toolbar>
