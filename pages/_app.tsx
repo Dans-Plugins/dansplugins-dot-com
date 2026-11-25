@@ -77,6 +77,11 @@ function MyApp({Component, pageProps}: AppProps) {
                                 backgroundImage: 'none',
                                 backgroundColor: isDark ? '#161b22' : theme.palette.primary.main,
                                 borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.16)'}`,
+                                // The primary-coloured focus ring (MuiButtonBase,
+                                // below) would be blue on blue here, so the bars'
+                                // controls, the colour-mode switch included, use
+                                // the bar's own text colour.
+                                '& .MuiButtonBase-root.Mui-focusVisible': {outlineColor: 'currentColor'},
                             }),
                         },
                     },
@@ -93,6 +98,22 @@ function MyApp({Component, pageProps}: AppProps) {
                         defaultProps: {disableElevation: true},
                         styleOverrides: {root: {borderRadius: 8}},
                     },
+                    // The focus ring for every MUI control (buttons, icon
+                    // buttons, chips, list items, the switch's thumb). It lives
+                    // on the component rather than in the global styles below:
+                    // ButtonBase's own `outline: 0` is injected after those and
+                    // won at equal specificity, which left the colour-mode
+                    // switch with no visible focus at all.
+                    MuiButtonBase: {
+                        styleOverrides: {
+                            root: ({theme}) => ({
+                                '&.Mui-focusVisible': {
+                                    outline: `2px solid ${theme.palette.primary.main}`,
+                                    outlineOffset: 2,
+                                },
+                            }),
+                        },
+                    },
                 },
             // Deep-merged over the options above: touch-sized controls on
             // coarse pointers (see styles/touchTargets.ts).
@@ -106,18 +127,14 @@ function MyApp({Component, pageProps}: AppProps) {
             <ColorModeContext.Provider value={colorMode}>
                 <ThemeProvider theme={theme}>
                     <CssBaseline/>
-                    <GlobalStyles styles={(t) => ({
-                        // A visible keyboard focus ring everywhere. MUI buttons
-                        // only pulse a ripple on focus, and with elevation
-                        // disabled a focused contained button was hard to spot.
-                        // currentColor keeps the ring visible on the blue app
-                        // bar as well as on the page.
-                        '.Mui-focusVisible, a:focus-visible, [tabindex]:focus-visible, button:focus-visible': {
+                    <GlobalStyles styles={{
+                        // A keyboard focus ring for plain links and focusable
+                        // elements outside MUI's ButtonBase (which has its own,
+                        // in the theme above). currentColor keeps it visible on
+                        // the blue app bar as well as on the page.
+                        'a:focus-visible, [tabindex]:focus-visible, button:focus-visible': {
                             outline: '2px solid currentColor',
                             outlineOffset: 2,
-                        },
-                        '.MuiButton-contained.Mui-focusVisible': {
-                            outlineColor: t.palette.primary.main,
                         },
                         // Honour the OS "reduce motion" setting for every hover
                         // lift, transition and animation on the site (WCAG 2.3.3).
@@ -130,7 +147,7 @@ function MyApp({Component, pageProps}: AppProps) {
                                 scrollBehavior: 'auto !important' as 'auto',
                             },
                         },
-                    })}/>
+                    }}/>
                     {/* Skip link: the first focusable element, hidden until focused, lets
                         keyboard/screen-reader users jump past the nav to the page's
                         <main id="main"> content (WCAG 2.4.1). */}

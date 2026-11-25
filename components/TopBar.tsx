@@ -39,6 +39,9 @@ import {
     navDrawerDividerStyle
 } from '../styles/styles';
 
+// Id of the phone drawer's panel, for the menu button's aria-controls.
+const NAV_DRAWER_ID = 'nav-drawer';
+
 interface NavLink {
     href: string;
     label: string;
@@ -174,7 +177,14 @@ const NavDrawer: React.FC<{
     pathname: string;
     accountLabel: string;
 }> = ({open, onClose, pathname, accountLabel}) => (
-    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{sx: (theme) => navDrawerPaperStyle(theme)}}>
+    <Drawer
+        anchor="right"
+        open={open}
+        onClose={onClose}
+        // MUI's modal Drawer traps focus like a dialog but does not say so;
+        // naming the panel as one tells assistive technology what opened.
+        PaperProps={{id: NAV_DRAWER_ID, role: 'dialog', 'aria-label': 'Navigation menu', sx: (theme) => navDrawerPaperStyle(theme)}}
+    >
         <List component="nav" aria-label="Site" sx={{width: 260}} onClick={onClose}>
             {PRIMARY_LINKS.map((link) => (
                 <ListItemButton
@@ -249,7 +259,8 @@ const TopBar: React.FC = () => {
                         <ColorModeToggleSwitch
                             checked={theme.palette.mode === 'dark'}
                             onChange={colorMode.toggleColorMode}
-                            inputProps={{'aria-label': 'Toggle dark mode'}}
+                            // role="switch": announced as an on/off control, not a checkbox.
+                            inputProps={{'aria-label': 'Toggle dark mode', role: 'switch'}}
                         />
                     </Box>
 
@@ -257,8 +268,11 @@ const TopBar: React.FC = () => {
                     <IconButton
                         color="inherit"
                         aria-label="Open navigation menu"
-                        aria-haspopup="true"
+                        aria-haspopup="dialog"
                         aria-expanded={drawerOpen ? 'true' : 'false'}
+                        // The drawer is only mounted while open, so point at it
+                        // only then rather than at an id that is not there.
+                        aria-controls={drawerOpen ? NAV_DRAWER_ID : undefined}
                         onClick={() => setDrawerOpen(true)}
                         sx={{display: {xs: 'inline-flex', md: 'none'}}}
                     >
