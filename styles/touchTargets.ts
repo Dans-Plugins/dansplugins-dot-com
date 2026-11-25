@@ -30,13 +30,15 @@ export const touchTargetOverrides: Components<Theme> = {
             root: {[COARSE_POINTER]: {minHeight: TOUCH_MIN, minWidth: TOUCH_MIN}},
         },
     },
-    // A clickable chip (a tag filter, the SpigotMC rating link) keeps its
-    // look; an invisible layer stretches its hit area to 44px tall, so it
-    // stays a chip in a row of chips rather than turning into a button.
+    // A clickable chip (a tag filter, the SpigotMC rating link) grows to
+    // 36px, and an invisible layer stretches its hit area to 44px tall, so it
+    // stays a chip in a row of chips rather than turning into a button. The
+    // same 36/44 sizes as preponderous.org, which shares this chrome.
     MuiChip: {
         styleOverrides: {
             clickable: {
                 [COARSE_POINTER]: {
+                    height: 36,
                     position: 'relative',
                     '&::after': {
                         content: '""',
