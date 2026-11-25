@@ -3,6 +3,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Box, createTheme, CssBaseline, GlobalStyles, ThemeProvider} from '@mui/material';
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {COLOR_MODE_STORAGE_KEY, ColorMode, resolveInitialColorMode} from '../utils/colorMode';
+import {touchTargetOverrides} from '../styles/touchTargets';
 
 function MyApp({Component, pageProps}: AppProps) {
     // Start from a stable default for server-side rendering, then resolve the
@@ -93,7 +94,9 @@ function MyApp({Component, pageProps}: AppProps) {
                         styleOverrides: {root: {borderRadius: 8}},
                     },
                 },
-            });
+            // Deep-merged over the options above: touch-sized controls on
+            // coarse pointers (see styles/touchTargets.ts).
+            }, {components: touchTargetOverrides});
         },
         [mode]
     );

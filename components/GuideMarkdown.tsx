@@ -6,6 +6,10 @@ import RepoLink from './RepoLink';
 // Themed styling for the rendered markdown elements (markdown-to-jsx emits plain
 // HTML tags, so these are descendant-selector rules rather than component props).
 const guideBodyStyle = {
+    // Config keys, URLs and class names have no spaces to break at; on a phone
+    // they would push the page wider than the screen. <pre> blocks keep their
+    // lines and scroll inside themselves instead.
+    overflowWrap: 'anywhere',
     // Every markdown heading renders one level down (see DEMOTED_HEADINGS), so
     // each tag here wears the look of the markdown level it came from.
     '& h2': {fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.8rem', fontWeight: 700, mt: 4, mb: 1.5},
@@ -35,7 +39,8 @@ const guideBodyStyle = {
     '& pre code': {bgcolor: 'transparent', p: 0, color: 'inherit', fontSize: '0.85rem'},
     '& blockquote': {borderLeft: '4px solid', borderColor: 'divider', pl: 2, ml: 0, color: 'text.secondary'},
     '& img': {maxWidth: '100%'},
-    '& table': {borderCollapse: 'collapse', width: '100%'},
+    // On a phone a wide table scrolls inside itself rather than the page.
+    '& table': {borderCollapse: 'collapse', width: '100%', display: {xs: 'block', sm: 'table'}, overflowX: 'auto'},
     '& th, & td': {border: '1px solid', borderColor: 'divider', p: 1, textAlign: 'left'},
 };
 

@@ -176,3 +176,34 @@ describe('faction leaderboard page', () => {
         expect(screen.queryByRole('alert')).toBeNull();
     });
 });
+
+// A phone-width viewport: every media query matches, so MUI's
+// `breakpoints.down('sm')` does too. jsdom has no matchMedia of its own.
+const atPhoneWidth = () => vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: true,
+    media: query,
+    onchange: null,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+}));
+
+describe('faction leaderboard page at phone width', () => {
+    it('folds the server into the faction cell, so rank, faction and members fit with nothing off-screen', async () => {
+        atPhoneWidth();
+        fetchMock.mockResolvedValue(page([
+            faction('Alpha', 5, {serverIp: 'play.example.net', discordLink: 'https://discord.gg/alpha'}),
+        ]));
+        render(<LeaderboardPage/>);
+        await screen.findByText('Alpha');
+
+        expect(screen.getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Rank', 'Faction', 'Members']);
+        const cells = within(bodyRows()[0]).getAllByRole('cell');
+        expect(cells).toHaveLength(3);
+        expect(within(cells[1]).getByText('play.example.net')).toBeTruthy();
+        expect(within(cells[1]).getByRole('link', {name: /Discord/})).toBeTruthy();
+        expect(cells[2].textContent).toBe('5');
+    });
+});

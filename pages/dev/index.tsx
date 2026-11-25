@@ -21,6 +21,8 @@ import {
     ToggleButtonGroup,
     Tooltip,
     Typography,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material'
 import BugReportIcon from '@mui/icons-material/BugReport'
 import type {NextPage} from 'next'
@@ -152,7 +154,7 @@ const compareItemRows = (a: BacklogItem, b: BacklogItem, column: ItemSortColumn,
 }
 
 const StatTile: React.FC<{value: React.ReactNode; label: string; tone?: 'warn' | 'crit'}> = ({value, label, tone}) => (
-    <Card variant="outlined" sx={{flex: '1 1 160px', textAlign: 'center', py: 1.5}}>
+    <Card variant="outlined" sx={{flex: {xs: '1 1 130px', sm: '1 1 160px'}, minWidth: 0, textAlign: 'center', py: 1.5}}>
         <Typography
             variant="h4"
             component="div"
@@ -175,18 +177,44 @@ interface SortableHeaderProps<C extends string> {
     onSort: (column: C) => void
 }
 
-function SortableHeader<C extends string>({label, column, align, sort, onSort}: SortableHeaderProps<C>) {
+function SortLabel<C extends string>({label, column, sort, onSort}: Omit<SortableHeaderProps<C>, 'align'>) {
+    return (
+        <TableSortLabel
+            active={sort.column === column}
+            direction={sort.column === column ? sort.direction : 'asc'}
+            onClick={() => onSort(column)}
+        >
+            {label}
+        </TableSortLabel>
+    )
+}
+
+function SortableHeader<C extends string>({align, ...props}: SortableHeaderProps<C>) {
     return (
         // sortDirection sets aria-sort, so a screen reader hears which column
         // the table is ordered by.
-        <TableCell align={align} sortDirection={sort.column === column ? sort.direction : false}>
-            <TableSortLabel
-                active={sort.column === column}
-                direction={sort.column === column ? sort.direction : 'asc'}
-                onClick={() => onSort(column)}
-            >
-                {label}
-            </TableSortLabel>
+        <TableCell align={align} sortDirection={props.sort.column === props.column ? props.sort.direction : false}>
+            <SortLabel {...props}/>
+        </TableCell>
+    )
+}
+
+// On a phone the tables collapse to one column, so their sortable column
+// headers become one wrapping row of sort controls above it: every sort a
+// desktop visitor has stays one tap away.
+function CompactSortRow<C extends string>({columns, sort, onSort}: {
+    columns: {label: string; column: C}[]
+    sort: SortState<C>
+    onSort: (column: C) => void
+}) {
+    return (
+        <TableCell>
+            <Box sx={{display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5, alignItems: 'center'}}>
+                <Box component="span">Sort:</Box>
+                {columns.map(({label, column}) => (
+                    <SortLabel key={column} label={label} column={column} sort={sort} onSort={onSort}/>
+                ))}
+            </Box>
         </TableCell>
     )
 }
@@ -206,6 +234,11 @@ const DevPortalPage: NextPage = () => {
     const [claimants, setClaimants] = useState<Record<string, string>>({})
     const [ideaCounts, setIdeaCounts] = useState<Record<string, number>>({})
     const [token, setToken] = useState<string | null>(null)
+    // Below the `sm` breakpoint both tables drop to a single stacked column
+    // rather than scrolling sideways with their actions out of view. The data
+    // loads on the client, so the server's wide markup is only ever skeletons.
+    const theme = useTheme()
+    const compact = useMediaQuery(theme.breakpoints.down('sm'))
 
     const repoSectionRef = useRef<HTMLDivElement>(null)
     const itemsSectionRef = useRef<HTMLDivElement>(null)
@@ -346,7 +379,7 @@ const DevPortalPage: NextPage = () => {
                     this view refreshes on a schedule and never writes back.
                 </Typography>
 
-                <Stack direction="row" spacing={1} sx={{mb: 3}}>
+                <Stack direction="row" alignItems="center" sx={{mb: 3, flexWrap: 'wrap', columnGap: 1, '& button': {minHeight: {xs: 44, sm: 'auto'}}}}>
                     <MuiLink component="button" variant="body2" onClick={() => scrollTo(repoSectionRef)}>
                         Jump to: repositories
                     </MuiLink>
@@ -366,7 +399,7 @@ const DevPortalPage: NextPage = () => {
                     </Alert>
                 )}
 
-                <Stack direction="row" spacing={1.5} sx={{mb: 4, flexWrap: 'wrap'}}>
+                <Stack direction="row" sx={{mb: 4, flexWrap: 'wrap', gap: 1.5}}>
                     <StatTile value={loading ? <Skeleton width={40} sx={{mx: 'auto'}}/> : totals.openIssues} label="Open issues"/>
                     <StatTile value={loading ? <Skeleton width={40} sx={{mx: 'auto'}}/> : totals.openPrs} label="Open PRs"/>
                     <StatTile
@@ -391,6 +424,9 @@ const DevPortalPage: NextPage = () => {
                         value={signalFilter}
                         onChange={(_e, value) => value !== null && setSignalFilter(value)}
                         aria-label="filter by signal"
+                        // Five filters are wider than a phone: scroll them
+                        // sideways inside the bar rather than off the page.
+                        sx={{maxWidth: '100%', overflowX: 'auto', '& .MuiToggleButton-root': {whiteSpace: 'nowrap', flexShrink: 0}}}
                     >
                         <ToggleButton value="all">All</ToggleButton>
                         {(Object.keys(SIGNALS) as SignalKey[]).map((key) => (
@@ -402,6 +438,13 @@ const DevPortalPage: NextPage = () => {
                         ))}
                     </ToggleButtonGroup>
                 </Stack>
+                {/* What a signal means is in a hover tooltip on the filter, which a
+                    touch screen never shows, so the chosen one is spelled out here. */}
+                {signalFilter !== 'all' && (
+                    <Typography variant="body2" color="text.secondary" sx={{mt: -0.5, mb: 1.5}} aria-live="polite">
+                        {SIGNALS[signalFilter].label}: {SIGNALS[signalFilter].description}
+                    </Typography>
+                )}
 
                 <Card sx={{mb: 4}}>
                     <CardContent sx={{p: 0, '&:last-child': {pb: 0}}}>
@@ -422,22 +465,42 @@ const DevPortalPage: NextPage = () => {
                                             },
                                         }}
                                     >
-                                        <SortableHeader label="Repo" column="repo" sort={repoSort}
-                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="Issues" column="issues" align="right" sort={repoSort}
-                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="PRs (draft)" column="prs" align="right" sort={repoSort}
-                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="Oldest open item" column="oldest" sort={repoSort}
-                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="Signal" column="signal" sort={repoSort}
-                                            onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
-                                        <TableCell align="right">Ideas</TableCell>
+                                        {compact ? (
+                                            <CompactSortRow
+                                                columns={[
+                                                    {label: 'Repo', column: 'repo'},
+                                                    {label: 'Issues', column: 'issues'},
+                                                    {label: 'PRs', column: 'prs'},
+                                                    {label: 'Oldest', column: 'oldest'},
+                                                    {label: 'Signal', column: 'signal'},
+                                                ]}
+                                                sort={repoSort}
+                                                onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}
+                                            />
+                                        ) : (
+                                            <>
+                                                <SortableHeader label="Repo" column="repo" sort={repoSort}
+                                                    onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="Issues" column="issues" align="right" sort={repoSort}
+                                                    onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="PRs (draft)" column="prs" align="right" sort={repoSort}
+                                                    onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="Oldest open item" column="oldest" sort={repoSort}
+                                                    onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="Signal" column="signal" sort={repoSort}
+                                                    onSort={(c) => setRepoSort((s) => toggleSort(s, c, REPO_DEFAULT_DIRECTION))}/>
+                                                <TableCell align="right">Ideas</TableCell>
+                                            </>
+                                        )}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {loading ? (
-                                        Array.from({length: 5}).map((_, i) => (
+                                        Array.from({length: 5}).map((_, i) => compact ? (
+                                            <TableRow key={i}>
+                                                <TableCell><Skeleton width={160}/><Skeleton width={220}/></TableCell>
+                                            </TableRow>
+                                        ) : (
                                             <TableRow key={i}>
                                                 <TableCell><Skeleton width={140}/></TableCell>
                                                 <TableCell align="right"><Skeleton width={30}/></TableCell>
@@ -466,58 +529,103 @@ const DevPortalPage: NextPage = () => {
                                                     onClick={() => jumpToRepo(row.repo)}
                                                     sx={{cursor: 'pointer'}}
                                                 >
-                                                    <TableCell>
-                                                        {/* The row is clickable for the mouse; this button
-                                                            is the same action for the keyboard, which
-                                                            cannot reach a click handler on a <tr>. */}
-                                                        <MuiLink
-                                                            component="button"
-                                                            color="inherit"
-                                                            underline="hover"
-                                                            fontWeight={600}
-                                                            aria-label={`Show open items in ${row.repo}`}
-                                                            onClick={(e: React.MouseEvent) => {
-                                                                e.stopPropagation()
-                                                                jumpToRepo(row.repo)
-                                                            }}
-                                                        >
-                                                            {row.repo} →
-                                                        </MuiLink>
-                                                    </TableCell>
-                                                    <TableCell align="right">{row.openIssueCount}</TableCell>
-                                                    <TableCell align="right">
-                                                        {row.openPrCount}
-                                                        {row.draftPrCount > 0 && (
-                                                            <Typography component="span" color="text.secondary">
-                                                                {' '}({row.draftPrCount})
-                                                            </Typography>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {row.oldestOpenItemAt
-                                                            ? relativeTimeFrom(row.oldestOpenItemAt, Date.now())
-                                                            : '—'}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Tooltip title={signal.description}>
-                                                            <Chip label={signal.label} size="small" color={signal.color}/>
-                                                        </Tooltip>
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        {ideaCounts[row.repo] ? (
-                                                            <Chip
-                                                                label={ideaCounts[row.repo]}
-                                                                aria-label={`${ideaCounts[row.repo]} feature requests for ${row.repo}`}
-                                                                size="small"
-                                                                variant="outlined"
-                                                                onClick={(e) => {
+                                                    {compact ? (
+                                                        <TableCell sx={{py: 1.5}}>
+                                                            {/* The row is clickable for the mouse; this button
+                                                                is the same action for the keyboard, which
+                                                                cannot reach a click handler on a <tr>. */}
+                                                            <MuiLink
+                                                                component="button"
+                                                                color="inherit"
+                                                                underline="hover"
+                                                                fontWeight={600}
+                                                                aria-label={`Show open items in ${row.repo}`}
+                                                                onClick={(e: React.MouseEvent) => {
                                                                     e.stopPropagation()
-                                                                    jumpToIdeas(row.repo)
+                                                                    jumpToRepo(row.repo)
                                                                 }}
-                                                                clickable
-                                                            />
-                                                        ) : '—'}
-                                                    </TableCell>
+                                                            >
+                                                                {row.repo} →
+                                                            </MuiLink>
+                                                            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 1.5, rowGap: 0.75, mt: 0.75, color: 'text.secondary'}}>
+                                                                <span>{row.openIssueCount} issues</span>
+                                                                <span>
+                                                                    {row.openPrCount} PRs{row.draftPrCount > 0 && ` (${row.draftPrCount} draft)`}
+                                                                </span>
+                                                                {row.oldestOpenItemAt && (
+                                                                    <span>oldest {relativeTimeFrom(row.oldestOpenItemAt, Date.now())}</span>
+                                                                )}
+                                                                <Chip label={signal.label} size="small" color={signal.color}/>
+                                                                {ideaCounts[row.repo] ? (
+                                                                    <Chip
+                                                                        label={`${ideaCounts[row.repo]} ${ideaCounts[row.repo] === 1 ? 'idea' : 'ideas'}`}
+                                                                        aria-label={`${ideaCounts[row.repo]} ${ideaCounts[row.repo] === 1 ? 'idea' : 'ideas'} for ${row.repo}`}
+                                                                        variant="outlined"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            jumpToIdeas(row.repo)
+                                                                        }}
+                                                                        clickable
+                                                                    />
+                                                                ) : null}
+                                                            </Box>
+                                                        </TableCell>
+                                                    ) : (
+                                                        <>
+                                                            <TableCell>
+                                                                {/* The row is clickable for the mouse; this button
+                                                                    is the same action for the keyboard, which
+                                                                    cannot reach a click handler on a <tr>. */}
+                                                                <MuiLink
+                                                                    component="button"
+                                                                    color="inherit"
+                                                                    underline="hover"
+                                                                    fontWeight={600}
+                                                                    aria-label={`Show open items in ${row.repo}`}
+                                                                    onClick={(e: React.MouseEvent) => {
+                                                                        e.stopPropagation()
+                                                                        jumpToRepo(row.repo)
+                                                                    }}
+                                                                >
+                                                                    {row.repo} →
+                                                                </MuiLink>
+                                                            </TableCell>
+                                                            <TableCell align="right">{row.openIssueCount}</TableCell>
+                                                            <TableCell align="right">
+                                                                {row.openPrCount}
+                                                                {row.draftPrCount > 0 && (
+                                                                    <Typography component="span" color="text.secondary">
+                                                                        {' '}({row.draftPrCount})
+                                                                    </Typography>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {row.oldestOpenItemAt
+                                                                    ? relativeTimeFrom(row.oldestOpenItemAt, Date.now())
+                                                                    : '—'}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Tooltip title={signal.description}>
+                                                                    <Chip label={signal.label} size="small" color={signal.color}/>
+                                                                </Tooltip>
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                {ideaCounts[row.repo] ? (
+                                                                    <Chip
+                                                                        label={ideaCounts[row.repo]}
+                                                                        aria-label={`${ideaCounts[row.repo]} feature requests for ${row.repo}`}
+                                                                        size="small"
+                                                                        variant="outlined"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            jumpToIdeas(row.repo)
+                                                                        }}
+                                                                        clickable
+                                                                    />
+                                                                ) : '—'}
+                                                            </TableCell>
+                                                        </>
+                                                    )}
                                                 </TableRow>
                                             )
                                         })
@@ -532,14 +640,14 @@ const DevPortalPage: NextPage = () => {
                     <Typography variant="h6" component="h2">
                         Open items {repoFilter && `— ${repoFilter}`}
                     </Typography>
-                    <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                    <Stack direction="row" sx={{flexWrap: 'wrap', gap: 1.5, width: {xs: '100%', sm: 'auto'}}}>
                         <TextField
                             select
                             size="small"
                             label="Repo"
                             value={repoFilter}
                             onChange={(e) => setRepoFilter(e.target.value)}
-                            sx={{minWidth: 200}}
+                            sx={{minWidth: {xs: 0, sm: 200}, flex: {xs: '1 1 140px', sm: '0 0 auto'}}}
                         >
                             <MenuItem value="">All repos</MenuItem>
                             {summary.map((row) => (
@@ -552,7 +660,7 @@ const DevPortalPage: NextPage = () => {
                             label="Type"
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value as ItemTypeFilter)}
-                            sx={{minWidth: 150}}
+                            sx={{minWidth: {xs: 0, sm: 150}, flex: {xs: '1 1 120px', sm: '0 0 auto'}}}
                         >
                             <MenuItem value="all">All types</MenuItem>
                             <MenuItem value="issue">Issues only</MenuItem>
@@ -563,7 +671,7 @@ const DevPortalPage: NextPage = () => {
                 </Stack>
 
                 {(repoFilter || signalFilter !== 'all' || typeFilter !== 'all') && (
-                    <Stack direction="row" spacing={1} sx={{mb: 1.5}} flexWrap="wrap">
+                    <Stack direction="row" sx={{mb: 1.5, flexWrap: 'wrap', gap: 1}}>
                         {repoFilter && (
                             <Chip label={`Repo: ${repoFilter}`} size="small" onDelete={() => setRepoFilter('')}/>
                         )}
@@ -595,20 +703,39 @@ const DevPortalPage: NextPage = () => {
                                             },
                                         }}
                                     >
-                                        <SortableHeader label="Item" column="item" sort={itemSort}
-                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="Type" column="type" sort={itemSort}
-                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="Opened" column="opened" sort={itemSort}
-                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
-                                        <SortableHeader label="Interested" column="interested" align="center" sort={itemSort}
-                                            onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
-                                        <TableCell>Claimed</TableCell>
+                                        {compact ? (
+                                            <CompactSortRow
+                                                columns={[
+                                                    {label: 'Item', column: 'item'},
+                                                    {label: 'Type', column: 'type'},
+                                                    {label: 'Opened', column: 'opened'},
+                                                    {label: 'Interested', column: 'interested'},
+                                                ]}
+                                                sort={itemSort}
+                                                onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}
+                                            />
+                                        ) : (
+                                            <>
+                                                <SortableHeader label="Item" column="item" sort={itemSort}
+                                                    onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="Type" column="type" sort={itemSort}
+                                                    onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="Opened" column="opened" sort={itemSort}
+                                                    onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                                <SortableHeader label="Interested" column="interested" align="center" sort={itemSort}
+                                                    onSort={(c) => setItemSort((s) => toggleSort(s, c, ITEM_DEFAULT_DIRECTION))}/>
+                                                <TableCell>Claimed</TableCell>
+                                            </>
+                                        )}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {loading ? (
-                                        Array.from({length: 6}).map((_, i) => (
+                                        Array.from({length: 6}).map((_, i) => compact ? (
+                                            <TableRow key={i}>
+                                                <TableCell><Skeleton width="90%"/><Skeleton width={180}/></TableCell>
+                                            </TableRow>
+                                        ) : (
                                             <TableRow key={i}>
                                                 <TableCell><Skeleton width={320}/></TableCell>
                                                 <TableCell><Skeleton width={80}/></TableCell>
@@ -626,56 +753,76 @@ const DevPortalPage: NextPage = () => {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        visibleItems.map((item) => (
-                                            <TableRow key={item.targetId} hover>
-                                                <TableCell>
-                                                    <Typography
-                                                        component="a"
-                                                        href={item.htmlUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        color="inherit"
-                                                    >
-                                                        {item.repo} #{item.number} — {item.title}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        size="small"
-                                                        variant="outlined"
-                                                        icon={item.itemType === 'ISSUE' ? <BugReportIcon/> : undefined}
-                                                        label={
-                                                            item.itemType === 'ISSUE'
-                                                                ? 'Issue'
-                                                                : item.draft ? 'Draft PR' : 'PR'
-                                                        }
-                                                        color={item.itemType === 'PULL_REQUEST' && item.draft ? 'warning' : 'default'}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    {relativeTimeFrom(item.githubCreatedAt, Date.now())}
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <LikeButton
-                                                        targetType="issue"
-                                                        targetId={item.targetId}
-                                                        count={interestCounts[item.targetId] || 0}
-                                                        liked={interestedSet.has(item.targetId)}
-                                                        token={token}
-                                                        label={`${item.repo} #${item.number}`}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <ClaimButton
-                                                        repo={item.repo}
-                                                        number={item.number}
-                                                        claimantUsername={claimants[item.targetId] ?? null}
-                                                        token={token}
-                                                        onChange={(claimantUsername) => setClaimant(item.targetId, claimantUsername)}
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
+                                        visibleItems.map((item) => {
+                                            const link = (
+                                                <Typography
+                                                    component="a"
+                                                    href={item.htmlUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    color="inherit"
+                                                    sx={{overflowWrap: 'anywhere'}}
+                                                >
+                                                    {item.repo} #{item.number} — {item.title}
+                                                </Typography>
+                                            )
+                                            const typeChip = (
+                                                <Chip
+                                                    size="small"
+                                                    variant="outlined"
+                                                    icon={item.itemType === 'ISSUE' ? <BugReportIcon/> : undefined}
+                                                    label={
+                                                        item.itemType === 'ISSUE'
+                                                            ? 'Issue'
+                                                            : item.draft ? 'Draft PR' : 'PR'
+                                                    }
+                                                    color={item.itemType === 'PULL_REQUEST' && item.draft ? 'warning' : 'default'}
+                                                />
+                                            )
+                                            const opened = relativeTimeFrom(item.githubCreatedAt, Date.now())
+                                            const interest = (
+                                                <LikeButton
+                                                    targetType="issue"
+                                                    targetId={item.targetId}
+                                                    count={interestCounts[item.targetId] || 0}
+                                                    liked={interestedSet.has(item.targetId)}
+                                                    token={token}
+                                                    label={`${item.repo} #${item.number}`}
+                                                />
+                                            )
+                                            const claim = (
+                                                <ClaimButton
+                                                    repo={item.repo}
+                                                    number={item.number}
+                                                    claimantUsername={claimants[item.targetId] ?? null}
+                                                    token={token}
+                                                    onChange={(claimantUsername) => setClaimant(item.targetId, claimantUsername)}
+                                                />
+                                            )
+                                            return compact ? (
+                                                <TableRow key={item.targetId}>
+                                                    <TableCell sx={{py: 1.5}}>
+                                                        {link}
+                                                        <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 1.5, rowGap: 0.5, mt: 1}}>
+                                                            {typeChip}
+                                                            <Typography variant="body2" color="text.secondary" component="span">
+                                                                {opened}
+                                                            </Typography>
+                                                            {interest}
+                                                            {claim}
+                                                        </Box>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                <TableRow key={item.targetId} hover>
+                                                    <TableCell>{link}</TableCell>
+                                                    <TableCell>{typeChip}</TableCell>
+                                                    <TableCell>{opened}</TableCell>
+                                                    <TableCell align="center">{interest}</TableCell>
+                                                    <TableCell>{claim}</TableCell>
+                                                </TableRow>
+                                            )
+                                        })
                                     )}
                                 </TableBody>
                             </Table>

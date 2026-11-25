@@ -54,9 +54,20 @@ const BottomBar: React.FC<BottomBarProps> = ({version, visits, startDate}) => {
         // A footer, not a second <header>: AppBar renders <header> by default,
         // which gave every page two banner landmarks and no contentinfo.
         <AppBar component="footer" position="static" sx={(theme) => bottomAppBarStyle(theme)}>
-            <Toolbar sx={(theme) => toolbarStyle(theme)}>
-                <Box sx={(theme) => flexContainerStyle(theme)}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Below lg the footer's rows wrap and centre rather than
+                spreading to the edges with ragged gaps. */}
+            <Toolbar sx={(theme) => ({
+                ...toolbarStyle(theme),
+                justifyContent: {xs: 'center', lg: 'space-between'},
+                flexWrap: {xs: 'wrap', lg: 'nowrap'},
+                rowGap: 1,
+            })}>
+                <Box sx={(theme) => ({
+                    ...flexContainerStyle(theme),
+                    justifyContent: {xs: 'center', lg: 'flex-start'},
+                    '& > *': {justifyContent: {xs: 'center', lg: 'flex-start'}},
+                })}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5 }}>
                         <VersionNumber version={version}/>
                         {visits != null && formattedDate && (
                             <>

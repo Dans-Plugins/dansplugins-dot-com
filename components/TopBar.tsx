@@ -104,7 +104,16 @@ const BrandName: React.FC = () => (
         to="/"
         underline="none"
         color="inherit"
-        sx={(theme) => ({...brandNameStyle(theme), display: 'inline-block'})}
+        // A full-height tap target on touch screens, not just the text's line box.
+        sx={(theme) => ({
+            ...brandNameStyle(theme),
+            // No gap after the wordmark until the inline nav sits beside it,
+            // so the bar keeps one row at 360–390px.
+            marginRight: {xs: 0, md: 2},
+            display: 'inline-flex',
+            alignItems: 'center',
+            '@media (pointer: coarse)': {minHeight: 44},
+        })}
     >
         {/* Scaled down on phones so the wordmark, the dark-mode toggle and the
             menu button share one row instead of the bar wrapping to two. */}

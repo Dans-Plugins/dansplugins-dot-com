@@ -289,14 +289,16 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     All plugins
                 </Button>
 
-                <Stack direction="row" spacing={2} alignItems="center" sx={{mb: 2}}>
+                <Stack direction="row" alignItems="center" sx={{mb: 2, gap: {xs: 1.5, sm: 2}}}>
                     <Avatar
                         variant="rounded"
                         {...(icon ? {src: icon, alt: `${title} icon`} : {'aria-hidden': true})}
                         sx={{
                             bgcolor: colorForTitle(title),
-                            width: 64,
-                            height: 64,
+                            // Smaller on a phone, so the title keeps most of the row.
+                            width: {xs: 48, sm: 64},
+                            height: {xs: 48, sm: 64},
+                            flexShrink: 0,
                             fontFamily: '"Space Grotesk", sans-serif',
                             fontWeight: 700,
                             fontSize: '1.75rem'
@@ -304,16 +306,29 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     >
                         {title.charAt(0).toUpperCase()}
                     </Avatar>
-                    <Box sx={{flexGrow: 1}}>
-                        <Typography variant="h3" component="h1" sx={(theme) => sectionHeaderStyle(theme)}>
+                    <Box sx={{flexGrow: 1, minWidth: 0}}>
+                        <Typography
+                            variant="h3"
+                            component="h1"
+                            sx={(theme) => ({
+                                ...sectionHeaderStyle(theme),
+                                // A long plugin name ("Medieval Roleplay Engine")
+                                // at the desktop size crowds the Like button off
+                                // a phone's edge.
+                                fontSize: {xs: '2rem', sm: theme.typography.h3.fontSize},
+                                overflowWrap: 'anywhere',
+                            })}
+                        >
                             {title}
                         </Typography>
                     </Box>
-                    <SelfLoadingLikeButton targetType="plugin" targetId={slug}/>
+                    <Box sx={{flexShrink: 0}}>
+                        <SelfLoadingLikeButton targetType="plugin" targetId={slug}/>
+                    </Box>
                 </Stack>
 
                 {serverCount || latestVersion || githubDownloadCount || testedLabel || spigotRating || spigotDownloads ? (
-                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: firstReleased || lastUpdated ? 1 : downloads ? 2 : 3}}>
+                    <Stack direction="row" sx={{flexWrap: 'wrap', gap: 1, mb: firstReleased || lastUpdated ? 1 : downloads ? 2 : 3}}>
                         {serverCount ? (
                             <Chip
                                 size="small"
@@ -436,7 +451,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                 ) : null}
 
                 {tags.length > 0 ? (
-                    <Stack direction="row" spacing={0.5} sx={{flexWrap: 'wrap', rowGap: 0.5, mb: 3}} aria-label="Tags">
+                    <Stack direction="row" sx={{flexWrap: 'wrap', gap: 0.5, mb: 3}} aria-label="Tags">
                         {tags.map((tag) => (
                             <Chip
                                 key={tag}
@@ -460,7 +475,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                     </Typography>
                 ) : null}
 
-                <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1, mb: 4}}>
+                <Stack direction="row" sx={{flexWrap: 'wrap', gap: 1, mb: 4}}>
                     {releases ? (
                         <Button
                             variant="contained"
@@ -560,7 +575,7 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
                         tracked. Ideas for new behaviour go to the Dev Portal, where the community can
                         upvote them.
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', rowGap: 1}}>
+                    <Stack direction="row" sx={{flexWrap: 'wrap', gap: 1}}>
                         <Button
                             size="small"
                             variant="outlined"
