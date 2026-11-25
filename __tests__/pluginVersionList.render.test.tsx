@@ -8,6 +8,7 @@ import {cleanup, render, screen} from '@testing-library/react';
 
 import PluginVersionList from '../components/PluginVersionList';
 import type {PluginVersion} from '../services/pluginVersionService';
+import {withChangelogHtml} from '../utils/markdownHtml';
 
 afterEach(cleanup);
 
@@ -31,28 +32,28 @@ const latestChipOwner = (): string | null => {
 
 describe('PluginVersionList', () => {
     it('marks the newest release Latest when it is stable', () => {
-        render(<PluginVersionList versions={[
+        render(<PluginVersionList versions={withChangelogHtml([
             version('v2.0.0', false, '2026-09-01T00:00:00Z'),
             version('v1.0.0', false, '2026-01-01T00:00:00Z'),
-        ]}/>);
+        ])}/>);
         expect(latestChipOwner()).toContain('v2.0.0');
     });
 
     it('does not call a development build Latest when a stable release exists', () => {
-        render(<PluginVersionList versions={[
+        render(<PluginVersionList versions={withChangelogHtml([
             version('dev-build', true, '2026-09-28T00:00:00Z'),
             version('v6.0.0', false, '2026-09-24T00:00:00Z'),
-        ]}/>);
+        ])}/>);
         const owner = latestChipOwner();
         expect(owner).toContain('v6.0.0');
         expect(owner).not.toContain('dev-build');
     });
 
     it('falls back to the newest pre-release when there is nothing stable', () => {
-        render(<PluginVersionList versions={[
+        render(<PluginVersionList versions={withChangelogHtml([
             version('v0.2.0-beta', true, '2026-09-28T00:00:00Z'),
             version('v0.1.0-beta', true, '2026-09-01T00:00:00Z'),
-        ]}/>);
+        ])}/>);
         expect(latestChipOwner()).toContain('v0.2.0-beta');
     });
 
@@ -67,9 +68,9 @@ describe('PluginVersionList', () => {
     });
 
     it('points a relative link in a release note at the plugin repository', () => {
-        render(<PluginVersionList versions={[
+        render(<PluginVersionList versions={withChangelogHtml([
             withNotes('v0.7.0', 'See [COMMANDS.md](COMMANDS.md) and [the guide](./USER_GUIDE.md#setup).'),
-        ]}/>);
+        ])}/>);
         expect(screen.getByRole('link', {name: 'COMMANDS.md'}).getAttribute('href'))
             .toBe('https://github.com/Dans-Plugins/Dans-Plugin-Manager/blob/HEAD/COMMANDS.md');
         expect(screen.getByRole('link', {name: 'the guide'}).getAttribute('href'))
@@ -79,19 +80,19 @@ describe('PluginVersionList', () => {
     it('resolves each release against its own repository, older versions included', () => {
         // The older release sits in a collapsed accordion; its notes are still
         // in the server-rendered markup, so query the DOM rather than by role.
-        const {container} = render(<PluginVersionList versions={[
+        const {container} = render(<PluginVersionList versions={withChangelogHtml([
             withNotes('v2.0.0', 'Nothing linked.', 'Dans-Plugins/Fiefs'),
             withNotes('v1.0.0', '[Config](CONFIG.md)', 'Dans-Plugins/Fiefs'),
-        ]}/>);
+        ])}/>);
         const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'));
         expect(hrefs).toContain('https://github.com/Dans-Plugins/Fiefs/blob/HEAD/CONFIG.md');
         expect(hrefs).not.toContain('CONFIG.md');
     });
 
     it('leaves absolute links and in-page anchors in a release note alone', () => {
-        render(<PluginVersionList versions={[
+        render(<PluginVersionList versions={withChangelogHtml([
             withNotes('v0.7.0', '[PR](https://github.com/Dans-Plugins/Dans-Plugin-Manager/pull/121) [Top](#top)'),
-        ]}/>);
+        ])}/>);
         const pr = screen.getByRole('link', {name: 'PR'});
         expect(pr.getAttribute('href')).toBe('https://github.com/Dans-Plugins/Dans-Plugin-Manager/pull/121');
         expect(pr.getAttribute('target')).toBe('_blank');
@@ -99,9 +100,9 @@ describe('PluginVersionList', () => {
     });
 
     it('leaves a relative link as written when the release URL names no repository', () => {
-        render(<PluginVersionList versions={[
+        render(<PluginVersionList versions={withChangelogHtml([
             {...withNotes('v0.7.0', '[Commands](COMMANDS.md)'), htmlUrl: ''},
-        ]}/>);
+        ])}/>);
         expect(screen.getByRole('link', {name: 'Commands'}).getAttribute('href')).toBe('COMMANDS.md');
     });
 });

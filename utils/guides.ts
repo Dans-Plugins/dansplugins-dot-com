@@ -31,7 +31,7 @@ const isSelfContainedTarget = (href: string): boolean =>
 // `#fragment` carried along untouched. Self-contained targets are returned
 // unchanged. Used for both USER_GUIDE.md bodies (components/GuideMarkdown.tsx)
 // and mirrored release notes (components/PluginVersionList.tsx), through
-// components/RepoLink.tsx.
+// RepoAnchor in utils/markdownHtml.ts.
 export const resolveRepoLink = (githubLink: string, href: string): string => {
     if (href === '' || isSelfContainedTarget(href)) {
         return href;

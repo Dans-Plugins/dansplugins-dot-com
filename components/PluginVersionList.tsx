@@ -15,15 +15,16 @@ import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ScienceIcon from '@mui/icons-material/Science';
-import Markdown from 'markdown-to-jsx';
 import {downloadsLabel, latestStableTag, siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
 import {formatFileSize} from '../utils/fileSize';
-import {parseGithubRepo} from '../utils/github';
-import RepoLink from './RepoLink';
+import {markdownLinkStyle} from '../styles/styles';
+import type {RenderedPluginVersion} from '../utils/markdownHtml';
 import {absoluteDateFrom} from '../utils/relativeTime';
 
 interface PluginVersionListProps {
-    versions: PluginVersion[];
+    // Each release's notes are rendered on the server (withChangelogHtml in
+    // utils/markdownHtml.ts) so markdown-to-jsx stays out of the browser bundle.
+    versions: RenderedPluginVersion[];
     releasesUrl?: string;
 }
 
@@ -48,7 +49,6 @@ const changelogStyle = {
     '& p': {mb: 1.5, lineHeight: 1.7},
     '& ul, & ol': {pl: 3, mb: 1.5},
     '& li': {mb: 0.5},
-    '& a': {color: 'primary.main'},
     '& code': {
         bgcolor: 'action.hover',
         px: 0.6,
@@ -61,34 +61,25 @@ const changelogStyle = {
     '& img': {maxWidth: '100%'},
 };
 
-// Raw HTML is disabled deliberately. markdown-to-jsx parses it by default, and
-// these bodies are the first markdown on a resource page that this site does
+// The notes arrive as HTML, rendered from the release body on the server by
+// withChangelogHtml (utils/markdownHtml.ts). Raw HTML in a body is not parsed
+// there: these are the first markdown on a resource page that this site does
 // not fetch from a repository file it controls — a mirrored release note is
-// whatever GitHub returned. components/GuideMarkdown.tsx disables it for the
-// same reason, and reviews and comments will need this off too.
+// whatever GitHub returned — and the guide renderer disables it for the same
+// reason.
 //
-// Links go through RepoLink for the reason guides do: a note saying "see
+// Links are resolved there the way guides' are: a note saying "see
 // [COMMANDS.md](COMMANDS.md)" is written against the repository, and rendered
 // at /resources/<slug> it would otherwise resolve to /resources/COMMANDS.md and
 // 404. The repository is read off the release's own GitHub URL, so every
 // plugin's notes resolve against their own repository without the page having
 // to pass it down.
-const Changelog: React.FC<{markdown: string; htmlUrl: string}> = ({markdown, htmlUrl}) => {
-    const repo = parseGithubRepo(htmlUrl);
-    const githubLink = repo ? `https://github.com/${repo}` : undefined;
-    return (
-        <Box sx={changelogStyle}>
-            <Markdown
-                options={{
-                    disableParsingRawHTML: true,
-                    overrides: {a: {component: RepoLink, props: {githubLink}}},
-                }}
-            >
-                {markdown}
-            </Markdown>
-        </Box>
-    );
-};
+const Changelog: React.FC<{html: string}> = ({html}) => (
+    <Box
+        sx={(theme) => ({...changelogStyle, '& a': markdownLinkStyle(theme)})}
+        dangerouslySetInnerHTML={{__html: html}}
+    />
+);
 
 // Each file links through dpc-api's counting redirect (siteDownloadUrl), so a
 // download from here shows up in the figures the page presents; nofollow keeps
@@ -186,7 +177,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
                 <Stack direction="row" alignItems="center" sx={{flexWrap: 'wrap', gap: 1, mb: 1}}>
                     <VersionHeading version={latest} isLatest={latest.tag === latestTag}/>
                 </Stack>
-                {latest.changelog ? <Changelog markdown={latest.changelog} htmlUrl={latest.htmlUrl}/> : (
+                {latest.changelogHtml ? <Changelog html={latest.changelogHtml}/> : (
                     <Typography variant="body2" color="text.secondary">
                         No release notes were published for this version.
                     </Typography>
@@ -200,7 +191,7 @@ const PluginVersionList: React.FC<PluginVersionListProps> = ({versions, releases
                         <VersionHeading version={version} isLatest={version.tag === latestTag}/>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {version.changelog ? <Changelog markdown={version.changelog} htmlUrl={version.htmlUrl}/> : (
+                        {version.changelogHtml ? <Changelog html={version.changelogHtml}/> : (
                             <Typography variant="body2" color="text.secondary">
                                 No release notes were published for this version.
                             </Typography>

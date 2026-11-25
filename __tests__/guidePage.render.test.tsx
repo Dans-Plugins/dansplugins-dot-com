@@ -15,6 +15,7 @@ import {cleanup, render, screen, within} from '@testing-library/react';
 vi.mock('next/router', () => ({useRouter: () => ({pathname: '/guides/[id]', asPath: '/guides/medieval-factions', query: {}, push: vi.fn()})}));
 
 import GuidePage from '../pages/guides/[id]';
+import {renderGuideMarkdown} from '../utils/markdownHtml';
 
 const GITHUB = 'https://github.com/Dans-Plugins/Medieval-Factions';
 const GUIDE_ON_GITHUB = `${GITHUB}/blob/HEAD/USER_GUIDE.md`;
@@ -27,7 +28,8 @@ afterEach(() => {
 const renderPage = (markdown: string | null) => {
     // The like button asks the API for its count; an empty answer is enough.
     vi.stubGlobal('fetch', vi.fn(async () => ({ok: false, status: 404, json: async () => ({})} as Response)));
-    return render(<GuidePage id="medieval-factions" title="Medieval Factions" githubLink={GITHUB} markdown={markdown}/>);
+    return render(<GuidePage id="medieval-factions" title="Medieval Factions" githubLink={GITHUB}
+        html={markdown === null ? null : renderGuideMarkdown(markdown, GITHUB)}/>);
 };
 
 describe('/guides/[id] page', () => {

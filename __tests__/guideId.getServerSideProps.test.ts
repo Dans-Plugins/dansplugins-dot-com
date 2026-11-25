@@ -10,7 +10,7 @@ interface GuidePropsShape {
         id: string;
         title: string;
         githubLink: string;
-        markdown: string | null;
+        html: string | null;
     };
 }
 
@@ -50,7 +50,7 @@ describe('guide page getServerSideProps', () => {
         expect(result).toEqual({notFound: true});
     });
 
-    it('returns the fetched markdown when the raw USER_GUIDE.md fetch succeeds', async () => {
+    it('returns the fetched markdown, rendered to HTML, when the raw USER_GUIDE.md fetch succeeds', async () => {
         vi.stubGlobal('fetch', guideFetch(() => Promise.resolve({ok: true, text: () => Promise.resolve('# Hello')} as Response)));
 
         const result = await getServerSideProps(contextWithId(KNOWN_ID)) as GuidePropsShape;
@@ -59,24 +59,24 @@ describe('guide page getServerSideProps', () => {
             id: KNOWN_ID,
             title: 'Activity Tracker',
             githubLink: KNOWN_GITHUB_LINK,
-            markdown: '# Hello',
+            html: '<h2 id="hello">Hello</h2>',
         });
     });
 
-    it('falls back to null markdown when the fetch response is not ok', async () => {
+    it('falls back to null html when the fetch response is not ok', async () => {
         vi.stubGlobal('fetch', guideFetch(() => Promise.resolve({ok: false, text: () => Promise.resolve('')} as Response)));
 
         const result = await getServerSideProps(contextWithId(KNOWN_ID)) as GuidePropsShape;
 
-        expect(result.props.markdown).toBeNull();
+        expect(result.props.html).toBeNull();
         expect(result.props.id).toBe(KNOWN_ID);
     });
 
-    it('falls back to null markdown when the fetch throws (network failure)', async () => {
+    it('falls back to null html when the fetch throws (network failure)', async () => {
         vi.stubGlobal('fetch', guideFetch(() => Promise.reject(new Error('network unreachable'))));
 
         const result = await getServerSideProps(contextWithId(KNOWN_ID)) as GuidePropsShape;
 
-        expect(result.props.markdown).toBeNull();
+        expect(result.props.html).toBeNull();
     });
 });

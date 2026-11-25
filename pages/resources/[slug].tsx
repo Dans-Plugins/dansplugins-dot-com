@@ -45,6 +45,7 @@ import {expansionsOf, relatedPlugins, requiredPlugins} from '../../utils/catalog
 import {traceNameFor} from '../../utils/traceNames';
 import {getProgramUsage, ProgramUsage} from '../../utils/traceUsage';
 import {trailerFor, worldRendersFor, type PluginTrailer as Trailer} from '../../utils/pluginTrailers';
+import {withChangelogHtml, type RenderedPluginVersion} from '../../utils/markdownHtml';
 
 const version = require('../../package.json').version;
 
@@ -77,7 +78,9 @@ interface ResourcePageProps {
     // The release history dpc-api mirrors from GitHub. Empty for a plugin that
     // publishes no releases, and also whenever the API can't be reached — the
     // page hides the section either way rather than failing.
-    versions: PluginVersion[];
+    // Each release's notes come rendered to HTML (withChangelogHtml), so the
+    // markdown library never ships to the browser.
+    versions: RenderedPluginVersion[];
     // Downloads made through this site — total, and of the latest release —
     // the pair a SpigotMC resource page shows. Null when the API can't be
     // reached, and the figures are omitted rather than shown as zeros.
@@ -211,7 +214,7 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
             testedVersions: spigotListing?.testedVersions ?? null,
             spigotRating: shownRating(spigotListing?.rating),
             spigotDownloads: spigotListing?.downloads ?? null,
-            versions,
+            versions: withChangelogHtml(versions),
             downloads,
             firstReleasedAt: record?.firstReleasedAt ?? null,
             lastUpdatedAt: versions[0]?.publishedAt ?? null,

@@ -16,6 +16,7 @@ import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {userGuideUrl, userGuideRawUrl} from '../../utils/guides';
 import {getCataloguePlugin} from '../../services/pluginCatalogueService';
+import {renderGuideMarkdown} from '../../utils/markdownHtml';
 import {resourcePath} from '../../utils/resources';
 
 const version = require('../../package.json').version;
@@ -24,9 +25,10 @@ interface GuidePageProps {
     id: string;
     title: string;
     githubLink: string;
-    // The fetched guide markdown, or null if it couldn't be loaded (the page then
-    // falls back to a link to GitHub).
-    markdown: string | null;
+    // The fetched guide markdown, rendered to HTML on the server (so the
+    // markdown library never ships to the browser), or null if it couldn't be
+    // loaded (the page then falls back to a link to GitHub).
+    html: string | null;
 }
 
 export const getServerSideProps: GetServerSideProps<GuidePageProps> = async ({params}) => {
@@ -44,10 +46,11 @@ export const getServerSideProps: GetServerSideProps<GuidePageProps> = async ({pa
     } catch {
         // Leave markdown null; the page renders a fallback link to GitHub.
     }
-    return {props: {id, title: plugin.title, githubLink: plugin.githubLink, markdown}};
+    const html = markdown ? renderGuideMarkdown(markdown, plugin.githubLink) : null;
+    return {props: {id, title: plugin.title, githubLink: plugin.githubLink, html}};
 };
 
-const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) => (
+const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, html}) => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo
             title={`${title} Guide`}
@@ -83,8 +86,8 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
                 <SelfLoadingLikeButton targetType="guide" targetId={id}/>
             </Box>
 
-            {markdown ? (
-                <GuideMarkdown markdown={markdown} githubLink={githubLink}/>
+            {html ? (
+                <GuideMarkdown html={html}/>
             ) : (
                 <Alert
                     severity="info"
