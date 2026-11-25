@@ -186,10 +186,10 @@ No special software is required to use the website. Simply visit [https://danspl
 3. If trace cannot be reached, the page says the figures are unavailable rather than showing none.
 
 <p>
-  <a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page with a notice that usage figures are not available right now, above plugin rows that each say No usage figures available" width="560"></a>
+  <a href="docs/images/usage.jpg"><img src="docs/images/usage.jpg" alt="The Plugin usage page: rows for Wild Pets, Medieval Roleplay Engine and Dan's Set Home, each with active servers in the last 30 days, when it was last reported in use, and two small trend charts of servers and server starts per day" width="560"></a>
 </p>
 
-*Plugin usage, shot while trace could not be reached: the page says the figures are unavailable instead of showing zeros. With trace up, each plugin shows its active servers and a 30-day trend.*
+*Plugin usage: active servers per plugin, with 30-day trends of servers and server starts per day.*
 
 ### Learning How Releases Are Checked
 

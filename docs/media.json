@@ -267,8 +267,8 @@
     {
       "name": "usage",
       "url": "{base}/usage",
-      "caption": "Plugin usage, shot while trace could not be reached: the page says the figures are unavailable instead of showing zeros. With trace up, each plugin shows its active servers and a 30-day trend.",
-      "alt": "The Plugin usage page with a notice that usage figures are not available right now, above plugin rows that each say No usage figures available"
+      "caption": "Plugin usage: active servers per plugin, with 30-day trends of servers and server starts per day.",
+      "alt": "The Plugin usage page: rows for Wild Pets, Medieval Roleplay Engine and Dan's Set Home, each with active servers in the last 30 days, when it was last reported in use, and two small trend charts of servers and server starts per day"
     },
     {
       "name": "roadmap",
