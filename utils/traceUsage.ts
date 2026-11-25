@@ -14,21 +14,36 @@
  * the display logic in utils/usageDisplay.ts must not present starts as
  * servers.
  *
- * Same contract as utils/bstats.ts: server side only, every request bounded
- * by a timeout, results cached per process, and every failure — including a
- * 404 from a trace that has not deployed the endpoint yet — resolves to
+ * Same contract as utils/bstats.ts: server side only, every render bounded
+ * by a time budget, results cached per process, and every failure — including
+ * a 404 from a trace that has not deployed the endpoint yet — resolves to
  * undefined so the page degrades instead of failing.
+ *
+ * Unlike bStats, a render never waits for trace beyond TRACE_TIMEOUT_MS, yet a
+ * slow trace still gets through: the request itself runs in the background
+ * with the much longer TRACE_REFRESH_TIMEOUT_MS, at most one per endpoint at a
+ * time, and stores its answer for the next render (stale-while-revalidate).
  */
 
 /** The trace server. Overridable for local testing against a stub (CONFIG.md). */
 export const traceBaseUrl = (): string =>
     (process.env.TRACE_PUBLIC_URL || 'https://trace.danielstephenson.dev').replace(/\/+$/, '');
 
-/** How long one trace request may take before it is abandoned (as for bStats). */
+/** How long a render waits for trace before it carries on with what is cached (as for bStats). */
 export const TRACE_TIMEOUT_MS = 3_000;
 
-/** How long a fetched answer — or a failure — is served before trace is asked again. */
+/**
+ * How long one trace request may take before it is abandoned. It runs in the
+ * background, so it can be far longer than a render's budget: trace's summary
+ * has been seen taking 17–20 s.
+ */
+export const TRACE_REFRESH_TIMEOUT_MS = 30_000;
+
+/** How long an answer from trace (including a 404) is served before trace is asked again. */
 export const TRACE_CACHE_TTL_MS = 10 * 60 * 1_000;
+
+/** How long after a failed request (error, timeout, bad body) trace is asked again. */
+export const TRACE_RETRY_MS = 60 * 1_000;
 
 export interface VersionUsage {
     // null for starts that did not say which version they were.
@@ -74,20 +89,35 @@ export interface SummaryRow {
     installs: number | null;
 }
 
-type Entry<T> = { value: T | undefined; fetchedAt: number };
+// `answered` is false when the last request failed (as opposed to trace
+// answering, 404 included), so it is retried after TRACE_RETRY_MS rather than
+// TRACE_CACHE_TTL_MS. `value` is the last good answer either way.
+type Entry = {value: unknown; fetchedAt: number; answered: boolean};
 
-// Module-level, one per server process. Usage changes slowly and is
-// informational, so ten minutes is fine. Unlike bStats, a miss is cached too:
-// before trace deploys the endpoint every program 404s, and while trace is
-// down each request would otherwise cost the full timeout on every render.
-// A last good answer still beats a later failure ("stale beats blank").
-const programCache = new Map<string, Entry<ProgramUsage>>();
-let summaryCache: Entry<SummaryRow[]> | null = null;
+// One per server process. `next build` bundles each page separately, each with
+// its own copy of this module, so the cache and the in-flight requests are
+// kept on globalThis: /usage and the plugin pages share one memory of trace.
+// Usage changes slowly and is informational, so ten minutes is fine. A miss
+// is cached too: before trace deploys the endpoint every program 404s, and
+// while trace is down each render would otherwise start another request. A
+// last good answer still beats a later failure ("stale beats blank").
+interface TraceUsageState {
+    cache: Map<string, Entry>;
+    inFlight: Map<string, Promise<unknown>>;
+    // Bumped by clearTraceUsageCache, so a request started before a clear
+    // does not write into the cleared cache when it finishes.
+    generation: number;
+}
 
-/** Test hook: forget everything fetched. */
+const STATE_KEY = Symbol.for('dansplugins.traceUsage');
+const globalStore = globalThis as typeof globalThis & {[STATE_KEY]?: TraceUsageState};
+const state: TraceUsageState = globalStore[STATE_KEY] ??= {cache: new Map(), inFlight: new Map(), generation: 0};
+
+/** Test hook: forget everything fetched, and any request still running. */
 export function clearTraceUsageCache(): void {
-    programCache.clear();
-    summaryCache = null;
+    state.cache.clear();
+    state.inFlight.clear();
+    state.generation += 1;
 }
 
 const isCount = (value: unknown): value is number =>
@@ -171,59 +201,85 @@ export function parseSummary(body: unknown): SummaryRow[] | undefined {
         }));
 }
 
-async function fetchJson<T>(path: string, parse: (body: unknown) => T | undefined): Promise<T | undefined> {
+// What one request learned: `answered` when trace gave a definite answer (a
+// good body, or a 404 meaning "nothing here"), with the parsed value if any.
+type Outcome<T> = {answered: boolean; value: T | undefined};
+
+async function fetchJson<T>(path: string, parse: (body: unknown) => T | undefined): Promise<Outcome<T>> {
     const url = traceBaseUrl() + path;
     try {
-        const response = await fetch(url, {signal: AbortSignal.timeout(TRACE_TIMEOUT_MS)});
+        const response = await fetch(url, {signal: AbortSignal.timeout(TRACE_REFRESH_TIMEOUT_MS)});
         if (!response.ok) {
             // A 404 is expected until trace deploys the endpoint, and for a
             // program that has never reported; neither is worth a log line.
-            if (response.status !== 404) {
-                console.error(`Error fetching ${url}: HTTP ${response.status} ${response.statusText}`);
+            if (response.status === 404) {
+                return {answered: true, value: undefined};
             }
-            return undefined;
+            console.error(`Error fetching ${url}: HTTP ${response.status} ${response.statusText}`);
+            return {answered: false, value: undefined};
         }
         const parsed = parse(await response.json());
         if (parsed === undefined) {
             console.error(`Error fetching ${url}: unexpected response shape`);
         }
-        return parsed;
+        return {answered: parsed !== undefined, value: parsed};
     } catch (error) {
         console.error(`Error fetching ${url}:`, error);
-        return undefined;
+        return {answered: false, value: undefined};
     }
 }
 
-async function cached<T>(
-    current: Entry<T> | null | undefined,
-    store: (entry: Entry<T>) => void,
-    fetcher: () => Promise<T | undefined>
-): Promise<T | undefined> {
-    if (current && Date.now() - current.fetchedAt < TRACE_CACHE_TTL_MS) {
-        return current.value;
+/** Starts the one background request for `key`, or joins the one already running. */
+function refresh<T>(key: string, fetcher: () => Promise<Outcome<T>>): Promise<T | undefined> {
+    const running = state.inFlight.get(key) as Promise<T | undefined> | undefined;
+    if (running) {
+        return running;
     }
-    const fresh = await fetcher();
-    // Stale beats blank: a failure keeps the last good answer (re-stamped so
-    // the next render does not pay the timeout again).
-    const value = fresh !== undefined ? fresh : current?.value;
-    store({value, fetchedAt: Date.now()});
-    return value;
+    const generation = state.generation;
+    const request = fetcher().then(({answered, value}) => {
+        const previous = state.cache.get(key)?.value as T | undefined;
+        // Stale beats blank: a failure keeps the last good answer.
+        const kept = value !== undefined ? value : previous;
+        if (generation === state.generation) {
+            state.cache.set(key, {value: kept, fetchedAt: Date.now(), answered});
+            state.inFlight.delete(key);
+        }
+        return kept;
+    });
+    state.inFlight.set(key, request);
+    return request;
+}
+
+const TIMED_OUT = Symbol('timed out');
+
+async function cached<T>(key: string, fetcher: () => Promise<Outcome<T>>): Promise<T | undefined> {
+    const current = state.cache.get(key);
+    if (current && Date.now() - current.fetchedAt < (current.answered ? TRACE_CACHE_TTL_MS : TRACE_RETRY_MS)) {
+        return current.value as T | undefined;
+    }
+    // Stale or empty: ask trace in the background and wait for it only as
+    // long as a render may. If it answers in time this render uses it;
+    // otherwise this render gets what is cached, and a later one the answer.
+    const request = refresh(key, fetcher);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const budget = new Promise<typeof TIMED_OUT>((resolve) => {
+        timer = setTimeout(() => resolve(TIMED_OUT), TRACE_TIMEOUT_MS);
+    });
+    try {
+        const result = await Promise.race([request, budget]);
+        return result === TIMED_OUT ? current?.value as T | undefined : result;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 /** One program's last 30 days, or undefined when trace has nothing to say (yet). */
 export function getProgramUsage(traceName: string): Promise<ProgramUsage | undefined> {
-    return cached(
-        programCache.get(traceName),
-        (entry) => programCache.set(traceName, entry),
-        () => fetchJson('/api/public/programs/' + encodeURIComponent(traceName), parseProgramUsage)
-    );
+    return cached('program:' + traceName,
+        () => fetchJson('/api/public/programs/' + encodeURIComponent(traceName), parseProgramUsage));
 }
 
 /** Every program trace knows, with its last-seen time and server count; undefined when unreachable. */
 export function getUsageSummary(): Promise<SummaryRow[] | undefined> {
-    return cached(
-        summaryCache,
-        (entry) => { summaryCache = entry; },
-        () => fetchJson('/api/public/summary', parseSummary)
-    );
+    return cached('summary', () => fetchJson('/api/public/summary', parseSummary));
 }
