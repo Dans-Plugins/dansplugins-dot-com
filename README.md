@@ -250,7 +250,7 @@ The images in this README and in [USER_GUIDE.md](USER_GUIDE.md) live in `docs/im
 
 ```bash
 pip install "darkroom @ git+https://github.com/Preponderous-Software/darkroom@v0.7.1"
-npm i --no-save playwright && npx playwright install chromium   # once, for darkroom's web backend
+darkroom setup-web --install                          # once per machine: Playwright + Chromium for darkroom
 
 darkroom check docs/media.json                        # validate the shot list
 darkroom shoot docs/media.json --force                # reshoot everything from https://dansplugins.com
