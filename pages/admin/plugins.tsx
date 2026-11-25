@@ -140,7 +140,7 @@ const AdminPluginsPage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
-            <Seo title="Edit the plugin catalogue" description="Admin: add or edit plugins in the Dan's Plugins Community catalogue."/>
+            <Seo title="Edit the plugin catalogue" description="Admin: add or edit plugins in the Dan's Plugins Community catalogue." noindex/>
             <TopBar/>
             <Container component="main" id="main" maxWidth="md" sx={{py: 4}}>
                 <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

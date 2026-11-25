@@ -5,6 +5,8 @@ import type {GetServerSidePropsContext, NextPage} from 'next'
 import {useRouter} from 'next/router'
 import TopBar from '../components/TopBar'
 import Seo from '../components/Seo'
+import {siteBaseUrl} from '../utils/seo'
+import {websiteJsonLd} from '../utils/structuredData'
 import Blurb from '../components/Blurb'
 import PluginIconGrid from '../components/PluginIconGrid'
 import ExperienceSplash from '../components/ExperienceSplash'
@@ -221,7 +223,7 @@ const Home: NextPage<HomeProps> = ({ visits, startDate, pluginsWithCounts }) => 
 
     return (
         <Box sx={pageStyle}>
-            <Seo/>
+            <Seo jsonLd={websiteJsonLd(siteBaseUrl())}/>
             <TopBar/>
             <ExperienceSplash open={showSplash} onChoosePlayer={dismissSplash} onChooseDeveloper={chooseDeveloper}/>
             <Container component="main" id="main" maxWidth="xl" sx={{py: 4}}>

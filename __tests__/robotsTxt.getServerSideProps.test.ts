@@ -59,10 +59,12 @@ describe('robots.txt getServerSideProps', () => {
 
         const body = bodyWrittenTo(res);
         expect(body).toContain('Sitemap: https://example.test/sitemap.xml');
-        expect(body).toContain('Disallow: /account');
-        expect(body).toContain('Disallow: /dev');
-        expect(body).toContain('Disallow: /admin');
         expect(body).toContain('Disallow: /api/');
+        // The signed-in and admin pages carry a noindex tag instead, which a
+        // crawler can only see if it may fetch them.
+        expect(body).not.toContain('Disallow: /account');
+        expect(body).not.toContain('Disallow: /dev');
+        expect(body).not.toContain('Disallow: /admin');
     });
 
     it('reads NEXT_PUBLIC_BASE_URL per request rather than caching it at import time', async () => {

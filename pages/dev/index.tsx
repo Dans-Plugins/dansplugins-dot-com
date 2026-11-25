@@ -334,7 +334,7 @@ const DevPortalPage: NextPage = () => {
 
     return (
         <Box sx={(theme) => pageStyle(theme)}>
-            <Seo title="Developer Portal" description="Cross-repo GitHub issue/PR backlog for everyone building on Dan's Plugins."/>
+            <Seo title="Developer Portal" description="Cross-repo GitHub issue/PR backlog for everyone building on Dan's Plugins." noindex/>
             <TopBar/>
             <Container component="main" id="main" maxWidth="lg" sx={(theme) => containerPaddingStyle(theme)}>
                 <Typography variant="h3" component="h1" gutterBottom sx={(theme) => sectionHeaderStyle(theme)}>

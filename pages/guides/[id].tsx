@@ -7,6 +7,8 @@ import type {GetServerSideProps, NextPage} from 'next';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import Seo from '../../components/Seo';
+import {siteBaseUrl} from '../../utils/seo';
+import {breadcrumbJsonLd, guideJsonLd} from '../../utils/structuredData';
 import SelfLoadingLikeButton from '../../components/SelfLoadingLikeButton';
 import BottomBar from '../../components/BottomBar';
 import GuideMarkdown from '../../components/GuideMarkdown';
@@ -54,6 +56,13 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, markdown}) 
             // only serves ids that match an entry in the catalogue,
             // and those are plain slugs.
             path={`/guides/${id}`}
+            jsonLd={[
+                guideJsonLd(siteBaseUrl(), {id, title}),
+                breadcrumbJsonLd(siteBaseUrl(), [
+                    {name: 'Guides', path: '/guides'},
+                    {name: `${title} Guide`, path: `/guides/${id}`}
+                ])
+            ]}
         />
         <TopBar/>
         <Container component="main" id="main" maxWidth="md" sx={(theme) => containerPaddingStyle(theme)}>
