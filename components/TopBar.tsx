@@ -47,18 +47,27 @@ interface NavLink {
     label: string;
 }
 
-// In-site destinations shown as top-level links at all sizes. "Account" is
-// handled separately since its label depends on sign-in state.
-const PRIMARY_LINKS: NavLink[] = [
+// In-site destinations shown as top-level links in the desktop bar. "Account"
+// is handled separately since its label depends on sign-in state.
+const INLINE_LINKS: NavLink[] = [
     {href: '/', label: 'Home'},
     {href: '/news', label: 'News'},
     {href: '/guides', label: 'Guides'},
     {href: '/leaderboard', label: 'Leaderboard'},
     {href: '/about', label: 'About'},
+];
+
+// In-site destinations visited less often. In the desktop bar they sit at the
+// top of the Community menu, so the bar fits one row at 1200–1440px; with all
+// eight inline it wrapped to three rows at 1280px.
+const MENU_LINKS: NavLink[] = [
     {href: '/roadmap', label: 'Road Map'},
     {href: '/commissions', label: 'Commissions'},
     {href: '/dev', label: 'Dev Portal'},
 ];
+
+// Every in-site destination, in order, for the drawer.
+const PRIMARY_LINKS: NavLink[] = [...INLINE_LINKS, ...MENU_LINKS];
 
 // Off-site community links, grouped behind a "Community" menu/section rather
 // than sitting inline with the primary nav so the top-level item count stays
@@ -112,7 +121,7 @@ const BrandName: React.FC = () => (
             ...brandNameStyle(theme),
             // No gap after the wordmark until the inline nav sits beside it,
             // so the bar keeps one row at 360–390px.
-            marginRight: {xs: 0, md: 2},
+            marginRight: {xs: 0, lg: 2},
             display: 'inline-flex',
             alignItems: 'center',
             '@media (pointer: coarse)': {minHeight: 44},
@@ -126,10 +135,13 @@ const BrandName: React.FC = () => (
     </Link>
 );
 
-// Desktop-only dropdown for the community links, so the always-visible nav
-// stays to eight in-site destinations plus Account.
-const CommunityMenu: React.FC = () => {
+// Desktop-only dropdown: the less-visited in-site pages, then the off-site
+// community links, so the always-visible nav stays to five in-site
+// destinations plus Account. The button is marked current while on one of
+// the in-site pages it holds, so "you are here" still shows in the bar.
+const CommunityMenu: React.FC<{pathname: string}> = ({pathname}) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+    const holdsCurrentPage = MENU_LINKS.some((link) => isActiveNavLink(pathname, link.href));
     return (
         <>
             <Button
@@ -140,7 +152,14 @@ const CommunityMenu: React.FC = () => {
                 aria-expanded={anchorEl ? 'true' : undefined}
                 endIcon={<ExpandMoreIcon fontSize="small"/>}
                 onClick={(event) => setAnchorEl(event.currentTarget)}
-                sx={(theme) => navButtonStyle(theme)}
+                sx={(theme) => ({
+                    ...navButtonStyle(theme),
+                    ...(holdsCurrentPage && {
+                        fontWeight: 'bold',
+                        textDecoration: 'underline',
+                        textUnderlineOffset: '6px',
+                    }),
+                })}
             >
                 Community
             </Button>
@@ -151,6 +170,19 @@ const CommunityMenu: React.FC = () => {
                 onClose={() => setAnchorEl(null)}
                 MenuListProps={{'aria-labelledby': 'community-menu-button'}}
             >
+                {MENU_LINKS.map((link) => (
+                    <MenuItem
+                        key={link.href}
+                        component={NextLinkComposed}
+                        to={link.href}
+                        selected={isActiveNavLink(pathname, link.href)}
+                        aria-current={isActiveNavLink(pathname, link.href) ? 'page' : undefined}
+                        onClick={() => setAnchorEl(null)}
+                    >
+                        {link.label}
+                    </MenuItem>
+                ))}
+                <Divider/>
                 {COMMUNITY_LINKS.map((link) => (
                     <MenuItem
                         key={link.href}
@@ -169,8 +201,10 @@ const CommunityMenu: React.FC = () => {
     );
 };
 
-// Below the `md` breakpoint the inline nav is replaced by a hamburger button
-// that opens this drawer, the conventional mobile navigation pattern.
+// Below the `lg` breakpoint (1200px) the inline nav is replaced by a hamburger
+// button that opens this drawer, the conventional mobile navigation pattern.
+// A tablet or small laptop gets the drawer too: the wordmark, six links and
+// the menu need about 1150px on one row.
 const NavDrawer: React.FC<{
     open: boolean;
     onClose: () => void;
@@ -238,19 +272,21 @@ const TopBar: React.FC = () => {
             position="static"
             sx={(theme) => appBarStyle(theme)}
         >
-            <Toolbar sx={(theme) => ({...toolbarStyle(theme), flexWrap: {xs: 'nowrap', md: 'wrap'}})}>
-                <Box sx={(theme) => ({...flexContainerStyle(theme, {flexWrap: 'wrap'}), minWidth: 0})}>
+            {/* One row at every width: the drawer takes over before the inline
+                nav would need to wrap. */}
+            <Toolbar sx={(theme) => ({...toolbarStyle(theme), flexWrap: 'nowrap'})}>
+                <Box sx={(theme) => ({...flexContainerStyle(theme, {flexWrap: 'nowrap'}), minWidth: 0})}>
                     <BrandName/>
 
-                    {/* Desktop / tablet: inline nav, hidden below the `md` breakpoint. */}
-                    <Box component="nav" aria-label="Site" sx={(theme) => ({...flexContainerStyle(theme, {gap: 1}), display: {xs: 'none', md: 'flex'}})}>
-                        {PRIMARY_LINKS.map((link) => (
+                    {/* Desktop: inline nav, hidden below the `lg` breakpoint. */}
+                    <Box component="nav" aria-label="Site" sx={(theme) => ({...flexContainerStyle(theme, {gap: 1, flexWrap: 'nowrap'}), display: {xs: 'none', lg: 'flex'}})}>
+                        {INLINE_LINKS.map((link) => (
                             <NavButton key={link.href} href={link.href} active={isActiveNavLink(pathname, link.href)}>
                                 {link.label}
                             </NavButton>
                         ))}
                         <NavButton href="/account" active={isActiveNavLink(pathname, '/account')}>{accountLabel}</NavButton>
-                        <CommunityMenu/>
+                        <CommunityMenu pathname={pathname}/>
                     </Box>
                 </Box>
 
@@ -264,7 +300,7 @@ const TopBar: React.FC = () => {
                         />
                     </Box>
 
-                    {/* Mobile: hamburger button, hidden at `md` and above. */}
+                    {/* Below `lg`: hamburger button, hidden at `lg` and above. */}
                     <IconButton
                         color="inherit"
                         aria-label="Open navigation menu"
@@ -274,7 +310,7 @@ const TopBar: React.FC = () => {
                         // only then rather than at an id that is not there.
                         aria-controls={drawerOpen ? NAV_DRAWER_ID : undefined}
                         onClick={() => setDrawerOpen(true)}
-                        sx={{display: {xs: 'inline-flex', md: 'none'}}}
+                        sx={{display: {xs: 'inline-flex', lg: 'none'}}}
                     >
                         <MenuIcon/>
                     </IconButton>
