@@ -15,7 +15,9 @@ import GuideMarkdown from '../../components/GuideMarkdown';
 import {NextLinkComposed} from '../../components/NextLinkComposed';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
 import {userGuideUrl, userGuideRawUrl} from '../../utils/guides';
-import {getCataloguePlugin} from '../../services/pluginCatalogueService';
+import {getCatalogueIfAvailable} from '../../services/pluginCatalogueService';
+import ServiceUnavailablePage from '../../components/ServiceUnavailablePage';
+import {isUnavailable, serviceUnavailable, type UnavailableProps} from '../../utils/serviceUnavailable';
 import {renderGuideMarkdown} from '../../utils/markdownHtml';
 import {resourcePath} from '../../utils/resources';
 
@@ -31,9 +33,18 @@ interface GuidePageProps {
     html: string | null;
 }
 
-export const getServerSideProps: GetServerSideProps<GuidePageProps> = async ({params}) => {
+export const getServerSideProps: GetServerSideProps<GuidePageProps | UnavailableProps> = async ({params, res}) => {
     const id = typeof params?.id === 'string' ? params.id : '';
-    const plugin = id ? await getCataloguePlugin(id) : null;
+    if (!id) {
+        return {notFound: true};
+    }
+    // Null: dpc-api has never answered this process, so whether the guide
+    // exists is unknown. That is a 503 "try again", not a 404 (#612).
+    const catalogue = await getCatalogueIfAvailable();
+    if (catalogue === null) {
+        return serviceUnavailable(res);
+    }
+    const plugin = catalogue.find((p) => p.id === id);
     if (!plugin) {
         return {notFound: true};
     }
@@ -50,7 +61,7 @@ export const getServerSideProps: GetServerSideProps<GuidePageProps> = async ({pa
     return {props: {id, title: plugin.title, githubLink: plugin.githubLink, html}};
 };
 
-const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, html}) => (
+const GuideDetails: React.FC<GuidePageProps> = ({id, title, githubLink, html}) => (
     <Box sx={(theme) => pageStyle(theme)}>
         <Seo
             title={`${title} Guide`}
@@ -132,5 +143,10 @@ const GuidePage: NextPage<GuidePageProps> = ({id, title, githubLink, html}) => (
         <BottomBar version={version}/>
     </Box>
 );
+
+const GuidePage: NextPage<GuidePageProps | UnavailableProps> = (props) =>
+    isUnavailable(props)
+        ? <ServiceUnavailablePage title="This guide is temporarily unavailable"/>
+        : <GuideDetails {...props}/>;
 
 export default GuidePage;

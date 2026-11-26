@@ -38,7 +38,9 @@ import {getServerCount} from '../../utils/bstats';
 import {formatTestedVersions, getSpigotListing, shownRating, spigotResourceId, spigotReviewsUrl} from '../../utils/spigot';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
 import {colorForTitle} from '../../utils/pluginAvatar';
-import {getCatalogue} from '../../services/pluginCatalogueService';
+import {getCatalogueIfAvailable} from '../../services/pluginCatalogueService';
+import ServiceUnavailablePage from '../../components/ServiceUnavailablePage';
+import {isUnavailable, serviceUnavailable, type UnavailableProps} from '../../utils/serviceUnavailable';
 import {absoluteDateFrom} from '../../utils/relativeTime';
 import {DPM_SLUG, DSH_URL, resourceDescription, resourcePath} from '../../utils/resources';
 import {expansionsOf, relatedPlugins, requiredPlugins} from '../../utils/catalogueFilter';
@@ -170,11 +172,19 @@ const PluginLinkSection = ({id, heading, intro, plugins, testId}: {
 );
 
 
-export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async ({params}) => {
+export const getServerSideProps: GetServerSideProps<ResourcePageProps | UnavailableProps> = async ({params, res}) => {
     const slug = typeof params?.slug === 'string' ? params.slug : '';
+    if (!slug) {
+        return {notFound: true};
+    }
     // The catalogue comes from dpc-api now; one read serves both the plugin
-    // and the related-plugins ranking below.
-    const catalogue = slug ? await getCatalogue() : [];
+    // and the related-plugins ranking below. Null means dpc-api has never
+    // answered this process: nothing to look the slug up in, so the honest
+    // answer is "try again" (503), not "no such plugin" (404). See #612.
+    const catalogue = await getCatalogueIfAvailable();
+    if (catalogue === null) {
+        return serviceUnavailable(res);
+    }
     const plugin = catalogue.find((p) => p.id === slug);
     if (!plugin) {
         return {notFound: true};
@@ -229,7 +239,7 @@ export const getServerSideProps: GetServerSideProps<ResourcePageProps> = async (
     };
 };
 
-const ResourcePage: NextPage<ResourcePageProps> = ({
+const ResourceDetails: React.FC<ResourcePageProps> = ({
     slug,
     title,
     description,
@@ -607,5 +617,10 @@ const ResourcePage: NextPage<ResourcePageProps> = ({
         </Box>
     );
 };
+
+const ResourcePage: NextPage<ResourcePageProps | UnavailableProps> = (props) =>
+    isUnavailable(props)
+        ? <ServiceUnavailablePage title="This plugin page is temporarily unavailable"/>
+        : <ResourceDetails {...props}/>;
 
 export default ResourcePage;

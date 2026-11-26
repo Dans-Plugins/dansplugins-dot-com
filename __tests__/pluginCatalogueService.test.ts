@@ -4,6 +4,7 @@ import {
     clearCatalogueCache,
     fetchCatalogueInBrowser,
     getCatalogue,
+    getCatalogueIfAvailable,
     getCataloguePlugin,
     toCataloguePlugin
 } from '../services/pluginCatalogueService';
@@ -62,11 +63,33 @@ describe('getCatalogue', () => {
 
     it('is empty, not an error, when the API has never answered', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('down')));
+        expect(await getCatalogueIfAvailable()).toBeNull();
         expect(await getCatalogue()).toEqual([]);
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: false, status: 503, statusText: 'Service Unavailable'}));
         expect(await getCatalogue()).toEqual([]);
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: true, json: async () => ({not: 'an array'})}));
         expect(await getCatalogue()).toEqual([]);
+    });
+
+    it('treats an answer with no usable rows as no answer (#612)', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: true, json: async () => []}));
+        expect(await getCatalogueIfAvailable()).toBeNull();
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: true, json: async () => [{junk: true}]}));
+        expect(await getCatalogueIfAvailable()).toBeNull();
+        expect(await getCatalogue()).toEqual([]);
+    });
+
+    it('keeps the last good catalogue when a later answer is empty', async () => {
+        vi.useFakeTimers();
+        try {
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue(catalogueResponse()));
+            expect(await getCatalogueIfAvailable()).toHaveLength(API_CATALOGUE.length);
+            vi.advanceTimersByTime(CATALOGUE_CACHE_TTL_MS + 1);
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: true, json: async () => []}));
+            expect(await getCatalogueIfAvailable()).toHaveLength(API_CATALOGUE.length);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it('keeps the last good catalogue through an outage after the TTL, without paying the timeout twice', async () => {

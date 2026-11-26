@@ -97,7 +97,7 @@ At phone width the hover panel becomes a bottom sheet and the navigation moves i
 
 ### First Time Installation
 
-These steps run the front end on its own. The plugin catalogue comes from the API, so without `dpc-api` running the home page and the Guides page say the catalogue could not be loaded, and every `/resources/<plugin>` and `/guides/<plugin>` page is a 404. Accounts, likes and the leaderboard need it too. See [Development](#development) for running both.
+These steps run the front end on its own. The plugin catalogue comes from the API, so without `dpc-api` running the home page and the Guides page say the catalogue could not be loaded, and every `/resources/<plugin>` and `/guides/<plugin>` page answers 503 "temporarily unavailable". Accounts, likes and the leaderboard need it too. See [Development](#development) for running both.
 
 1. Ensure [Node.js](https://nodejs.org/en/) (v18.17 or later, the floor Next.js 14 requires) is installed on your machine.
 2. Clone this repository: `git clone https://github.com/Dans-Plugins/dansplugins-dot-com.git`
