@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import handler, { config } from '../pages/api/visits';
 import { POST_LIMIT_PER_MINUTE, recordVisit, resetVisitCounterState } from '../utils/visitCounter';
 
@@ -61,6 +61,12 @@ describe('visits API handler', () => {
         removeVisitsFile();
         resetVisitCounterState();
         vi.spyOn(console, 'error').mockImplementation(() => {});
+        // The gateway builds dpc-website with this set to the public origin.
+        vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://dansplugins.com');
+    });
+
+    afterEach(() => {
+        vi.unstubAllEnvs();
     });
 
     afterAll(removeVisitsFile);
@@ -81,6 +87,7 @@ describe('visits API handler', () => {
         const res = call({ method: 'DELETE', headers: {} } as NextApiRequest);
         expect(res.statusCode).toBe(405);
         expect(res.headers.allow).toBe('GET, POST');
+        expect(res.body).toEqual({ error: 'method_not_allowed', message: 'Use GET or POST.' });
     });
 
     it('refuses a POST with no Origin or Referer, such as a bare curl, without counting it', () => {
@@ -92,6 +99,22 @@ describe('visits API handler', () => {
     it('refuses a POST from another site', () => {
         const res = call(browserPost('203.0.113.7', { origin: 'https://evil.example' }));
         expect(res.statusCode).toBe(403);
+        expect(res.body).toEqual({ error: 'forbidden_origin', message: 'That request did not come from this site.' });
+    });
+
+    it('accepts a same-site Referer when the browser leaves Origin out', () => {
+        const req = browserPost();
+        delete (req.headers as Record<string, string>).origin;
+        req.headers.referer = 'https://dansplugins.com/';
+        expect(call(req).statusCode).toBe(200);
+    });
+
+    it('fails closed with 503, without counting, when NEXT_PUBLIC_BASE_URL is not set', () => {
+        vi.stubEnv('NEXT_PUBLIC_BASE_URL', '');
+        const res = call(browserPost());
+        expect(res.statusCode).toBe(503);
+        expect(console.error).toHaveBeenCalledWith(expect.stringContaining('NEXT_PUBLIC_BASE_URL is not set'));
+        expect(visitsOf(call({ method: 'GET', headers: {} } as NextApiRequest))).toBe(0);
     });
 
     it('counts one address once per visit window however often it posts', () => {
@@ -118,6 +141,7 @@ describe('visits API handler', () => {
         const res = call(browserPost());
         expect(res.statusCode).toBe(429);
         expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
+        expect(res.body).toMatchObject({ error: 'rate_limited', message: 'Too many requests' });
         expect(call(browserPost('198.51.100.9')).statusCode).toBe(200);
     });
 

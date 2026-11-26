@@ -14,7 +14,7 @@ import ExperienceSplash from '../components/ExperienceSplash'
 import React from 'react';
 import BottomBar from '../components/BottomBar'
 import { recordVisit } from '../utils/visitCounter';
-import { clientAddress } from '../utils/clientAddress';
+import { requestAddress } from '@kingdom-community/web-guards';
 import { getServerCountsWithRateLimit } from '../utils/bstats';
 import { getSpigotListingsWithRateLimit, shownRating, spigotResourceId } from '../utils/spigot';
 import { getLatestVersionsBySlug } from '../services/pluginVersionService';
@@ -141,7 +141,7 @@ export const getServerSideProps = async ({req}: Pick<GetServerSidePropsContext, 
     let visits: number | null = null;
     let startDate: string | null = null;
     try {
-        const data = recordVisit(clientAddress(req));
+        const data = recordVisit(requestAddress(req));
         visits = data.visits;
         startDate = data.startDate;
     } catch (error) {

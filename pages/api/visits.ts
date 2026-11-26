@@ -1,16 +1,27 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import {
+    methodNotAllowed,
+    refuseCrossOriginRequest,
+    refuseIfLimited,
+    requestAddress,
+} from '@kingdom-community/web-guards';
 import { initializeVisitStorage, getVisitData } from '../../utils/visitStorage';
-import { clientAddress } from '../../utils/clientAddress';
-import { isSameOriginRequest } from '../../utils/sameOrigin';
 import { recordVisit, takePostBudget } from '../../utils/visitCounter';
 
 initializeVisitStorage();
 
 // GET is a read and stays open. POST is the counter's only write over HTTP
-// (the home page counts in-process, utils/visitCounter.ts), so it is guarded:
-// it must come from one of the site's own pages (utils/sameOrigin.ts), each
-// address gets a small budget of requests per minute, and an address counts at
-// most once per visit window however often it posts.
+// (the home page counts in-process, utils/visitCounter.ts), so it is guarded
+// with @kingdom-community/web-guards: it must come from one of the site's own
+// pages (its Origin, or Referer when Origin is absent, must match
+// NEXT_PUBLIC_BASE_URL), each address gets a small budget of requests per
+// minute, and an address counts at most once per visit window however often
+// it posts.
+//
+// The origin check fails closed. With NEXT_PUBLIC_BASE_URL unset, every POST is
+// answered 503 and a line is logged; with it set to the wrong origin, every
+// real POST is answered 403. It is inlined at BUILD time, so the gateway passes
+// it as a build arg (https://dansplugins.com).
 
 // The route takes no body; anything larger than this is refused with 413
 // before the handler runs.
@@ -26,21 +37,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
     if (req.method !== 'POST') {
-        res.setHeader('Allow', 'GET, POST');
-        res.status(405).json({ message: 'Method not allowed' });
+        methodNotAllowed(res, ['GET', 'POST']);
         return;
     }
-    if (!isSameOriginRequest(req.headers)) {
-        res.status(403).json({ message: 'Cross-origin request refused' });
+    if (refuseCrossOriginRequest(req, res, {
+        baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+        baseUrlSetting: 'NEXT_PUBLIC_BASE_URL',
+    })) {
         return;
     }
-    const address = clientAddress(req);
-    const decision = takePostBudget(address);
-    if (!decision.allowed) {
-        res.setHeader('Retry-After', String(decision.retryAfterSeconds));
-        res.status(429).json({ message: 'Too many requests' });
+    const address = requestAddress(req);
+    if (refuseIfLimited(res, takePostBudget(address), 'Too many requests')) {
         return;
     }
     res.status(200).json(recordVisit(address));
 }
-
