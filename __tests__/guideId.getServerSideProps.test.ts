@@ -1,6 +1,8 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {GetServerSidePropsContext} from 'next';
 import {clearCatalogueCache} from '../services/pluginCatalogueService';
+import {RETRY_AFTER_SECONDS} from '../utils/serviceUnavailable';
+import {fakeResponse} from './fixtures/fakeResponse';
 import {catalogueResponse} from './fixtures/catalogue';
 
 import {getServerSideProps} from '../pages/guides/[id]';
@@ -18,8 +20,9 @@ interface NotFoundShape {
     notFound: true;
 }
 
-// The function only reads context.params, so a minimal object covers every
-// branch without constructing a full GetServerSidePropsContext (req/res/etc).
+// The function reads context.params, and context.res only to answer 503 when
+// the catalogue is unreadable (#612; those tests pass a fakeResponse), so a
+// minimal object covers every other branch without a full context.
 const contextWithId = (id?: string): GetServerSidePropsContext =>
     ({params: id === undefined ? {} : {id}} as GetServerSidePropsContext);
 
@@ -43,6 +46,33 @@ describe('guide page getServerSideProps', () => {
     it('returns notFound for an id absent from the catalogue', async () => {
         const result = await getServerSideProps(contextWithId('not-a-real-plugin')) as NotFoundShape;
         expect(result).toEqual({notFound: true});
+    });
+
+    // #612: dpc-api never reached, so whether the guide exists is unknown.
+    it.each([
+        ['a network error', () => Promise.reject(new Error('network unreachable'))],
+        ['a timeout', () => Promise.reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))],
+        ['a 5xx', () => Promise.resolve({ok: false, status: 503, statusText: 'Service Unavailable'} as Response)],
+        ['an empty catalogue', () => Promise.resolve({ok: true, json: async () => []} as unknown as Response)],
+    ])('answers 503 with Retry-After and noindex when the catalogue is unreadable, after %s', async (_label, answer) => {
+        vi.stubGlobal('fetch', vi.fn(answer));
+        const res = fakeResponse();
+
+        const result = await getServerSideProps({params: {id: KNOWN_ID}, res} as unknown as GetServerSidePropsContext);
+
+        expect(result).toEqual({props: {unavailable: true}});
+        expect(res.statusCode).toBe(503);
+        expect(res.headers['retry-after']).toBe(String(RETRY_AFTER_SECONDS));
+        expect(res.headers['x-robots-tag']).toBe('noindex');
+    });
+
+    it('still answers 404, untouched status, for an id the readable catalogue lacks', async () => {
+        const res = fakeResponse();
+
+        const result = await getServerSideProps({params: {id: 'not-a-real-plugin'}, res} as unknown as GetServerSidePropsContext);
+
+        expect(result).toEqual({notFound: true});
+        expect(res.statusCode).toBe(200);
     });
 
     it('returns notFound when params.id is missing', async () => {

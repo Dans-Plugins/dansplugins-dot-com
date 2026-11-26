@@ -149,7 +149,9 @@ the schema, the API, the rendering path and the editing UI at once. Instead:
 
 A page that has never reached the API says the catalogue is unavailable rather
 than rendering an empty grid — an empty catalogue and an unreachable one must
-not look alike.
+not look alike. Its `/resources/{slug}` and `/guides/{id}` pages answer 503
+with `Retry-After` and `noindex` rather than 404, since whether the plugin
+exists is unknown (#612); an empty answer from the API counts as no answer.
 
 Slugs are the plugin ids already in use (`medieval-factions`), so existing
 `/guides/[id]` URLs and every `likes.target_id` row stay valid.

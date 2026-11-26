@@ -4,7 +4,9 @@ import type {GetServerSidePropsContext} from 'next';
 import {getServerSideProps} from '../pages/resources/[slug]';
 import {clearServerCountCache} from '../utils/bstats';
 import {clearSpigotListingCache} from '../utils/spigot';
-import {clearCatalogueCache} from '../services/pluginCatalogueService';
+import {CATALOGUE_CACHE_TTL_MS, clearCatalogueCache} from '../services/pluginCatalogueService';
+import {RETRY_AFTER_SECONDS} from '../utils/serviceUnavailable';
+import {fakeResponse} from './fixtures/fakeResponse';
 import {clearTraceUsageCache} from '../utils/traceUsage';
 import {catalogueResponse} from './fixtures/catalogue';
 import {PLUGIN_TRAILERS} from '../utils/pluginTrailers';
@@ -40,8 +42,9 @@ interface NotFoundShape {
     notFound: true;
 }
 
-// The function only reads context.params, so a minimal object covers every
-// branch without constructing a full GetServerSidePropsContext (req/res/etc).
+// The function reads context.params, and context.res only to answer 503 when
+// the catalogue is unreadable (#612; those tests pass a fakeResponse), so a
+// minimal object covers every other branch without a full context.
 const contextWithSlug = (slug?: string): GetServerSidePropsContext =>
     ({params: slug === undefined ? {} : {slug}} as GetServerSidePropsContext);
 
@@ -341,11 +344,17 @@ describe('resource page getServerSideProps', () => {
             if (url.includes('/versions')) {
                 return {ok: true, json: async () => [mirroredVersion('v2.0.0')]} as unknown as Response;
             }
+            if (url.endsWith('/api/v1/plugins')) {
+                return catalogueResponse();
+            }
             return {ok: true, json: async () => [[0, 1]]} as unknown as Response;
         });
         vi.stubGlobal('fetch', fetchMock);
 
-        await getServerSideProps(contextWithSlug(KNOWN_SLUG));
+        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as ResourcePropsShape;
+
+        // The page really rendered, so the "no GitHub call" below means something.
+        expect(result.props.latestVersion).toBe('v2.0.0');
 
         // The whole point of the mirror is that a page render doesn't spend a
         // call on GitHub's rate limit for something dpc-api already holds.
@@ -406,15 +415,49 @@ describe('resource page getServerSideProps', () => {
         expect(result.props.versions).toEqual([]);
     });
 
-    it('is notFound when the catalogue has never been readable in this process', async () => {
-        // Nothing to look the slug up in: the honest answer is 404, the same as
-        // for a slug the catalogue does not have. The home page, by contrast,
-        // says the catalogue is unavailable rather than showing an empty grid.
-        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network unreachable')));
+    // #612: with nothing to look the slug up in, "no such plugin" would be a
+    // lie that also tells crawlers to drop the page. The answer is 503 with a
+    // Retry-After and noindex, and the page renders its "try again" state.
+    it.each([
+        ['a network error', () => Promise.reject(new Error('network unreachable'))],
+        ['a timeout', () => Promise.reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))],
+        ['a 5xx', () => Promise.resolve({ok: false, status: 502, statusText: 'Bad Gateway'} as Response)],
+        ['an empty catalogue', () => Promise.resolve({ok: true, json: async () => []} as unknown as Response)],
+    ])('answers 503 when the catalogue has never been readable, after %s', async (_label, answer) => {
+        vi.stubGlobal('fetch', vi.fn(answer));
+        const res = fakeResponse();
 
-        const result = await getServerSideProps(contextWithSlug(KNOWN_SLUG)) as NotFoundShape;
+        const result = await getServerSideProps({params: {slug: KNOWN_SLUG}, res} as unknown as GetServerSidePropsContext);
+
+        expect(result).toEqual({props: {unavailable: true}});
+        expect(res.statusCode).toBe(503);
+        expect(res.headers['retry-after']).toBe(String(RETRY_AFTER_SECONDS));
+        expect(res.headers['x-robots-tag']).toBe('noindex');
+    });
+
+    it('still answers 404 for a slug the catalogue genuinely lacks', async () => {
+        const res = fakeResponse();
+
+        const result = await getServerSideProps({params: {slug: 'not-a-real-plugin'}, res} as unknown as GetServerSidePropsContext);
 
         expect(result).toEqual({notFound: true});
+        expect(res.statusCode).toBe(200);
+    });
+
+    it('serves the last good catalogue through a later outage rather than a 503', async () => {
+        await getServerSideProps(contextWithSlug(KNOWN_SLUG));
+        vi.useFakeTimers({now: Date.now() + CATALOGUE_CACHE_TTL_MS + 1, toFake: ['Date']});
+        try {
+            vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network unreachable')));
+            const res = fakeResponse();
+
+            const result = await getServerSideProps({params: {slug: KNOWN_SLUG}, res} as unknown as GetServerSidePropsContext) as ResourcePropsShape;
+
+            expect(result.props.slug).toBe(KNOWN_SLUG);
+            expect(res.statusCode).toBe(200);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it('never returns undefined, which Next.js cannot serialise into page props', async () => {

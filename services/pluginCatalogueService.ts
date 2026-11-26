@@ -85,7 +85,17 @@ const fetchCatalogue = async (): Promise<CataloguePlugin[] | undefined> => {
             console.error('Error fetching the plugin catalogue: response body was not an array.');
             return undefined;
         }
-        return rows.map(toCataloguePlugin).filter((p): p is CataloguePlugin => p !== null);
+        const plugins = rows.map(toCataloguePlugin).filter((p): p is CataloguePlugin => p !== null);
+        // The catalogue is never really empty, so an empty answer is a broken
+        // one (an emptied or half-restored table, or rows all in a shape this
+        // site cannot read). Treat it as no answer: keep serving the last good
+        // catalogue, and with none, let the pages say "temporarily unavailable"
+        // rather than 404 every plugin (#612).
+        if (plugins.length === 0) {
+            console.error(`Error fetching the plugin catalogue: no usable rows (${rows.length} received).`);
+            return undefined;
+        }
+        return plugins;
     } catch (error) {
         console.error('Error fetching the plugin catalogue:', error);
         return undefined;
@@ -93,12 +103,14 @@ const fetchCatalogue = async (): Promise<CataloguePlugin[] | undefined> => {
 };
 
 /**
- * The whole catalogue, alphabetical by title as the API serves it. Server
- * side. Resolves to the last good catalogue through an outage, and to an
- * empty list only when this process has never reached the API — a page must
- * treat that as "unavailable", not as "no plugins".
+ * The whole catalogue, alphabetical by title as the API serves it, or null
+ * when this process has never had a usable answer from the API (it never
+ * answered, or answered with an error or an empty list). Never an empty list.
+ * Server side. Resolves to the last good catalogue through an outage, so null
+ * means there is nothing at all to look a plugin up in: a page must answer
+ * "temporarily unavailable" (503), never "no such plugin" (404).
  */
-export const getCatalogue = async (): Promise<CataloguePlugin[]> => {
+export const getCatalogueIfAvailable = async (): Promise<CataloguePlugin[] | null> => {
     if (cache && Date.now() - cache.fetchedAt < CATALOGUE_CACHE_TTL_MS) {
         return cache.plugins;
     }
@@ -112,8 +124,16 @@ export const getCatalogue = async (): Promise<CataloguePlugin[]> => {
         cache = {plugins: cache.plugins, fetchedAt: Date.now()};
         return cache.plugins;
     }
-    return [];
+    return null;
 };
+
+/**
+ * The whole catalogue, as getCatalogueIfAvailable, but an empty list when
+ * there is none to serve — for the pages that list the catalogue (home,
+ * guides), which say that means "unavailable", not "no plugins".
+ */
+export const getCatalogue = async (): Promise<CataloguePlugin[]> =>
+    (await getCatalogueIfAvailable()) ?? [];
 
 /** One catalogue entry by slug, or null. Served from the same cache. */
 export const getCataloguePlugin = async (slug: string): Promise<CataloguePlugin | null> =>
