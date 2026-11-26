@@ -4,6 +4,8 @@ import {Box, createTheme, CssBaseline, GlobalStyles, ThemeProvider} from '@mui/m
 import {ColorModeContext} from '../utils/ColorModeContext';
 import {COLOR_MODE_STORAGE_KEY, ColorMode, resolveInitialColorMode} from '../utils/colorMode';
 import {touchTargetOverrides} from '../styles/touchTargets';
+import {inter, spaceGrotesk} from '../styles/fonts';
+import {BODY_FONT_VAR, bodyFontFamily, HEADING_FONT_VAR, headingFontFamily} from '../styles/fontFamilies';
 
 function MyApp({Component, pageProps}: AppProps) {
     // Start from a stable default for server-side rendering, then resolve the
@@ -37,7 +39,7 @@ function MyApp({Component, pageProps}: AppProps) {
     const theme = useMemo(
         () => {
             const isDark = mode === 'dark';
-            const headingFont = '"Space Grotesk", system-ui, sans-serif';
+            const headingFont = headingFontFamily;
             return createTheme({
                 palette: {
                     mode,
@@ -59,7 +61,7 @@ function MyApp({Component, pageProps}: AppProps) {
                 },
                 shape: {borderRadius: 10},
                 typography: {
-                    fontFamily: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+                    fontFamily: bodyFontFamily,
                     h1: {fontFamily: headingFont, fontWeight: 700, letterSpacing: '-0.02em'},
                     h2: {fontFamily: headingFont, fontWeight: 700, letterSpacing: '-0.02em'},
                     h3: {fontFamily: headingFont, fontWeight: 600, letterSpacing: '-0.01em'},
@@ -124,6 +126,17 @@ function MyApp({Component, pageProps}: AppProps) {
 
     return (
         <>
+            {/* The self-hosted brand fonts' generated family names, as the
+                variables styles/fontFamilies.ts refers to. On :root rather than
+                a wrapper element so MUI's portals (menus, dialogs) get them too.
+                Emotion, which MUI already ships, rather than styled-jsx, which
+                would add its runtime to every page. */}
+            <GlobalStyles styles={{
+                ':root': {
+                    [BODY_FONT_VAR]: inter.style.fontFamily,
+                    [HEADING_FONT_VAR]: spaceGrotesk.style.fontFamily,
+                },
+            }}/>
             <ColorModeContext.Provider value={colorMode}>
                 <ThemeProvider theme={theme}>
                     <CssBaseline/>

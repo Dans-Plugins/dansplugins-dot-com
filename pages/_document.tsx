@@ -1,10 +1,8 @@
 import {Html, Head, Main, NextScript} from 'next/document';
 
-// Load the brand fonts (Inter for body, Space Grotesk for headings) from Google
-// Fonts, linked here in the document head with preconnect hints to keep the
-// extra round-trip cheap. `next/font` is available now that the site is on Next
-// 14 and would self-host these instead; moving to it is a separate change,
-// since it alters how the fonts are fetched and rendered.
+// The brand fonts (Inter for body, Space Grotesk for headings) are not linked
+// here: next/font self-hosts them (styles/fonts.ts) and pages/_app.tsx applies
+// them, so the page needs no Google Fonts stylesheet or preconnects.
 export default function Document() {
     return (
         <Html lang="en">
@@ -22,12 +20,6 @@ export default function Document() {
                     in dark mode (pages/_app.tsx, MuiAppBar). */}
                 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#4263eb"/>
                 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161b22"/>
-                <link rel="preconnect" href="https://fonts.googleapis.com"/>
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
-                    rel="stylesheet"
-                />
             </Head>
             <body>
                 <Main/>

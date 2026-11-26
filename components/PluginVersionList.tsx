@@ -18,6 +18,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import {downloadsLabel, latestStableTag, siteDownloadUrl, type PluginVersion} from '../services/pluginVersionService';
 import {formatFileSize} from '../utils/fileSize';
 import {markdownLinkStyle} from '../styles/styles';
+import {headingFontFamily} from '../styles/fontFamilies';
 import type {RenderedPluginVersion} from '../utils/markdownHtml';
 import {absoluteDateFrom} from '../utils/relativeTime';
 
@@ -40,7 +41,7 @@ const changelogStyle = {
     overflowWrap: 'anywhere',
     '& table': {display: 'block', maxWidth: '100%', overflowX: 'auto'},
     '& h1, & h2, & h3, & h4': {
-        fontFamily: '"Space Grotesk", sans-serif',
+        fontFamily: headingFontFamily,
         fontSize: '1rem',
         fontWeight: 600,
         mt: 2,

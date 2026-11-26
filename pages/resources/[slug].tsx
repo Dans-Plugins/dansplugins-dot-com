@@ -34,6 +34,7 @@ import {
     PluginVersion
 } from '../../services/pluginVersionService';
 import {pageStyle, sectionHeaderStyle, containerPaddingStyle} from '../../styles/styles';
+import {headingFontFamily} from '../../styles/fontFamilies';
 import {getServerCount} from '../../utils/bstats';
 import {formatTestedVersions, getSpigotListing, shownRating, spigotResourceId, spigotReviewsUrl} from '../../utils/spigot';
 import {getLatestRelease, releasesUrl} from '../../utils/github';
@@ -312,7 +313,7 @@ const ResourceDetails: React.FC<ResourcePageProps> = ({
                             width: {xs: 48, sm: 64},
                             height: {xs: 48, sm: 64},
                             flexShrink: 0,
-                            fontFamily: '"Space Grotesk", sans-serif',
+                            fontFamily: headingFontFamily,
                             fontWeight: 700,
                             fontSize: '1.75rem'
                         }}
