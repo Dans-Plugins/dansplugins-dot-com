@@ -109,6 +109,7 @@ These steps run the front end on its own. The plugin catalogue comes from the AP
    ```bash
    npm run build
    ```
+   The build downloads the brand fonts (Inter and Space Grotesk) from Google Fonts through `next/font` and bundles them with the site, so it needs internet access; the site itself then serves them from its own origin.
 5. Start the server:
    ```bash
    npm run start

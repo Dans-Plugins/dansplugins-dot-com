@@ -1,6 +1,7 @@
 import React from 'react';
 import {Box} from '@mui/material';
 import {markdownLinkStyle} from '../styles/styles';
+import {headingFontFamily} from '../styles/fontFamilies';
 
 // Themed styling for the rendered markdown elements (markdown-to-jsx emits plain
 // HTML tags, so these are descendant-selector rules rather than component props).
@@ -12,9 +13,9 @@ const guideBodyStyle = {
     // Every markdown heading renders one level down (see DEMOTED_HEADINGS in
     // utils/markdownHtml.ts), so each tag here wears the look of the markdown
     // level it came from.
-    '& h2': {fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.8rem', fontWeight: 700, mt: 4, mb: 1.5},
-    '& h3': {fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', fontWeight: 600, mt: 4, mb: 1.5},
-    '& h4': {fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.15rem', fontWeight: 600, mt: 3, mb: 1},
+    '& h2': {fontFamily: headingFontFamily, fontSize: '1.8rem', fontWeight: 700, mt: 4, mb: 1.5},
+    '& h3': {fontFamily: headingFontFamily, fontSize: '1.4rem', fontWeight: 600, mt: 4, mb: 1.5},
+    '& h4': {fontFamily: headingFontFamily, fontSize: '1.15rem', fontWeight: 600, mt: 3, mb: 1},
     '& p': {mb: 2, lineHeight: 1.7},
     '& ul, & ol': {pl: 3, mb: 2},
     '& li': {mb: 0.5},
